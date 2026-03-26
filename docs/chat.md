@@ -486,61 +486,82 @@ Notes:
 - project now has a reusable PostgreSQL connection utility
 - the configuration is still hardcoded for local development and should later move to `.env`
 
+### Update 003 - First extract layer created
+
+Completed:
+
+- created raw traffic source file:
+  - `data/raw/traffic_raw.csv`
+- created first real extract module:
+  - `src/extract/extract_traffic_csv.py`
+- created extract validation test:
+  - `tests/test_extract_traffic_csv.py`
+- validated that the project can read raw CSV traffic data into a pandas DataFrame
+
+Notes:
+
+- the extract layer is intentionally simple and only handles CSV reading plus basic success/error signaling
+- transformation and Bronze loading are still pending
+
 ---
 
 ## 10. Next Task
 
 ### Current active mission
 
-Build the first real extract layer for Traffiq v1.
+Build the first real transform layer for Traffiq v1.
 
 ### Exact goal
 
-Create the CSV traffic extraction layer that reads source traffic data and prepares it for Bronze ingestion.
+Create the first traffic transformation module that cleans and standardizes raw extracted traffic data before Bronze/Silver loading logic is added.
 
 ### Deliverables
 
-1. Create a real CSV input file inside `data/raw/`
-2. Create an extract module in `src/extract/`
-3. Build a function that reads the raw traffic CSV with pandas
-4. Validate that the extracted DataFrame has the expected structure
-5. Prepare this extract layer to feed the Bronze load step later
+1. Create a transform module in `src/transform/`
+2. Build a function that receives the extracted DataFrame
+3. Convert `speed` to numeric
+4. Remove null speeds
+5. Remove negative speeds
+6. Remove duplicates
+7. Standardize `street_name` and `weather` values if needed
+8. Return a clean DataFrame ready for the next stage
+9. Add a simple validation test for the transform layer
 
 ### Expected concrete files
 
-- `data/raw/traffic_raw.csv`
-- `src/extract/extract_traffic_csv.py`
+- `src/transform/transform_traffic_data.py`
+- `tests/test_transform_traffic_data.py`
 
-### What `extract_traffic_csv.py` should eventually do
+### What `transform_traffic_data.py` should eventually do
 
-- read the raw traffic CSV from `data/raw/`
-- return a pandas DataFrame
-- keep extraction logic separate from transform and load
-- include a small validation or print-based check that confirms extraction succeeded
+- receive a raw pandas DataFrame from the extract layer
+- clean invalid speed values
+- remove duplicates
+- standardize values where useful
+- return a DataFrame that is safer and more consistent than the raw input
 
-### What the raw CSV should contain
+### What the transform layer should clean first
 
-- a small but realistic traffic dataset for v1 development
-- minimum useful columns:
-  - timestamp
-  - street_name
-  - speed
-  - weather
+- missing speed values
+- negative speed values
+- duplicated rows
+- inconsistent text casing or spacing if present
 
 ### Why this is the next task
 
-Because DDL and DB connectivity are now done, and the next real step in the pipeline is to start reading source data into the project.
+Because extraction is now done, and the next correct pipeline step is to transform raw data into a cleaner internal structure.
 
-This is the first true project-data task rather than setup work.
+This is the first real data cleaning stage of the project pipeline.
 
 ### Success condition for this task
 
 The task is complete when:
 
-- `data/raw/traffic_raw.csv` exists
-- `src/extract/extract_traffic_csv.py` exists
-- the extract function reads the CSV correctly
-- the extracted DataFrame can be inspected successfully
+- `src/transform/transform_traffic_data.py` exists
+- the transform function cleans the extracted DataFrame correctly
+- invalid and duplicate rows are removed as expected
+- `tests/test_transform_traffic_data.py` exists
+- the transform logic is reviewed and validated before commit
 - the code is reviewed and validated before commit
 
 ---

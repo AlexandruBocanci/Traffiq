@@ -1,0 +1,27 @@
+timestamp,street_name,speed,weather
+2026-03-25 07:00:00,Unirii,35,clear
+2026-03-25 07:15:00,Victoriei,28,rain
+2026-03-25 07:30:00,Dorobanti,18,fog
+2026-03-25 07:45:00,Romana,42,clear
+2026-03-25 08:00:00,Unirii,33,clear
+2026-03-25 08:15:00,Victoriei,,rain
+2026-03-25 08:30:00,Dorobanti,-12,fog
+2026-03-25 08:45:00,Romana,40,clear
+2026-03-25 09:00:00,Unirii,25,rain
+2026-03-25 09:15:00,Victoriei,22,rain
+2026-03-25 09:30:00,Dorobanti,16,fog
+2026-03-25 09:45:00,Romana,38,clear
+2026-03-25 10:00:00,Unirii,35,clear
+2026-03-25 10:15:00,Victoriei,28,rain
+2026-03-25 10:30:00,Dorobanti,18,fog
+2026-03-25 10:45:00,Romana,42,clear
+2026-03-25 11:00:00,Unirii,31,cloudy
+2026-03-25 11:15:00,Victoriei,26,rain
+2026-03-25 11:30:00,Dorobanti,19,fog
+2026-03-25 11:45:00,Romana,36,clear
+2026-03-25 12:00:00,Unirii,29,clear
+2026-03-25 12:15:00,Victoriei,24,rain
+2026-03-25 12:30:00,Dorobanti,17,fog
+2026-03-25 12:45:00,Romana,34,clear
+2026-03-25 08:00:00,Unirii,33,clear
+2026-03-25 09:15:00,Victoriei,22,rain
