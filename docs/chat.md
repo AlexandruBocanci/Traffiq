@@ -17,6 +17,12 @@ Rules for use:
 - after a task is completed and validated, this file must be updated before commit/push
 - the `Next Task` section must always describe the single most important current task
 - after that task is finished, it must be moved into `Updates`, and a new `Next Task` must be written
+- the update log must remain in strict chronological order:
+  - `Update 001`
+  - `Update 002`
+  - `Update 003`
+  - etc.
+- newest updates must be appended below older ones, not inserted above them
 
 ---
 
@@ -436,7 +442,7 @@ Completed documentation:
 
 ## 9. Detailed Update Log
 
-This section must be appended over time. Most recent update should be added at the top.
+This section must be appended over time in strict chronological order.
 
 ### Update 001 - Initial project foundation completed
 
@@ -464,66 +470,77 @@ Notes:
 - project database is `traffiq`
 - `traffic_records` table from tutorials may still exist in another database but is not part of Traffiq
 
+### Update 002 - Python project foundation created
+
+Completed:
+
+- created `src/config/settings.py`
+- created `src/utils/db_utils.py`
+- created `src/utils/test_connection.py`
+- added `__init__.py` files to support package-style imports
+- validated successful connection to PostgreSQL database `traffiq`
+
+Notes:
+
+- project now has a reusable local database configuration layer
+- project now has a reusable PostgreSQL connection utility
+- the configuration is still hardcoded for local development and should later move to `.env`
+
 ---
 
 ## 10. Next Task
 
 ### Current active mission
 
-Build the Python project foundation for real Traffiq development.
+Build the first real extract layer for Traffiq v1.
 
 ### Exact goal
 
-Create the first real Python project layer for Traffiq v1, focused on configuration and database connection.
+Create the CSV traffic extraction layer that reads source traffic data and prepares it for Bronze ingestion.
 
 ### Deliverables
 
-1. Create a configuration module in `src/config/`
-2. Create a database utility module in `src/utils/`
-3. Move database connection settings out of hardcoded training-style scripts and into project structure
-4. Prepare the codebase so later ETL jobs can import the same DB connection logic
+1. Create a real CSV input file inside `data/raw/`
+2. Create an extract module in `src/extract/`
+3. Build a function that reads the raw traffic CSV with pandas
+4. Validate that the extracted DataFrame has the expected structure
+5. Prepare this extract layer to feed the Bronze load step later
 
 ### Expected concrete files
 
-- `src/config/settings.py`
-- `src/utils/db_utils.py`
+- `data/raw/traffic_raw.csv`
+- `src/extract/extract_traffic_csv.py`
 
-### What `settings.py` should eventually do
+### What `extract_traffic_csv.py` should eventually do
 
-- hold database configuration for:
-  - host
-  - port
-  - db name
-  - user
-  - password
-- for now it can be simple and local
-- later it should be adapted to `.env`
+- read the raw traffic CSV from `data/raw/`
+- return a pandas DataFrame
+- keep extraction logic separate from transform and load
+- include a small validation or print-based check that confirms extraction succeeded
 
-### What `db_utils.py` should eventually do
+### What the raw CSV should contain
 
-- expose a function that returns a PostgreSQL connection to `traffiq`
-- avoid repeating `psycopg.connect(...)` in every script
-- be reusable by:
-  - extract jobs
-  - load jobs
-  - API code
-  - validation scripts
+- a small but realistic traffic dataset for v1 development
+- minimum useful columns:
+  - timestamp
+  - street_name
+  - speed
+  - weather
 
 ### Why this is the next task
 
-Because DDL is done, and before writing real ETL code we need:
+Because DDL and DB connectivity are now done, and the next real step in the pipeline is to start reading source data into the project.
 
-- reusable config
-- reusable DB connection layer
-- cleaner project structure
+This is the first true project-data task rather than setup work.
 
 ### Success condition for this task
 
 The task is complete when:
 
-- `settings.py` exists
-- `db_utils.py` exists
-- there is a simple test script or usage path that confirms a successful connection to database `traffiq`
+- `data/raw/traffic_raw.csv` exists
+- `src/extract/extract_traffic_csv.py` exists
+- the extract function reads the CSV correctly
+- the extracted DataFrame can be inspected successfully
 - the code is reviewed and validated before commit
 
 ---
