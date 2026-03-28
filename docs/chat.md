@@ -503,65 +503,86 @@ Notes:
 - the extract layer is intentionally simple and only handles CSV reading plus basic success/error signaling
 - transformation and Bronze loading are still pending
 
+### Update 004 - First transform layer created
+
+Completed:
+
+- created transform module:
+  - `src/transform/transform_traffic_data.py`
+- created transform validation test:
+  - `tests/test_transform_traffic_data.py`
+- added traffic data cleaning logic for:
+  - numeric speed conversion
+  - null speed removal
+  - negative speed removal
+  - duplicate removal
+  - `street_name` standardization
+  - `weather` standardization
+
+Notes:
+
+- this is the first real data cleaning stage in Traffiq
+- current transform logic is focused on traffic CSV data only
+- Bronze loading is still the next missing step
+
 ---
 
 ## 10. Next Task
 
 ### Current active mission
 
-Build the first real transform layer for Traffiq v1.
+Build the first Bronze load layer for raw traffic data.
 
 ### Exact goal
 
-Create the first traffic transformation module that cleans and standardizes raw extracted traffic data before Bronze/Silver loading logic is added.
+Create the first load module that inserts raw traffic CSV data into `bronze.traffic_raw` inside PostgreSQL database `traffiq`.
 
 ### Deliverables
 
-1. Create a transform module in `src/transform/`
-2. Build a function that receives the extracted DataFrame
-3. Convert `speed` to numeric
-4. Remove null speeds
-5. Remove negative speeds
-6. Remove duplicates
-7. Standardize `street_name` and `weather` values if needed
-8. Return a clean DataFrame ready for the next stage
-9. Add a simple validation test for the transform layer
+1. Create a load module in `src/load/`
+2. Build a function that receives raw traffic data and inserts it into `bronze.traffic_raw`
+3. Reuse `settings.py` and `db_utils.py`
+4. Decide how `source_file` and `ingested_at` are populated
+5. Add a simple validation path or test that confirms the rows were loaded into Bronze correctly
 
 ### Expected concrete files
 
-- `src/transform/transform_traffic_data.py`
-- `tests/test_transform_traffic_data.py`
+- `src/load/load_traffic_raw_to_bronze.py`
+- `tests/test_load_traffic_raw_to_bronze.py`
 
-### What `transform_traffic_data.py` should eventually do
+### What `load_traffic_raw_to_bronze.py` should eventually do
 
-- receive a raw pandas DataFrame from the extract layer
-- clean invalid speed values
-- remove duplicates
-- standardize values where useful
-- return a DataFrame that is safer and more consistent than the raw input
+- receive raw extracted traffic data
+- connect to database `traffiq`
+- insert rows into `bronze.traffic_raw`
+- populate metadata fields such as:
+  - `source_file`
+  - `ingested_at`
+- keep load logic separate from extract and transform logic
 
-### What the transform layer should clean first
+### What the Bronze load should insert
 
-- missing speed values
-- negative speed values
-- duplicated rows
-- inconsistent text casing or spacing if present
+- `raw_timestamp`
+- `raw_street_name`
+- `raw_speed`
+- `raw_weather`
+- plus ingestion metadata
 
 ### Why this is the next task
 
-Because extraction is now done, and the next correct pipeline step is to transform raw data into a cleaner internal structure.
+Because extraction and transformation now exist, and the next correct project step is to start persisting source data into the Bronze layer.
 
-This is the first real data cleaning stage of the project pipeline.
+This is the first real database load stage of the Traffiq pipeline.
 
 ### Success condition for this task
 
 The task is complete when:
 
-- `src/transform/transform_traffic_data.py` exists
-- the transform function cleans the extracted DataFrame correctly
-- invalid and duplicate rows are removed as expected
-- `tests/test_transform_traffic_data.py` exists
-- the transform logic is reviewed and validated before commit
+- `src/load/load_traffic_raw_to_bronze.py` exists
+- raw traffic data can be inserted into `bronze.traffic_raw`
+- metadata fields are populated correctly
+- `tests/test_load_traffic_raw_to_bronze.py` exists or an equivalent validation path exists
+- the load logic is reviewed and validated before commit
 - the code is reviewed and validated before commit
 
 ---
