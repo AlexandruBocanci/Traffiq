@@ -476,7 +476,7 @@ Completed:
 
 - created `src/config/settings.py`
 - created `src/utils/db_utils.py`
-- created `src/utils/test_connection.py`
+- created `tests/test_connection.py`
 - added `__init__.py` files to support package-style imports
 - validated successful connection to PostgreSQL database `traffiq`
 
@@ -525,63 +525,93 @@ Notes:
 - current transform logic is focused on traffic CSV data only
 - Bronze loading is still the next missing step
 
+### Update 005 - First Bronze load layer created
+
+Completed:
+
+- created load module:
+  - `src/load/load_traffic_raw_to_bronze.py`
+- created Bronze load validation test:
+  - `tests/test_load_traffic_raw_to_bronze.py`
+- implemented the first raw traffic load into:
+  - `bronze.traffic_raw`
+- inserted Bronze metadata fields:
+  - `source_file`
+  - `ingested_at`
+- validated Bronze loading with:
+  - row-count check in PostgreSQL
+  - repeatable test flow that truncates Bronze only inside the test
+
+Notes:
+
+- Bronze load logic is intentionally separate from extract and transform logic
+- destructive reset logic was kept out of the loader and placed in the validation test only
+- raw traffic data can now move from CSV into the first persisted project layer in PostgreSQL
+
 ---
 
 ## 10. Next Task
 
 ### Current active mission
 
-Build the first Bronze load layer for raw traffic data.
+Build the first Silver load layer for cleaned traffic data.
 
 ### Exact goal
 
-Create the first load module that inserts raw traffic CSV data into `bronze.traffic_raw` inside PostgreSQL database `traffiq`.
+Create the first load module that inserts transformed traffic data into `silver.traffic_observations` inside PostgreSQL database `traffiq`.
 
 ### Deliverables
 
 1. Create a load module in `src/load/`
-2. Build a function that receives raw traffic data and inserts it into `bronze.traffic_raw`
+2. Build a function that receives cleaned traffic data and inserts it into `silver.traffic_observations`
 3. Reuse `settings.py` and `db_utils.py`
-4. Decide how `source_file` and `ingested_at` are populated
-5. Add a simple validation path or test that confirms the rows were loaded into Bronze correctly
+4. Map transformed columns to the Silver table structure
+5. Add a simple validation path or test that confirms the rows were loaded into Silver correctly
 
 ### Expected concrete files
 
-- `src/load/load_traffic_raw_to_bronze.py`
-- `tests/test_load_traffic_raw_to_bronze.py`
+- `src/load/load_traffic_to_silver.py`
+- `tests/test_load_traffic_to_silver.py`
 
-### What `load_traffic_raw_to_bronze.py` should eventually do
+### What `load_traffic_to_silver.py` should eventually do
 
-- receive raw extracted traffic data
+- receive cleaned traffic data from the transform layer
 - connect to database `traffiq`
-- insert rows into `bronze.traffic_raw`
-- populate metadata fields such as:
-  - `source_file`
-  - `ingested_at`
+- insert rows into `silver.traffic_observations`
+- map:
+  - `timestamp` -> `event_timestamp`
+  - `street_name` -> `street_name`
+  - `speed` -> `avg_speed`
+  - `weather` -> `weather_label`
 - keep load logic separate from extract and transform logic
 
-### What the Bronze load should insert
+### What the Silver load should insert
 
-- `raw_timestamp`
-- `raw_street_name`
-- `raw_speed`
-- `raw_weather`
-- plus ingestion metadata
+- `event_timestamp`
+- `street_name`
+- `avg_speed`
+- `weather_label`
 
 ### Why this is the next task
 
-Because extraction and transformation now exist, and the next correct project step is to start persisting source data into the Bronze layer.
+Because the project now has:
 
-This is the first real database load stage of the Traffiq pipeline.
+- extract
+- transform
+- Bronze load
+
+The next correct step is to persist cleaned traffic data into the Silver layer.
+
+This is the next real database load stage of the Traffiq pipeline.
 
 ### Success condition for this task
 
 The task is complete when:
 
-- `src/load/load_traffic_raw_to_bronze.py` exists
-- raw traffic data can be inserted into `bronze.traffic_raw`
-- metadata fields are populated correctly
-- `tests/test_load_traffic_raw_to_bronze.py` exists or an equivalent validation path exists
+- `src/load/load_traffic_to_silver.py` exists
+- cleaned traffic data can be inserted into `silver.traffic_observations`
+- transformed fields are mapped correctly into Silver
+- `tests/test_load_traffic_to_silver.py` exists or an equivalent validation path exists
 - the load logic is reviewed and validated before commit
 - the code is reviewed and validated before commit
 
