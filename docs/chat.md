@@ -548,49 +548,77 @@ Notes:
 - destructive reset logic was kept out of the loader and placed in the validation test only
 - raw traffic data can now move from CSV into the first persisted project layer in PostgreSQL
 
+### Update 006 - First Silver load layer created
+
+Completed:
+
+- created load module:
+  - `src/load/load_traffic_to_silver.py`
+- created Silver load validation test:
+  - `tests/test_load_traffic_to_silver.py`
+- implemented the first cleaned traffic load into:
+  - `silver.traffic_observations`
+- mapped transformed traffic fields into Silver:
+  - `timestamp` -> `event_timestamp`
+  - `street_name` -> `street_name`
+  - `speed` -> `avg_speed`
+  - `weather` -> `weather_label`
+- validated Silver loading with:
+  - row-count check in PostgreSQL
+  - repeatable test flow that truncates Silver only inside the test
+
+Notes:
+
+- Silver load now receives cleaned traffic data from the transform layer
+- load logic remains separate from extract and transform responsibilities
+- the project can now persist traffic data into both Bronze and Silver layers
+
 ---
 
 ## 10. Next Task
 
 ### Current active mission
 
-Build the first Silver load layer for cleaned traffic data.
+Build the first Gold hourly traffic metrics step.
 
 ### Exact goal
 
-Create the first load module that inserts transformed traffic data into `silver.traffic_observations` inside PostgreSQL database `traffiq`.
+Create the first module that builds `gold.hourly_street_metrics` from cleaned traffic data and validates the result inside PostgreSQL database `traffiq`.
 
 ### Deliverables
 
 1. Create a load module in `src/load/`
-2. Build a function that receives cleaned traffic data and inserts it into `silver.traffic_observations`
+2. Build a function that receives cleaned traffic data and loads hourly metrics into `gold.hourly_street_metrics`
 3. Reuse `settings.py` and `db_utils.py`
-4. Map transformed columns to the Silver table structure
-5. Add a simple validation path or test that confirms the rows were loaded into Silver correctly
+4. Aggregate traffic by date, hour, and street
+5. Add a simple validation path or test that confirms rows were loaded into Gold correctly
 
 ### Expected concrete files
 
-- `src/load/load_traffic_to_silver.py`
-- `tests/test_load_traffic_to_silver.py`
+- `src/load/load_hourly_street_metrics_to_gold.py`
+- `tests/test_load_hourly_street_metrics_to_gold.py`
 
-### What `load_traffic_to_silver.py` should eventually do
+### What `load_hourly_street_metrics_to_gold.py` should eventually do
 
 - receive cleaned traffic data from the transform layer
 - connect to database `traffiq`
-- insert rows into `silver.traffic_observations`
-- map:
-  - `timestamp` -> `event_timestamp`
-  - `street_name` -> `street_name`
-  - `speed` -> `avg_speed`
-  - `weather` -> `weather_label`
+- aggregate data by:
+  - metric date
+  - hour of day
+  - street name
+- calculate:
+  - average speed
+  - congestion score
+- insert rows into `gold.hourly_street_metrics`
 - keep load logic separate from extract and transform logic
 
-### What the Silver load should insert
+### What the Gold load should insert
 
-- `event_timestamp`
+- `metric_date`
+- `hour_of_day`
 - `street_name`
 - `avg_speed`
-- `weather_label`
+- `congestion_score`
 
 ### Why this is the next task
 
@@ -599,8 +627,9 @@ Because the project now has:
 - extract
 - transform
 - Bronze load
+- Silver load
 
-The next correct step is to persist cleaned traffic data into the Silver layer.
+The next correct step is to produce the first analytics-ready Gold traffic table.
 
 This is the next real database load stage of the Traffiq pipeline.
 
@@ -608,10 +637,10 @@ This is the next real database load stage of the Traffiq pipeline.
 
 The task is complete when:
 
-- `src/load/load_traffic_to_silver.py` exists
-- cleaned traffic data can be inserted into `silver.traffic_observations`
-- transformed fields are mapped correctly into Silver
-- `tests/test_load_traffic_to_silver.py` exists or an equivalent validation path exists
+- `src/load/load_hourly_street_metrics_to_gold.py` exists
+- hourly traffic metrics can be inserted into `gold.hourly_street_metrics`
+- average speed and congestion score are populated correctly
+- `tests/test_load_hourly_street_metrics_to_gold.py` exists or an equivalent validation path exists
 - the load logic is reviewed and validated before commit
 - the code is reviewed and validated before commit
 

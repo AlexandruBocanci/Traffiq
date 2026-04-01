@@ -2,14 +2,15 @@
 
 ## 1. Goal
 
-Traffiq v1 is the first buildable and realistic version of the final product.
+Traffiq v1 is the first buildable and realistic version of the project.
 
 Its purpose is to prove:
 
 - end-to-end ETL capability
-- clean PostgreSQL design
-- traffic + weather integration
+- clean PostgreSQL layered design
+- traffic and weather integration
 - FastAPI serving layer
+- mobile app connectivity to the backend
 - a product-oriented analytics experience
 
 ## 2. v1 Scope
@@ -21,8 +22,10 @@ Included in v1:
 - Bronze -> Silver -> Gold pipeline
 - PostgreSQL local database
 - FastAPI backend
+- mobile app connected to the backend
 - route and street reports in simplified form
-- simplified history data model
+- simplified map preview
+- pipeline visibility in simplified form
 - product documentation
 
 Not included in v1:
@@ -32,53 +35,50 @@ Not included in v1:
 - forgot password flow
 - real event ingestion from police / accidents provider
 - true routing engine
-- mobile app
+- advanced production-grade mobile UX
 - cloud deployment in first implementation
 
 ## 3. v1 Product Experience
 
 v1 is centered on analytics and route reporting rather than full navigation.
 
-### v1 tabs
+### v1 mobile app areas
 
 1. `Reports`
-2. `History`
+2. `Weather Impact`
 3. `Map Preview`
 4. `Pipeline`
 
-### v1 tab details
+### v1 area details
 
 #### Reports
 
-- search a route or street
-- inspect hourly traffic report
+- inspect traffic data by street or route
+- inspect hourly traffic summary
 - inspect congestion profile
-- inspect weather impact summary
 
-#### History
+#### Weather Impact
 
-- view previous analyzed rides or route checks
-- show origin, destination, distance, duration, average speed
+- inspect traffic behavior by weather condition
+- inspect average speed impact by weather label
 
 #### Map Preview
 
 - simplified traffic map or route summary card
-- route line and congestion highlights
-- no full Waze-like experience yet
+- congestion highlights
+- analytical preview only, not real navigation
 
 #### Pipeline
 
-- show pipeline steps
-- last run
-- extracted and loaded records
-- basic data quality results
+- show pipeline stages in simplified form
+- show last successful run in demo form
+- show extracted and loaded data visibility for portfolio demo
 
 ## 4. v1 Data Sources
 
 - traffic CSV dataset
 - Open-Meteo weather API
-- optional mock route definitions
-- optional mock event dataset if needed for UX demo only
+- optional mock route definitions if needed for analytical preview only
 
 ## 5. v1 Database Scope
 
@@ -89,7 +89,7 @@ Schemas:
 - `gold`
 - `etl_meta`
 
-Minimum tables:
+Core tables for v1:
 
 - `bronze.traffic_raw`
 - `bronze.weather_raw`
@@ -97,9 +97,7 @@ Minimum tables:
 - `silver.weather_observations`
 - `silver.traffic_weather_enriched`
 - `gold.hourly_street_metrics`
-- `gold.route_hourly_report`
 - `gold.weather_traffic_impact`
-- `etl_meta.pipeline_runs`
 
 ## 6. v1 API Scope
 
@@ -109,8 +107,6 @@ Minimum endpoints:
 - `GET /traffic`
 - `GET /traffic/top-speed`
 - `GET /streets/top-congested`
-- `GET /routes/report`
-- `GET /routes/hourly`
 - `GET /weather-impact`
 
 ## 7. v1 Technical Stack
@@ -122,15 +118,13 @@ Minimum endpoints:
 - FastAPI
 - uvicorn
 - requests
-- python-dotenv
+- React Native
+- python-dotenv later, when config is moved out of hardcoded settings
 
 ## 8. v1 Repository Direction
 
 ```text
 traffiq/
-  README.md
-  requirements.txt
-  .env.example
   data/
   docs/
   sql/
@@ -142,8 +136,60 @@ traffiq/
 
 v1 is successful if:
 
-- pipeline runs end-to-end locally
-- weather data is integrated into traffic analytics
-- Gold tables answer useful traffic questions
+- traffic and weather data flow through the local pipeline
+- Bronze, Silver, and Gold layers are populated correctly
 - FastAPI serves real data from PostgreSQL
-- project is strong enough to present to recruiters
+- the mobile app consumes backend endpoints successfully
+- the project is strong enough to present to recruiters as a serious backend-focused portfolio project
+
+## 10. v1 Commit Plan
+
+### Foundation
+
+- [ ] Create core project documentation and repository structure
+- [ ] Create PostgreSQL DDL for Bronze, Silver, and Gold layers
+- [ ] Create Python database configuration and connection utilities
+
+### Traffic Pipeline
+
+- [ ] Create traffic CSV extract module and validation test
+- [ ] Create traffic transform module and validation test
+- [ ] Create Bronze traffic load module and validation test
+- [ ] Create Silver traffic load module and validation test
+- [ ] Create Gold hourly street metrics module and validation
+- [ ] Create congestion score logic for Gold traffic metrics
+
+### Weather Pipeline
+
+- [ ] Create weather API extract module and validation test
+- [ ] Create Bronze weather load module and validation test
+- [ ] Create Silver weather load module and validation test
+- [ ] Create traffic-weather enrichment module for Silver layer and validation
+- [ ] Create Gold weather impact module and validation
+
+### Backend API
+
+- [ ] Create FastAPI application foundation and local run flow
+- [ ] Create health endpoint
+- [ ] Create traffic endpoint backed by PostgreSQL
+- [ ] Create top-speed traffic endpoint backed by PostgreSQL
+- [ ] Create top-congested streets endpoint backed by PostgreSQL
+- [ ] Create weather-impact endpoint backed by PostgreSQL
+
+### Mobile App
+
+- [ ] Initialize React Native mobile app for Traffiq v1
+- [ ] Create base app navigation structure
+- [ ] Create shared app layout and visual theme
+- [ ] Configure app-to-backend API connection layer
+- [ ] Create Reports screen connected to traffic endpoints
+- [ ] Create Weather Impact screen connected to weather endpoint
+- [ ] Create Map Preview screen with analytical traffic summary
+- [ ] Create Pipeline Status screen for demo visibility
+
+### Integration and Polish
+
+- [ ] Connect backend endpoints cleanly to mobile app screens
+- [ ] Add loading, empty-state, and error-state handling in app
+- [ ] Validate end-to-end local flow: pipeline -> PostgreSQL -> FastAPI -> mobile app
+- [ ] Finalize v1 documentation and recruiter-ready project presentation
