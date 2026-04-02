@@ -573,52 +573,73 @@ Notes:
 - load logic remains separate from extract and transform responsibilities
 - the project can now persist traffic data into both Bronze and Silver layers
 
+### Update 007 - First Gold hourly traffic metrics step created
+
+Completed:
+
+- created Gold load module:
+  - `src/load/load_hourly_street_metrics_to_gold.py`
+- created Gold validation test:
+  - `tests/test_load_hourly_street_metrics_to_gold.py`
+- implemented the first hourly traffic aggregation into:
+  - `gold.hourly_street_metrics`
+- aggregated cleaned traffic data by:
+  - `metric_date`
+  - `hour_of_day`
+  - `street_name`
+- calculated Gold metrics:
+  - `avg_speed`
+  - `congestion_score`
+- validated Gold loading with:
+  - row-count check in PostgreSQL
+  - congestion score range validation between 0 and 100
+
+Notes:
+
+- this is the first analytics-ready Gold traffic table in Traffiq
+- congestion score logic is now implemented in its initial v1 form
+- Gold load still works from cleaned traffic input and remains separate from extract and transform responsibilities
+
 ---
 
 ## 10. Next Task
 
 ### Current active mission
 
-Build the first Gold hourly traffic metrics step.
+Build the first weather API extract step.
 
 ### Exact goal
 
-Create the first module that builds `gold.hourly_street_metrics` from cleaned traffic data and validates the result inside PostgreSQL database `traffiq`.
+Create the first module that extracts weather data from the API and validates the returned dataset inside the Traffiq project.
 
 ### Deliverables
 
-1. Create a load module in `src/load/`
-2. Build a function that receives cleaned traffic data and loads hourly metrics into `gold.hourly_street_metrics`
-3. Reuse `settings.py` and `db_utils.py`
-4. Aggregate traffic by date, hour, and street
-5. Add a simple validation path or test that confirms rows were loaded into Gold correctly
+1. Create an extract module in `src/extract/`
+2. Build a function that requests weather data from the selected API
+3. Return the response in a DataFrame that can later feed Bronze weather loading
+4. Keep API request logic separate from transform and load logic
+5. Add a simple validation path or test that confirms weather data was extracted correctly
 
 ### Expected concrete files
 
-- `src/load/load_hourly_street_metrics_to_gold.py`
-- `tests/test_load_hourly_street_metrics_to_gold.py`
+- `src/extract/extract_weather_api.py`
+- `tests/test_extract_weather_api.py`
 
-### What `load_hourly_street_metrics_to_gold.py` should eventually do
+### What `extract_weather_api.py` should eventually do
 
-- receive cleaned traffic data from the transform layer
-- connect to database `traffiq`
-- aggregate data by:
-  - metric date
-  - hour of day
-  - street name
-- calculate:
-  - average speed
-  - congestion score
-- insert rows into `gold.hourly_street_metrics`
-- keep load logic separate from extract and transform logic
+- send a request to the weather API
+- receive weather data for the selected location and time scope
+- convert the relevant response fields into a pandas DataFrame
+- prepare the output for later Bronze weather loading
+- keep extract logic separate from transform and load logic
 
-### What the Gold load should insert
+### What the weather extract should return
 
-- `metric_date`
-- `hour_of_day`
-- `street_name`
-- `avg_speed`
-- `congestion_score`
+- weather timestamps
+- temperature values
+- precipitation values
+- wind speed values
+- weather code values
 
 ### Why this is the next task
 
@@ -628,8 +649,9 @@ Because the project now has:
 - transform
 - Bronze load
 - Silver load
+- Gold hourly traffic metrics
 
-The next correct step is to produce the first analytics-ready Gold traffic table.
+The next correct step is to start the weather side of the pipeline.
 
 This is the next real database load stage of the Traffiq pipeline.
 
@@ -637,11 +659,11 @@ This is the next real database load stage of the Traffiq pipeline.
 
 The task is complete when:
 
-- `src/load/load_hourly_street_metrics_to_gold.py` exists
-- hourly traffic metrics can be inserted into `gold.hourly_street_metrics`
-- average speed and congestion score are populated correctly
-- `tests/test_load_hourly_street_metrics_to_gold.py` exists or an equivalent validation path exists
-- the load logic is reviewed and validated before commit
+- `src/extract/extract_weather_api.py` exists
+- weather data can be extracted from the selected API
+- the extracted data is returned in DataFrame form
+- `tests/test_extract_weather_api.py` exists or an equivalent validation path exists
+- the extract logic is reviewed and validated before commit
 - the code is reviewed and validated before commit
 
 ---
