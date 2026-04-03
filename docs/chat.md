@@ -625,46 +625,72 @@ Notes:
 - the weather side of the pipeline now has its first working extract layer
 - returned weather data is already shaped to support the next Bronze load step
 
+### Update 009 - First Bronze weather load step created
+
+Completed:
+
+- created Bronze weather load module:
+  - `src/load/load_weather_raw_to_bronze.py`
+- created Bronze weather load validation test:
+  - `tests/test_load_weather_raw_to_bronze.py`
+- implemented the first raw weather load into:
+  - `bronze.weather_raw`
+- populated Bronze weather fields from extracted weather data:
+  - `requested_at`
+  - `raw_timestamp`
+  - `temperature`
+  - `precipitation`
+  - `wind_speed`
+  - `weather_code`
+- validated Bronze weather loading with:
+  - row-count check in PostgreSQL
+  - repeatable test flow that truncates Bronze weather only inside the test
+
+Notes:
+
+- Bronze weather loading is now separated from weather extraction
+- the weather side of the pipeline can now persist raw weather data into PostgreSQL
+- extracted weather data is now persisted in the first weather storage layer
+
 ---
 
 ## 10. Next Task
 
 ### Current active mission
 
-Build the first Bronze weather load step.
+Build the first Silver weather load step.
 
 ### Exact goal
 
-Create the first module that loads extracted weather data into `bronze.weather_raw` and validates the result inside PostgreSQL database `traffiq`.
+Create the first module that loads cleaned weather data into `silver.weather_observations` and validates the result inside PostgreSQL database `traffiq`.
 
 ### Deliverables
 
 1. Create a load module in `src/load/`
-2. Build a function that receives extracted weather data and inserts it into `bronze.weather_raw`
+2. Build a function that receives weather data and inserts it into `silver.weather_observations`
 3. Reuse `settings.py` and `db_utils.py`
-4. Map extracted weather columns to the Bronze weather table structure
+4. Map weather extract columns to the Silver weather table structure
 5. Add a simple validation path or test that confirms weather rows were loaded correctly
 
 ### Expected concrete files
 
-- `src/load/load_weather_raw_to_bronze.py`
-- `tests/test_load_weather_raw_to_bronze.py`
+- `src/load/load_weather_to_silver.py`
+- `tests/test_load_weather_to_silver.py`
 
-### What `load_weather_raw_to_bronze.py` should eventually do
+### What `load_weather_to_silver.py` should eventually do
 
-- receive extracted weather data from the weather extract layer
+- receive weather data from the weather extract layer
 - connect to database `traffiq`
-- insert rows into `bronze.weather_raw`
-- populate Bronze weather columns from extracted weather fields
+- insert rows into `silver.weather_observations`
+- populate Silver weather columns from extracted weather fields
 - keep load logic separate from extract and transform logic
 
-### What the Bronze weather load should insert
+### What the Silver weather load should insert
 
-- `requested_at`
-- `raw_timestamp`
-- `temperature`
-- `precipitation`
-- `wind_speed`
+- `event_timestamp`
+- `temperature_c`
+- `precipitation_mm`
+- `wind_speed_kmh`
 - `weather_code`
 
 ### Why this is the next task
@@ -677,8 +703,9 @@ Because the project now has:
 - Silver load
 - Gold hourly traffic metrics
 - weather API extract
+- Bronze weather load
 
-The next correct step is to persist extracted weather data into the Bronze layer.
+The next correct step is to persist weather data into the Silver layer.
 
 This is the next real database load stage of the Traffiq pipeline.
 
@@ -686,10 +713,10 @@ This is the next real database load stage of the Traffiq pipeline.
 
 The task is complete when:
 
-- `src/load/load_weather_raw_to_bronze.py` exists
-- extracted weather data can be inserted into `bronze.weather_raw`
-- Bronze weather fields are populated correctly
-- `tests/test_load_weather_raw_to_bronze.py` exists or an equivalent validation path exists
+- `src/load/load_weather_to_silver.py` exists
+- weather data can be inserted into `silver.weather_observations`
+- Silver weather fields are populated correctly
+- `tests/test_load_weather_to_silver.py` exists or an equivalent validation path exists
 - the load logic is reviewed and validated before commit
 - the code is reviewed and validated before commit
 
