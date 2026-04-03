@@ -600,46 +600,72 @@ Notes:
 - congestion score logic is now implemented in its initial v1 form
 - Gold load still works from cleaned traffic input and remains separate from extract and transform responsibilities
 
+### Update 008 - First weather API extract step created
+
+Completed:
+
+- created weather extract module:
+  - `src/extract/extract_weather_api.py`
+- created weather extract validation test:
+  - `tests/test_extract_weather_api.py`
+- implemented the first weather API request using:
+  - Open-Meteo
+- converted weather API hourly fields into a pandas DataFrame
+- returned weather extract fields needed for the Traffiq pipeline:
+  - `timestamp`
+  - `temperature`
+  - `precipitation`
+  - `wind_speed`
+  - `weather_code`
+- validated that weather data can be extracted successfully for the selected location
+
+Notes:
+
+- weather extraction is now separated from later Bronze weather loading
+- the weather side of the pipeline now has its first working extract layer
+- returned weather data is already shaped to support the next Bronze load step
+
 ---
 
 ## 10. Next Task
 
 ### Current active mission
 
-Build the first weather API extract step.
+Build the first Bronze weather load step.
 
 ### Exact goal
 
-Create the first module that extracts weather data from the API and validates the returned dataset inside the Traffiq project.
+Create the first module that loads extracted weather data into `bronze.weather_raw` and validates the result inside PostgreSQL database `traffiq`.
 
 ### Deliverables
 
-1. Create an extract module in `src/extract/`
-2. Build a function that requests weather data from the selected API
-3. Return the response in a DataFrame that can later feed Bronze weather loading
-4. Keep API request logic separate from transform and load logic
-5. Add a simple validation path or test that confirms weather data was extracted correctly
+1. Create a load module in `src/load/`
+2. Build a function that receives extracted weather data and inserts it into `bronze.weather_raw`
+3. Reuse `settings.py` and `db_utils.py`
+4. Map extracted weather columns to the Bronze weather table structure
+5. Add a simple validation path or test that confirms weather rows were loaded correctly
 
 ### Expected concrete files
 
-- `src/extract/extract_weather_api.py`
-- `tests/test_extract_weather_api.py`
+- `src/load/load_weather_raw_to_bronze.py`
+- `tests/test_load_weather_raw_to_bronze.py`
 
-### What `extract_weather_api.py` should eventually do
+### What `load_weather_raw_to_bronze.py` should eventually do
 
-- send a request to the weather API
-- receive weather data for the selected location and time scope
-- convert the relevant response fields into a pandas DataFrame
-- prepare the output for later Bronze weather loading
-- keep extract logic separate from transform and load logic
+- receive extracted weather data from the weather extract layer
+- connect to database `traffiq`
+- insert rows into `bronze.weather_raw`
+- populate Bronze weather columns from extracted weather fields
+- keep load logic separate from extract and transform logic
 
-### What the weather extract should return
+### What the Bronze weather load should insert
 
-- weather timestamps
-- temperature values
-- precipitation values
-- wind speed values
-- weather code values
+- `requested_at`
+- `raw_timestamp`
+- `temperature`
+- `precipitation`
+- `wind_speed`
+- `weather_code`
 
 ### Why this is the next task
 
@@ -650,8 +676,9 @@ Because the project now has:
 - Bronze load
 - Silver load
 - Gold hourly traffic metrics
+- weather API extract
 
-The next correct step is to start the weather side of the pipeline.
+The next correct step is to persist extracted weather data into the Bronze layer.
 
 This is the next real database load stage of the Traffiq pipeline.
 
@@ -659,11 +686,11 @@ This is the next real database load stage of the Traffiq pipeline.
 
 The task is complete when:
 
-- `src/extract/extract_weather_api.py` exists
-- weather data can be extracted from the selected API
-- the extracted data is returned in DataFrame form
-- `tests/test_extract_weather_api.py` exists or an equivalent validation path exists
-- the extract logic is reviewed and validated before commit
+- `src/load/load_weather_raw_to_bronze.py` exists
+- extracted weather data can be inserted into `bronze.weather_raw`
+- Bronze weather fields are populated correctly
+- `tests/test_load_weather_raw_to_bronze.py` exists or an equivalent validation path exists
+- the load logic is reviewed and validated before commit
 - the code is reviewed and validated before commit
 
 ---
