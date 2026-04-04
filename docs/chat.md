@@ -652,6 +652,30 @@ Notes:
 - the weather side of the pipeline can now persist raw weather data into PostgreSQL
 - extracted weather data is now persisted in the first weather storage layer
 
+### Update 010 - First weather transform step created
+
+Completed:
+
+- created weather transform module:
+  - `src/transform/transform_weather_data.py`
+- created weather transform validation test:
+  - `tests/test_transform_weather_data.py`
+- implemented first weather cleaning logic for:
+  - numeric conversion
+  - null removal
+  - negative value removal where applicable
+  - duplicate removal
+- validated that transformed weather data is suitable for later Silver loading
+
+Notes:
+
+- weather now follows the same high-level pipeline structure as traffic:
+  - extract
+  - transform
+  - Bronze
+  - Silver
+- transformed weather data is now ready for the first Silver weather load step
+
 ---
 
 ## 10. Next Task
@@ -662,12 +686,12 @@ Build the first Silver weather load step.
 
 ### Exact goal
 
-Create the first module that loads cleaned weather data into `silver.weather_observations` and validates the result inside PostgreSQL database `traffiq`.
+Create the first module that loads transformed weather data into `silver.weather_observations` and validates the result inside PostgreSQL database `traffiq`.
 
 ### Deliverables
 
 1. Create a load module in `src/load/`
-2. Build a function that receives weather data and inserts it into `silver.weather_observations`
+2. Build a function that receives transformed weather data and inserts it into `silver.weather_observations`
 3. Reuse `settings.py` and `db_utils.py`
 4. Map weather extract columns to the Silver weather table structure
 5. Add a simple validation path or test that confirms weather rows were loaded correctly
@@ -679,7 +703,7 @@ Create the first module that loads cleaned weather data into `silver.weather_obs
 
 ### What `load_weather_to_silver.py` should eventually do
 
-- receive weather data from the weather extract layer
+- receive transformed weather data from the weather transform layer
 - connect to database `traffiq`
 - insert rows into `silver.weather_observations`
 - populate Silver weather columns from extracted weather fields
@@ -704,6 +728,7 @@ Because the project now has:
 - Gold hourly traffic metrics
 - weather API extract
 - Bronze weather load
+- weather transform
 
 The next correct step is to persist weather data into the Silver layer.
 
