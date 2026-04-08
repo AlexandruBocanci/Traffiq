@@ -731,48 +731,70 @@ Notes:
 - this is acceptable for the current portfolio stage because traffic CSV data and live weather API data are not from the same real-world time period
 - the project now has the first joined traffic and weather dataset in Silver
 
+### Update 013 - First Gold weather impact step created
+
+Completed:
+
+- created Gold weather impact load module:
+  - `src/load/load_weather_traffic_impact_to_gold.py`
+- created Gold weather impact validation test:
+  - `tests/test_load_weather_traffic_impact_to_gold.py`
+- implemented the first weather-based Gold aggregation into:
+  - `gold.weather_traffic_impact`
+- aggregated enriched traffic-weather data by:
+  - `metric_date`
+  - `weather_label`
+- calculated Gold weather impact metrics:
+  - `avg_speed`
+  - `avg_congestion_score`
+- validated Gold weather impact loading with:
+  - row-count check in PostgreSQL
+  - average congestion score validation between 0 and 100
+
+Notes:
+
+- this closes the main weather analytics path for Traffiq v1
+- the project now has a complete first-pass pipeline for traffic, weather, enrichment, and Gold weather impact analytics
+- weather analytics are now ready to support backend API work
+
 ---
 
 ## 10. Next Task
 
 ### Current active mission
 
-Build the first Gold weather impact step.
+Build the FastAPI application foundation.
 
 ### Exact goal
 
-Create the first module that builds `gold.weather_traffic_impact` from enriched traffic and weather data and validates the result inside PostgreSQL database `traffiq`.
+Create the initial FastAPI application structure and local run flow for Traffiq v1.
 
 ### Deliverables
 
-1. Create a load module in `src/load/`
-2. Build a function that receives enriched traffic-weather data and loads aggregated metrics into `gold.weather_traffic_impact`
-3. Reuse `settings.py` and `db_utils.py`
-4. Aggregate by date and weather label
-5. Add a simple validation path or test that confirms Gold weather rows were loaded correctly
+1. Create the first FastAPI app entry point in `src/api/`
+2. Ensure the app can start locally
+3. Prepare the project for endpoint modules that will follow
+4. Keep API startup logic separate from data pipeline code
+5. Add a simple validation path that confirms the FastAPI app boots successfully
 
 ### Expected concrete files
 
-- `src/load/load_weather_traffic_impact_to_gold.py`
-- `tests/test_load_weather_traffic_impact_to_gold.py`
+- `src/api/main.py`
+- optionally a simple test or validation script for local startup
 
-### What `load_weather_traffic_impact_to_gold.py` should eventually do
+### What the FastAPI foundation should eventually do
 
-- receive enriched traffic-weather data from the Silver layer
-- connect to database `traffiq`
-- aggregate enriched rows by date and weather label
-- calculate:
-  - average speed
-  - average congestion score
-- insert rows into `gold.weather_traffic_impact`
-- keep load logic separate from extract and transform logic
+- define the FastAPI application object
+- provide a clean startup entry point
+- allow local execution with uvicorn
+- prepare the API layer for upcoming endpoints
+- remain separate from ETL implementation logic
 
-### What the Gold weather impact load should insert
+### What this task should produce
 
-- `metric_date`
-- `weather_label`
-- `avg_speed`
-- `avg_congestion_score`
+- a working FastAPI app instance
+- a local run command that starts successfully
+- a clean starting point for endpoint implementation
 
 ### Why this is the next task
 
@@ -788,8 +810,9 @@ Because the project now has:
 - weather transform
 - Silver weather load
 - traffic-weather enrichment
+- Gold weather impact
 
-The next correct step is to produce the first weather-based Gold analytics table.
+The next correct step is to expose the project through the backend API layer.
 
 This is the next real database load stage of the Traffiq pipeline.
 
@@ -797,11 +820,11 @@ This is the next real database load stage of the Traffiq pipeline.
 
 The task is complete when:
 
-- `src/load/load_weather_traffic_impact_to_gold.py` exists
-- aggregated weather impact data can be inserted into `gold.weather_traffic_impact`
-- Gold weather impact fields are populated correctly
-- `tests/test_load_weather_traffic_impact_to_gold.py` exists or an equivalent validation path exists
-- the load logic is reviewed and validated before commit
+- `src/api/main.py` exists
+- the FastAPI app starts locally without crashing
+- the project is ready for endpoint implementation
+- a simple validation path exists for app startup
+- the API foundation is reviewed and validated before commit
 - the code is reviewed and validated before commit
 
 ---
