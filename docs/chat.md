@@ -702,48 +702,77 @@ Notes:
 - weather data can now move through extract, transform, Bronze, and Silver layers
 - the project now has both traffic and weather data persisted in Silver
 
+### Update 012 - First traffic-weather enrichment step created
+
+Completed:
+
+- created enrichment load module:
+  - `src/load/load_traffic_weather_enriched_to_silver.py`
+- created enrichment validation test:
+  - `tests/test_load_traffic_weather_enriched_to_silver.py`
+- implemented the first Silver enrichment load into:
+  - `silver.traffic_weather_enriched`
+- joined cleaned traffic and cleaned weather data using simplified hourly matching
+- populated enrichment fields:
+  - `event_timestamp`
+  - `street_name`
+  - `avg_speed`
+  - `weather_label`
+  - `temperature_c`
+  - `precipitation_mm`
+  - `wind_speed_kmh`
+- validated enrichment loading with:
+  - row-count check in PostgreSQL
+  - non-null weather label validation
+
+Notes:
+
+- the first enrichment step uses simplified hour-of-day matching for v1
+- this is acceptable for the current portfolio stage because traffic CSV data and live weather API data are not from the same real-world time period
+- the project now has the first joined traffic and weather dataset in Silver
+
 ---
 
 ## 10. Next Task
 
 ### Current active mission
 
-Build the first traffic-weather enrichment step.
+Build the first Gold weather impact step.
 
 ### Exact goal
 
-Create the first module that joins cleaned traffic data with cleaned weather data into `silver.traffic_weather_enriched` and validates the result inside PostgreSQL database `traffiq`.
+Create the first module that builds `gold.weather_traffic_impact` from enriched traffic and weather data and validates the result inside PostgreSQL database `traffiq`.
 
 ### Deliverables
 
 1. Create a load module in `src/load/`
-2. Build a function that receives cleaned traffic data and cleaned weather data and inserts enriched rows into `silver.traffic_weather_enriched`
+2. Build a function that receives enriched traffic-weather data and loads aggregated metrics into `gold.weather_traffic_impact`
 3. Reuse `settings.py` and `db_utils.py`
-4. Join weather observations to traffic observations using timestamp logic
-5. Add a simple validation path or test that confirms enriched rows were loaded correctly
+4. Aggregate by date and weather label
+5. Add a simple validation path or test that confirms Gold weather rows were loaded correctly
 
 ### Expected concrete files
 
-- `src/load/load_traffic_weather_enriched_to_silver.py`
-- `tests/test_load_traffic_weather_enriched_to_silver.py`
+- `src/load/load_weather_traffic_impact_to_gold.py`
+- `tests/test_load_weather_traffic_impact_to_gold.py`
 
-### What `load_traffic_weather_enriched_to_silver.py` should eventually do
+### What `load_weather_traffic_impact_to_gold.py` should eventually do
 
-- receive cleaned traffic data and cleaned weather data from the transform layers
+- receive enriched traffic-weather data from the Silver layer
 - connect to database `traffiq`
-- join traffic and weather observations
-- insert rows into `silver.traffic_weather_enriched`
+- aggregate enriched rows by date and weather label
+- calculate:
+  - average speed
+  - average congestion score
+- insert rows into `gold.weather_traffic_impact`
 - keep load logic separate from extract and transform logic
 
-### What the enrichment load should insert
+### What the Gold weather impact load should insert
 
-- `event_timestamp`
-- `street_name`
-- `avg_speed`
+- `metric_date`
 - `weather_label`
-- `temperature_c`
-- `precipitation_mm`
-- `wind_speed_kmh`
+- `avg_speed`
+- `avg_congestion_score`
 
 ### Why this is the next task
 
@@ -758,8 +787,9 @@ Because the project now has:
 - Bronze weather load
 - weather transform
 - Silver weather load
+- traffic-weather enrichment
 
-The next correct step is to enrich traffic data with weather data in the Silver layer.
+The next correct step is to produce the first weather-based Gold analytics table.
 
 This is the next real database load stage of the Traffiq pipeline.
 
@@ -767,10 +797,10 @@ This is the next real database load stage of the Traffiq pipeline.
 
 The task is complete when:
 
-- `src/load/load_traffic_weather_enriched_to_silver.py` exists
-- joined traffic and weather data can be inserted into `silver.traffic_weather_enriched`
-- enrichment fields are populated correctly
-- `tests/test_load_traffic_weather_enriched_to_silver.py` exists or an equivalent validation path exists
+- `src/load/load_weather_traffic_impact_to_gold.py` exists
+- aggregated weather impact data can be inserted into `gold.weather_traffic_impact`
+- Gold weather impact fields are populated correctly
+- `tests/test_load_weather_traffic_impact_to_gold.py` exists or an equivalent validation path exists
 - the load logic is reviewed and validated before commit
 - the code is reviewed and validated before commit
 

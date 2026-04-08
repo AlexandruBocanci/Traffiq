@@ -11,7 +11,7 @@ def extract_weather_api(latitude, longitude):
   }
 
   try:
-    response = requests.get(url, params=params)
+    response = requests.get(url, params=params, timeout=30)
     response.raise_for_status()
 
     weather_json = response.json()
@@ -28,7 +28,7 @@ def extract_weather_api(latitude, longitude):
     })
 
     return df
-  
-  except requests.RequestException:
-    print("The request to the API failed.")
+
+  except requests.RequestException as e:
+    print("The request to the API failed:", e)
     return pd.DataFrame()
