@@ -757,73 +757,81 @@ Notes:
 - the project now has a complete first-pass pipeline for traffic, weather, enrichment, and Gold weather impact analytics
 - weather analytics are now ready to support backend API work
 
+### Update 014 - FastAPI application foundation created
+
+Completed:
+
+- created FastAPI entry point:
+  - `src/api/main.py`
+- created the initial FastAPI application object for Traffiq v1
+- added the first API validation endpoint:
+  - `GET /health`
+- validated local API startup using:
+  - `uvicorn src.api.main:app --reload`
+- validated successful API responses for:
+  - `/health`
+  - `/docs`
+
+Notes:
+
+- this task establishes the backend API foundation without mixing in ETL or database query logic
+- the API layer is now bootable and ready for the first PostgreSQL-backed endpoint implementation
+
 ---
 
 ## 10. Next Task
 
 ### Current active mission
 
-Build the FastAPI application foundation.
+Create the first PostgreSQL-backed traffic endpoint.
 
 ### Exact goal
 
-Create the initial FastAPI application structure and local run flow for Traffiq v1.
+Expose traffic data from PostgreSQL through the first real FastAPI endpoint for Traffiq v1.
 
 ### Deliverables
 
-1. Create the first FastAPI app entry point in `src/api/`
-2. Ensure the app can start locally
-3. Prepare the project for endpoint modules that will follow
-4. Keep API startup logic separate from data pipeline code
-5. Add a simple validation path that confirms the FastAPI app boots successfully
+1. Create the first traffic endpoint in the FastAPI layer
+2. Read traffic data from PostgreSQL, not from CSV or hardcoded data
+3. Keep database access logic separate from ETL pipeline code
+4. Return a clean JSON response suitable for later app consumption
+5. Add a simple validation path that confirms the endpoint returns real database data
 
 ### Expected concrete files
 
 - `src/api/main.py`
-- optionally a simple test or validation script for local startup
+- optionally one helper module if needed for clean query separation
+- optionally a simple validation test for the endpoint
 
-### What the FastAPI foundation should eventually do
+### What the first traffic endpoint should do
 
-- define the FastAPI application object
-- provide a clean startup entry point
-- allow local execution with uvicorn
-- prepare the API layer for upcoming endpoints
-- remain separate from ETL implementation logic
+- query traffic records from the project PostgreSQL database
+- return traffic observations from the current Traffiq data model
+- keep the response simple and readable
+- provide the first real API proof that the backend serves persisted project data
 
 ### What this task should produce
 
-- a working FastAPI app instance
-- a local run command that starts successfully
-- a clean starting point for endpoint implementation
+- a working `GET /traffic` endpoint
+- a successful PostgreSQL query from the API layer
+- a JSON response with real traffic data
 
 ### Why this is the next task
 
-Because the project now has:
+Because the project now has a bootable FastAPI application.
 
-- extract
-- transform
-- Bronze load
-- Silver load
-- Gold hourly traffic metrics
-- weather API extract
-- Bronze weather load
-- weather transform
-- Silver weather load
-- traffic-weather enrichment
-- Gold weather impact
+The next correct step is to connect the API layer to the actual PostgreSQL data already loaded by the pipeline.
 
-The next correct step is to expose the project through the backend API layer.
-
-This is the next real database load stage of the Traffiq pipeline.
+This is the first real backend-serving task for Traffiq v1.
 
 ### Success condition for this task
 
 The task is complete when:
 
-- `src/api/main.py` exists
-- the FastAPI app starts locally without crashing
-- the project is ready for endpoint implementation
-- a simple validation path exists for app startup
+- `GET /traffic` exists
+- the endpoint returns real traffic data from PostgreSQL
+- the API still starts locally without crashing
+- the endpoint is reviewed and validated before commit
 - the API foundation is reviewed and validated before commit
 - the code is reviewed and validated before commit
 
