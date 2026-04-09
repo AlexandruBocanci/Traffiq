@@ -777,62 +777,83 @@ Notes:
 - this task establishes the backend API foundation without mixing in ETL or database query logic
 - the API layer is now bootable and ready for the first PostgreSQL-backed endpoint implementation
 
+### Update 015 - First PostgreSQL-backed traffic endpoint created
+
+Completed:
+
+- extended the FastAPI application in:
+  - `src/api/main.py`
+- created the first real backend data endpoint:
+  - `GET /traffic`
+- connected the API layer to PostgreSQL using the existing database utility
+- queried persisted traffic data from:
+  - `silver.traffic_observations`
+- returned traffic data as JSON for API consumption
+- validated successful endpoint execution with real database records
+
+Notes:
+
+- this is the first API endpoint in Traffiq that serves persisted project data from PostgreSQL
+- the endpoint currently returns traffic observations from the Silver layer, which is the correct first serving point for cleaned traffic data
+- the API layer now has both:
+  - a health check endpoint
+  - a first data-serving traffic endpoint
+
 ---
 
 ## 10. Next Task
 
 ### Current active mission
 
-Create the first PostgreSQL-backed traffic endpoint.
+Create the top-speed traffic endpoint backed by PostgreSQL.
 
 ### Exact goal
 
-Expose traffic data from PostgreSQL through the first real FastAPI endpoint for Traffiq v1.
+Expose the fastest traffic observations from PostgreSQL through a dedicated FastAPI endpoint for Traffiq v1.
 
 ### Deliverables
 
-1. Create the first traffic endpoint in the FastAPI layer
+1. Create a dedicated top-speed endpoint in the FastAPI layer
 2. Read traffic data from PostgreSQL, not from CSV or hardcoded data
-3. Keep database access logic separate from ETL pipeline code
-4. Return a clean JSON response suitable for later app consumption
-5. Add a simple validation path that confirms the endpoint returns real database data
+3. Return only the highest-speed traffic observations
+4. Keep the response clean and simple for later app consumption
+5. Validate that the endpoint returns real ordered data from PostgreSQL
 
 ### Expected concrete files
 
 - `src/api/main.py`
-- optionally one helper module if needed for clean query separation
 - optionally a simple validation test for the endpoint
 
-### What the first traffic endpoint should do
+### What the top-speed endpoint should do
 
-- query traffic records from the project PostgreSQL database
-- return traffic observations from the current Traffiq data model
-- keep the response simple and readable
-- provide the first real API proof that the backend serves persisted project data
+- query traffic observations from the project PostgreSQL database
+- order them by highest `avg_speed`
+- return a small top list suitable for API usage
+- provide the next real API proof that the backend can serve analytical subsets of data
 
 ### What this task should produce
 
-- a working `GET /traffic` endpoint
-- a successful PostgreSQL query from the API layer
-- a JSON response with real traffic data
+- a working `GET /traffic/top-speed` endpoint
+- a successful PostgreSQL query ordered by speed
+- a JSON response with the fastest traffic observations
 
 ### Why this is the next task
 
-Because the project now has a bootable FastAPI application.
+Because the project now already exposes the base traffic dataset through the API.
 
-The next correct step is to connect the API layer to the actual PostgreSQL data already loaded by the pipeline.
+The next correct step is to add the first filtered analytical traffic endpoint for the backend.
 
-This is the first real backend-serving task for Traffiq v1.
+This continues the v1 API scope defined in the project documents.
 
 ### Success condition for this task
 
 The task is complete when:
 
-- `GET /traffic` exists
+- `GET /traffic/top-speed` exists
 - the endpoint returns real traffic data from PostgreSQL
+- the returned rows are ordered by highest speed
 - the API still starts locally without crashing
 - the endpoint is reviewed and validated before commit
-- the API foundation is reviewed and validated before commit
 - the code is reviewed and validated before commit
 
 ---
