@@ -894,55 +894,81 @@ Notes:
 - this task only establishes the app shell and presentation foundation
 - backend connectivity and navigation are still separate follow-up tasks
 
+### Update 020 - Mobile navigation foundation created
+
+Completed:
+
+- added mobile navigation dependencies to the Expo app
+- introduced a bottom-tab navigation structure for the Traffiq mobile app
+- updated:
+  - `mobile/App.tsx`
+- created a navigation entry point:
+  - `mobile/src/navigation/AppNavigator.tsx`
+- created the first screen structure for the v1 mobile areas:
+  - `mobile/src/screens/ReportsScreen.tsx`
+  - `mobile/src/screens/WeatherImpactScreen.tsx`
+  - `mobile/src/screens/MapPreviewScreen.tsx`
+  - `mobile/src/screens/PipelineScreen.tsx`
+- validated successful app navigation in Expo Go
+
+Notes:
+
+- the mobile app now has real product structure instead of a single static screen
+- each v1 app area now has its own dedicated screen placeholder
+- backend-connected mobile screens are still the next layer after setup/bootstrap cleanup
+
 ---
 
 ## 10. Next Task
 
 ### Current active mission
 
-Create the base mobile app navigation structure.
+Create a local bootstrap setup flow for the project.
 
 ### Exact goal
 
-Prepare the Traffiq mobile app to move from a single screen into a structured multi-screen v1 app layout.
+Add a setup flow that helps a new device install the repo-level dependencies needed to run Traffiq locally.
 
 ### Deliverables
 
-1. Add mobile navigation support
-2. Create a base multi-screen structure for the v1 app areas
-3. Keep the app bootable and visually clean
-4. Prepare the app for later backend-connected screens
+1. Create a bootstrap/setup script for local project dependencies
+2. Add a backend `requirements.txt` file
+3. Update local setup documentation for backend and mobile prerequisites
+4. Keep the setup flow realistic about what can and cannot be installed automatically
 
 ### Expected concrete files
 
-- `mobile/App.tsx`
-- additional mobile navigation files if needed
+- `requirements.txt`
+- a setup/bootstrap script at repo root or in a scripts folder
+- `docs/LOCAL_SETUP.md`
 
-### What the navigation task should do
+### What the bootstrap task should do
 
-- introduce a clean mobile navigation structure
-- define separate app areas for the v1 experience
-- make later screen-level backend integration easier
+- install Python dependencies for the backend
+- install npm dependencies for the mobile app
+- check for required local tools
+- document clearly which system tools still need manual installation
 
 ### What this task should produce
 
-- a working multi-screen mobile foundation
-- a clear base for Reports, Weather Impact, Map Preview, and Pipeline screens
+- a repeatable local dependency setup flow
+- clearer setup documentation for future devices
 
 ### Why this is the next task
 
-Because the mobile app now exists and boots successfully.
+Because the project now includes both backend and mobile workspaces.
 
-The next correct step is to give the app real structural shape before wiring backend data into screens.
+The next correct step is to reduce setup friction before continuing deeper mobile implementation.
 
-This continues the v1 mobile plan defined in the project documents.
+This keeps the project easier to run across devices and sessions.
 
 ### Success condition for this task
 
 The task is complete when:
 
-- the app supports navigation between the core v1 areas
-- the app still runs correctly in Expo Go
+- the repo has a clear dependency bootstrap flow
+- backend and mobile dependencies can be installed consistently
+- setup documentation is updated
 - the code is reviewed and validated before commit
 
 ---
