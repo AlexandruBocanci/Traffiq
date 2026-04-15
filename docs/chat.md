@@ -822,23 +822,48 @@ Notes:
   - full traffic observation retrieval
   - top-speed traffic retrieval
 
+### Update 017 - Top-congested streets endpoint created
+
+Completed:
+
+- extended the FastAPI application in:
+  - `src/api/main.py`
+- created the congestion-focused traffic endpoint:
+  - `GET /streets/top-congested`
+- connected the endpoint to PostgreSQL using the existing database utility
+- queried analytical traffic data from:
+  - `gold.hourly_street_metrics`
+- ordered rows by highest `congestion_score`
+- returned a top list of congested street records as JSON
+- validated the endpoint structure for Gold-layer analytical serving
+
+Notes:
+
+- this is the first API endpoint in Traffiq that serves Gold-layer traffic analytics
+- the endpoint correctly uses persisted congestion metrics instead of recalculating logic inside the API layer
+- the API layer now supports:
+  - health validation
+  - base traffic retrieval
+  - top-speed traffic retrieval
+  - top-congested traffic retrieval
+
 ---
 
 ## 10. Next Task
 
 ### Current active mission
 
-Create the top-congested streets endpoint backed by PostgreSQL.
+Create the weather-impact endpoint backed by PostgreSQL.
 
 ### Exact goal
 
-Expose the most congested streets from PostgreSQL through a dedicated FastAPI endpoint for Traffiq v1.
+Expose weather-based traffic impact metrics from PostgreSQL through a dedicated FastAPI endpoint for Traffiq v1.
 
 ### Deliverables
 
-1. Create a dedicated top-congested endpoint in the FastAPI layer
-2. Read analytical traffic data from PostgreSQL, not from CSV or hardcoded data
-3. Return the streets with the highest congestion values
+1. Create a dedicated weather-impact endpoint in the FastAPI layer
+2. Read analytical weather-traffic data from PostgreSQL, not from CSV or hardcoded data
+3. Return weather-based traffic impact metrics
 4. Keep the response clean and simple for later app consumption
 5. Validate that the endpoint returns real ordered data from PostgreSQL
 
@@ -847,24 +872,24 @@ Expose the most congested streets from PostgreSQL through a dedicated FastAPI en
 - `src/api/main.py`
 - optionally a simple validation test for the endpoint
 
-### What the top-congested endpoint should do
+### What the weather-impact endpoint should do
 
-- query analytical traffic data from the project PostgreSQL database
-- order rows by highest `congestion_score`
-- return a small top list suitable for API usage
-- provide the next real API proof that the backend can serve Gold-layer traffic analytics
+- query weather-aware traffic metrics from the project PostgreSQL database
+- read from the Gold weather impact dataset
+- return analytical rows suitable for API usage
+- provide the next real API proof that the backend can serve Gold-layer weather analytics
 
 ### What this task should produce
 
-- a working `GET /streets/top-congested` endpoint
-- a successful PostgreSQL query ordered by congestion score
-- a JSON response with the most congested streets
+- a working `GET /weather-impact` endpoint
+- a successful PostgreSQL query against weather impact data
+- a JSON response with weather-based traffic impact metrics
 
 ### Why this is the next task
 
-Because the project now already exposes both the base traffic dataset and a filtered speed-based traffic endpoint through the API.
+Because the project now already exposes both Silver-layer traffic data and Gold-layer traffic analytics through the API.
 
-The next correct step is to add the first congestion-focused analytical endpoint for the backend.
+The next correct step is to expose the Gold weather analytics already built in the pipeline.
 
 This continues the v1 API scope defined in the project documents.
 
@@ -872,9 +897,8 @@ This continues the v1 API scope defined in the project documents.
 
 The task is complete when:
 
-- `GET /streets/top-congested` exists
-- the endpoint returns real traffic data from PostgreSQL
-- the returned rows are ordered by highest congestion score
+- `GET /weather-impact` exists
+- the endpoint returns real weather impact data from PostgreSQL
 - the API still starts locally without crashing
 - the endpoint is reviewed and validated before commit
 - the code is reviewed and validated before commit
