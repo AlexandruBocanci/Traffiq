@@ -847,61 +847,80 @@ Notes:
   - top-speed traffic retrieval
   - top-congested traffic retrieval
 
+### Update 018 - Weather-impact endpoint created
+
+Completed:
+
+- extended the FastAPI application in:
+  - `src/api/main.py`
+- created the weather analytics endpoint:
+  - `GET /weather-impact`
+- connected the endpoint to PostgreSQL using the existing database utility
+- queried analytical weather-traffic data from:
+  - `gold.weather_traffic_impact`
+- returned weather-based traffic impact metrics as JSON
+- validated the endpoint structure for Gold-layer weather analytics serving
+
+Notes:
+
+- this completes the minimum v1 API endpoint set currently defined in the project documents
+- the endpoint correctly serves persisted Gold weather analytics instead of recalculating logic in the API layer
+- the API layer now supports:
+  - health validation
+  - base traffic retrieval
+  - top-speed traffic retrieval
+  - top-congested traffic retrieval
+  - weather-impact retrieval
+
 ---
 
 ## 10. Next Task
 
 ### Current active mission
 
-Create the weather-impact endpoint backed by PostgreSQL.
+Align the API tracker and decide the next implementation block.
 
 ### Exact goal
 
-Expose weather-based traffic impact metrics from PostgreSQL through a dedicated FastAPI endpoint for Traffiq v1.
+Confirm that the current v1 API scope is fully reflected in documentation and tracker state before starting the next feature block.
 
 ### Deliverables
 
-1. Create a dedicated weather-impact endpoint in the FastAPI layer
-2. Read analytical weather-traffic data from PostgreSQL, not from CSV or hardcoded data
-3. Return weather-based traffic impact metrics
-4. Keep the response clean and simple for later app consumption
-5. Validate that the endpoint returns real ordered data from PostgreSQL
+1. Confirm that the minimum documented v1 API endpoints are implemented
+2. Confirm tracker alignment for the completed API tasks
+3. Decide the next concrete implementation block after the initial API scope
 
 ### Expected concrete files
 
-- `src/api/main.py`
-- optionally a simple validation test for the endpoint
+- `docs/chat.md`
+- optionally tracker cleanup outside the repo if needed
 
-### What the weather-impact endpoint should do
+### What this alignment step should do
 
-- query weather-aware traffic metrics from the project PostgreSQL database
-- read from the Gold weather impact dataset
-- return analytical rows suitable for API usage
-- provide the next real API proof that the backend can serve Gold-layer weather analytics
+- verify that the backend API scope documented for v1 is now implemented
+- prevent the project from moving forward with ambiguous tracker state
+- define the next block cleanly before the next commit series
 
 ### What this task should produce
 
-- a working `GET /weather-impact` endpoint
-- a successful PostgreSQL query against weather impact data
-- a JSON response with weather-based traffic impact metrics
+- a clear decision on the next development block
+- aligned documentation state for continued work
 
 ### Why this is the next task
 
-Because the project now already exposes both Silver-layer traffic data and Gold-layer traffic analytics through the API.
+Because the initial documented v1 API endpoints are now in place.
 
-The next correct step is to expose the Gold weather analytics already built in the pipeline.
+The next correct step is to avoid drifting into the next area without a clean checkpoint.
 
-This continues the v1 API scope defined in the project documents.
+This preserves disciplined task continuity.
 
 ### Success condition for this task
 
 The task is complete when:
 
-- `GET /weather-impact` exists
-- the endpoint returns real weather impact data from PostgreSQL
-- the API still starts locally without crashing
-- the endpoint is reviewed and validated before commit
-- the code is reviewed and validated before commit
+- the completed API scope is explicitly acknowledged
+- the tracker state is clear
+- the next implementation block is chosen intentionally
 
 ---
 
