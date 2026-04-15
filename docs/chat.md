@@ -276,10 +276,10 @@ Current API direction for v1:
 - `GET /health`
 - `GET /traffic`
 - `GET /traffic/top-speed`
+- `GET /streets/top-congested`
+- `GET /weather-impact`
 - later:
-  - `GET /streets/top-congested`
   - `GET /routes/report`
-  - `GET /weather-impact`
 
 ---
 
@@ -303,6 +303,8 @@ Traffiq/
   sql/
     ddl/
     transformations/
+
+  mobile/
 
   src/
     api/
@@ -917,58 +919,78 @@ Notes:
 - each v1 app area now has its own dedicated screen placeholder
 - backend-connected mobile screens are still the next layer after setup/bootstrap cleanup
 
+### Update 021 - Local bootstrap setup flow created
+
+Completed:
+
+- created backend dependency file:
+  - `requirements.txt`
+- created a repo-level setup bootstrap script:
+  - `setup_local.ps1`
+- created a root `.gitignore` for Python and mobile generated files
+- updated:
+  - `docs/LOCAL_SETUP.md`
+- aligned shared project continuity docs with the current repository state:
+  - current API endpoint list
+  - current repository structure
+- validated that the bootstrap script installs backend and mobile dependencies successfully
+
+Notes:
+
+- the project now has a repeatable local dependency setup flow for new devices
+- the setup script installs repo-managed dependencies only
+- system-level tools like PostgreSQL server, Node.js, and Expo Go still require manual installation
+- this task also fixes the previous documentation conflict where `requirements.txt` was referenced but missing from the repo
+
 ---
 
 ## 10. Next Task
 
 ### Current active mission
 
-Create a local bootstrap setup flow for the project.
+Configure the mobile app to talk to the backend API.
 
 ### Exact goal
 
-Add a setup flow that helps a new device install the repo-level dependencies needed to run Traffiq locally.
+Prepare a clean mobile API connection layer so the React Native app can call the FastAPI backend consistently.
 
 ### Deliverables
 
-1. Create a bootstrap/setup script for local project dependencies
-2. Add a backend `requirements.txt` file
-3. Update local setup documentation for backend and mobile prerequisites
-4. Keep the setup flow realistic about what can and cannot be installed automatically
+1. Add a mobile API configuration layer
+2. Define the backend base URL in one place
+3. Prepare reusable request helpers for later screens
+4. Keep the app ready for real endpoint integration
 
 ### Expected concrete files
 
-- `requirements.txt`
-- a setup/bootstrap script at repo root or in a scripts folder
-- `docs/LOCAL_SETUP.md`
+- mobile API config/service files
+- possibly `mobile/src/` shared service modules
 
-### What the bootstrap task should do
+### What the API connection task should do
 
-- install Python dependencies for the backend
-- install npm dependencies for the mobile app
-- check for required local tools
-- document clearly which system tools still need manual installation
+- centralize the backend base URL
+- make later screen-level API calls easier and cleaner
+- avoid hardcoding fetch logic directly inside each screen
 
 ### What this task should produce
 
-- a repeatable local dependency setup flow
-- clearer setup documentation for future devices
+- a reusable mobile API access layer
+- a clean base for connecting Reports and Weather screens to FastAPI
 
 ### Why this is the next task
 
-Because the project now includes both backend and mobile workspaces.
+Because the mobile app now has both a running shell and navigation structure.
 
-The next correct step is to reduce setup friction before continuing deeper mobile implementation.
+The next correct step is to wire the mobile side toward the backend before building data-driven screens.
 
-This keeps the project easier to run across devices and sessions.
+This continues the v1 mobile implementation path cleanly.
 
 ### Success condition for this task
 
 The task is complete when:
 
-- the repo has a clear dependency bootstrap flow
-- backend and mobile dependencies can be installed consistently
-- setup documentation is updated
+- the mobile app has a reusable backend connection layer
+- future screens can call the API without duplicating base URL logic
 - the code is reviewed and validated before commit
 
 ---

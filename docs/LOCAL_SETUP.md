@@ -18,8 +18,14 @@ Install these on every device:
 
 - Git
 - Python
+- Node.js
 - PostgreSQL
 - Visual Studio Code
+- Expo Go on your Android phone
+
+Optional later:
+
+- Android Studio
 
 ## 2. Clone the Repository
 
@@ -28,18 +34,34 @@ git clone https://github.com/AlexandruBocanci/Trafiq.git
 cd Trafiq
 ```
 
-## 3. Python Dependencies
+## 3. Bootstrap Local Dependencies
+
+From the repository root, run:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\setup_local.ps1
+```
+
+This script will:
+
+- create `.venv` if missing
+- install backend Python dependencies from `requirements.txt`
+- install mobile dependencies inside `mobile/`
+- check whether core local tools are available
+
+## 4. Python Backend Dependencies
 
 Create and activate a virtual environment:
 
 ```powershell
 python -m venv .venv
-.venv\Scripts\activate
+.\.venv\Scripts\activate
 ```
 
-Install project packages after `requirements.txt` exists:
+Install project packages:
 
 ```powershell
+python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 ```
 
@@ -52,7 +74,7 @@ Current core packages expected by the project:
 - requests
 - python-dotenv
 
-## 4. PostgreSQL Setup
+## 5. PostgreSQL Setup
 
 PostgreSQL must be installed locally.
 
@@ -68,9 +90,13 @@ Run DDL from the repository root:
 psql -U postgres -d traffiq -f sql/ddl/create_all.sql
 ```
 
-## 5. Environment Configuration
+## 6. Environment Configuration
 
-Later this project should use a `.env` file.
+The current project still uses hardcoded DB settings in:
+
+- `src/config/settings.py`
+
+Later this should move to a `.env` file.
 
 Expected variables:
 
@@ -86,36 +112,41 @@ Recommended values for local setup:
 - `DB_PORT=5432`
 - `DB_NAME=traffiq`
 
-## 6. Current Database Notes
+## 7. Running the Backend API
+
+From the repository root:
+
+```powershell
+uvicorn src.api.main:app --reload
+```
+
+## 8. Running the Mobile App
+
+Go into the mobile workspace:
+
+```powershell
+cd mobile
+npm.cmd start
+```
+
+Then:
+
+- open Expo Go on your Android phone
+- scan the QR code
+- make sure the phone and the PC are on the same Wi-Fi network
+
+## 9. Current Database Notes
 
 - tutorial database `traffic_learning` is not the project database
 - the real project database is `traffiq`
 - all new project work must target `traffiq`
 
-## 7. Running the Project
-
-These commands will be updated as the project grows.
-
-### Run DDL
-
-```powershell
-psql -U postgres -d traffiq -f sql/ddl/create_all.sql
-```
-
-### Run FastAPI
-
-From the directory that contains `main.py`:
-
-```powershell
-uvicorn main:app --reload
-```
-
-This command will be updated later to match the final project structure.
-
-## 8. What Will Not Sync Through Git
+## 10. What Will Not Sync Through Git
 
 Git does not sync:
 
+- installed Node.js
+- installed Expo Go
 - installed PostgreSQL server
 - local PostgreSQL databases
 - Python packages installed globally
@@ -127,22 +158,20 @@ That means a second device must always:
 
 1. install the tools
 2. clone the repo
-3. install Python dependencies
+3. run the bootstrap script or install backend/mobile dependencies manually
 4. create the PostgreSQL database
 5. run the SQL DDL scripts
-6. configure environment variables
+6. configure environment variables later when the project moves to `.env`
 
-## 9. Recommended Setup Workflow On a New Device
+## 11. Recommended Setup Workflow On a New Device
 
 1. Clone the repo
-2. Create and activate virtual environment
-3. Install Python dependencies
-4. Install PostgreSQL if missing
-5. Create database `traffiq`
-6. Run `sql/ddl/create_all.sql`
-7. Configure environment variables
-8. Start the pipeline or API
+2. Run `setup_local.ps1`
+3. Create database `traffiq`
+4. Run `sql/ddl/create_all.sql`
+5. Start the API
+6. Start the mobile app
 
-## 10. Maintenance Rule
+## 12. Maintenance Rule
 
 Whenever the project changes in a way that affects setup, update this file in the same branch before merging to `main`.
