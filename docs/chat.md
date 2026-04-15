@@ -799,23 +799,46 @@ Notes:
   - a health check endpoint
   - a first data-serving traffic endpoint
 
+### Update 016 - Top-speed traffic endpoint created
+
+Completed:
+
+- extended the FastAPI application in:
+  - `src/api/main.py`
+- created the analytical traffic endpoint:
+  - `GET /traffic/top-speed`
+- connected the endpoint to PostgreSQL using the existing database utility
+- queried traffic data from:
+  - `silver.traffic_observations`
+- ordered traffic observations by highest `avg_speed`
+- returned a top list of fastest traffic observations as JSON
+- validated successful endpoint execution with real ordered database records
+
+Notes:
+
+- this is the first filtered analytical traffic endpoint in the Traffiq API layer
+- the endpoint reuses the Silver traffic dataset and exposes a product-friendly top list shape
+- the API layer now supports both:
+  - full traffic observation retrieval
+  - top-speed traffic retrieval
+
 ---
 
 ## 10. Next Task
 
 ### Current active mission
 
-Create the top-speed traffic endpoint backed by PostgreSQL.
+Create the top-congested streets endpoint backed by PostgreSQL.
 
 ### Exact goal
 
-Expose the fastest traffic observations from PostgreSQL through a dedicated FastAPI endpoint for Traffiq v1.
+Expose the most congested streets from PostgreSQL through a dedicated FastAPI endpoint for Traffiq v1.
 
 ### Deliverables
 
-1. Create a dedicated top-speed endpoint in the FastAPI layer
-2. Read traffic data from PostgreSQL, not from CSV or hardcoded data
-3. Return only the highest-speed traffic observations
+1. Create a dedicated top-congested endpoint in the FastAPI layer
+2. Read analytical traffic data from PostgreSQL, not from CSV or hardcoded data
+3. Return the streets with the highest congestion values
 4. Keep the response clean and simple for later app consumption
 5. Validate that the endpoint returns real ordered data from PostgreSQL
 
@@ -824,24 +847,24 @@ Expose the fastest traffic observations from PostgreSQL through a dedicated Fast
 - `src/api/main.py`
 - optionally a simple validation test for the endpoint
 
-### What the top-speed endpoint should do
+### What the top-congested endpoint should do
 
-- query traffic observations from the project PostgreSQL database
-- order them by highest `avg_speed`
+- query analytical traffic data from the project PostgreSQL database
+- order rows by highest `congestion_score`
 - return a small top list suitable for API usage
-- provide the next real API proof that the backend can serve analytical subsets of data
+- provide the next real API proof that the backend can serve Gold-layer traffic analytics
 
 ### What this task should produce
 
-- a working `GET /traffic/top-speed` endpoint
-- a successful PostgreSQL query ordered by speed
-- a JSON response with the fastest traffic observations
+- a working `GET /streets/top-congested` endpoint
+- a successful PostgreSQL query ordered by congestion score
+- a JSON response with the most congested streets
 
 ### Why this is the next task
 
-Because the project now already exposes the base traffic dataset through the API.
+Because the project now already exposes both the base traffic dataset and a filtered speed-based traffic endpoint through the API.
 
-The next correct step is to add the first filtered analytical traffic endpoint for the backend.
+The next correct step is to add the first congestion-focused analytical endpoint for the backend.
 
 This continues the v1 API scope defined in the project documents.
 
@@ -849,9 +872,9 @@ This continues the v1 API scope defined in the project documents.
 
 The task is complete when:
 
-- `GET /traffic/top-speed` exists
+- `GET /streets/top-congested` exists
 - the endpoint returns real traffic data from PostgreSQL
-- the returned rows are ordered by highest speed
+- the returned rows are ordered by highest congestion score
 - the API still starts locally without crashing
 - the endpoint is reviewed and validated before commit
 - the code is reviewed and validated before commit
@@ -874,3 +897,4 @@ If you are a new Codex chat reading this file, you must do the following before 
 5. Continue from the `Next Task` section unless the user explicitly changes priorities
 
 Do not assume hidden context. Treat this file and the repo as the source of truth.
+
