@@ -942,46 +942,71 @@ Notes:
 - system-level tools like PostgreSQL server, Node.js, and Expo Go still require manual installation
 - this task also fixes the previous documentation conflict where `requirements.txt` was referenced but missing from the repo
 
+### Update 022 - Mobile API connection layer created
+
+Completed:
+
+- created mobile API configuration file:
+  - `mobile/src/config/api.ts`
+- created mobile shared API service layer:
+  - `mobile/src/services/traffiqApi.ts`
+- created mobile API response types:
+  - `mobile/src/types/api.ts`
+- centralized the backend base URL for the mobile app
+- added reusable request helpers for:
+  - traffic
+  - top-speed traffic
+  - top-congested streets
+  - weather impact
+- validated that the phone can reach the backend API through:
+  - `GET /health`
+
+Notes:
+
+- the mobile app now has a reusable backend connection layer instead of hardcoded fetch logic per screen
+- the current base URL is tied to the local network IP and may need updating when the PC IP changes
+- the next step is to connect the first real screen to this shared API layer
+
 ---
 
 ## 10. Next Task
 
 ### Current active mission
 
-Configure the mobile app to talk to the backend API.
+Connect the Reports screen to the traffic endpoints.
 
 ### Exact goal
 
-Prepare a clean mobile API connection layer so the React Native app can call the FastAPI backend consistently.
+Turn the Reports screen into the first mobile screen that consumes real backend traffic data.
 
 ### Deliverables
 
-1. Add a mobile API configuration layer
-2. Define the backend base URL in one place
-3. Prepare reusable request helpers for later screens
-4. Keep the app ready for real endpoint integration
+1. Connect the Reports screen to the shared mobile API layer
+2. Load traffic endpoint data into the screen
+3. Display loading, success, and error states
+4. Keep the screen simple and portfolio-appropriate for v1
 
 ### Expected concrete files
 
-- mobile API config/service files
-- possibly `mobile/src/` shared service modules
+- `mobile/src/screens/ReportsScreen.tsx`
+- optionally small supporting UI helpers if needed
 
-### What the API connection task should do
+### What the Reports integration task should do
 
-- centralize the backend base URL
-- make later screen-level API calls easier and cleaner
-- avoid hardcoding fetch logic directly inside each screen
+- call the shared API service layer from the Reports screen
+- render real traffic records from the FastAPI backend
+- establish the first true backend-to-mobile user flow
 
 ### What this task should produce
 
-- a reusable mobile API access layer
-- a clean base for connecting Reports and Weather screens to FastAPI
+- a working Reports screen backed by live local API data
+- a reusable pattern for the next mobile screens
 
 ### Why this is the next task
 
-Because the mobile app now has both a running shell and navigation structure.
+Because the mobile app now has navigation and a reusable API connection layer.
 
-The next correct step is to wire the mobile side toward the backend before building data-driven screens.
+The next correct step is to make the first mobile screen actually consume backend data.
 
 This continues the v1 mobile implementation path cleanly.
 
@@ -989,8 +1014,9 @@ This continues the v1 mobile implementation path cleanly.
 
 The task is complete when:
 
-- the mobile app has a reusable backend connection layer
-- future screens can call the API without duplicating base URL logic
+- the Reports screen loads traffic data from the backend
+- the screen handles loading and error states cleanly
+- the app still runs correctly in Expo Go
 - the code is reviewed and validated before commit
 
 ---
