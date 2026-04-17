@@ -1059,62 +1059,77 @@ Notes:
 
 ---
 
-## 11. Next Task
+## 11. Update 025 - Map Preview Screen Connected To Backend
+
+Task completed:
+
+- connected the Map Preview screen to the shared mobile API service layer
+- loaded live data from `GET /traffic/top-speed`
+- loaded live data from `GET /streets/top-congested`
+- rendered both analytics sections successfully in Expo Go
+
+Notes:
+
+- this is the third complete backend-to-mobile user flow in Traffiq
+- the Map Preview screen now acts as an analytics preview, not a live navigation map
+- the mobile app now demonstrates multiple backend-driven screens using the same shared API layer
+
+---
+
+## 12. Next Task
 
 ### Current active mission
 
-Connect the Map Preview screen to backend traffic analytics endpoints.
+Connect the Pipeline screen to the backend API and present project pipeline status context.
 
 ### Exact goal
 
-Turn the Map Preview screen into a simple analytics preview that surfaces top-speed and top-congested traffic insights from the API.
+Turn the Pipeline screen into a portfolio-oriented operational view that summarizes the backend/API flow and current project data layers.
 
 ### Deliverables
 
-1. Connect the Map Preview screen to the shared mobile API layer
-2. Load top-speed traffic data into the screen
-3. Load top-congested street data into the screen
-4. Present both sections clearly in a simple v1 mobile layout
-5. Handle loading and error states cleanly
+1. Connect the Pipeline screen to the shared mobile API layer where appropriate
+2. Surface a clean overview of the Traffiq data flow inside the app
+3. Reuse live backend information where useful for credibility
+4. Keep the screen simple and portfolio-appropriate for v1
 
 ### Expected concrete files
 
-- `mobile/src/screens/MapPreviewScreen.tsx`
+- `mobile/src/screens/PipelineScreen.tsx`
 - optionally small supporting UI helpers if needed
 
-### What the Map Preview integration task should do
+### What the Pipeline integration task should do
 
-- call the shared API service layer from the Map Preview screen
-- render top-speed traffic results from the FastAPI backend
-- render top-congested street results from the FastAPI backend
+- present the ETL and serving flow clearly inside the app
+- reinforce the project architecture as part of the portfolio story
+- optionally reuse live backend counts or API-backed sections if that improves the screen
 - keep the UI simple and portfolio-appropriate for v1
 
 ### What this task should produce
 
-- a working Map Preview screen backed by live local API data
-- the third complete backend-to-mobile user flow
+- a working Pipeline screen that strengthens the portfolio presentation
+- a more complete mobile showcase for v1
 
 ### Why this is the next task
 
-Because the app already has live Reports and Weather screens.
+Because the app already has live Reports, Weather, and Map Preview screens.
 
-The next correct mobile step is to connect the screen that previews comparative traffic analytics.
+The next correct mobile step is to complete the last remaining mobile section in the navigation structure.
 
-This keeps the v1 app moving toward a complete backend-driven showcase.
+This closes the first full pass of the v1 mobile experience.
 
 ### Success condition for this task
 
 The task is complete when:
 
-- the Map Preview screen loads top-speed data from the backend
-- the Map Preview screen loads top-congested data from the backend
-- the screen handles loading and error states cleanly
+- the Pipeline screen presents the project flow clearly
+- the screen fits coherently into the existing mobile app
 - the app still runs correctly in Expo Go
 - the code is reviewed and validated before commit
 
 ---
 
-## 12. Instructions For Any New Codex Chat
+## 13. Instructions For Any New Codex Chat
 
 If you are a new Codex chat reading this file, you must do the following before suggesting any implementation:
 
