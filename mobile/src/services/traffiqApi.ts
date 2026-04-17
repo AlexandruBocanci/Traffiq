@@ -1,12 +1,13 @@
 import { API_BASE_URL } from '../config/api';
 import {
   ApiListResponse,
-  TrafficRecord,
+  HealthResponse,
   TopCongestedStreetRecord,
+  TrafficRecord,
   WeatherImpactRecord,
 } from '../types/api';
 
-async function fetchFromApi<T>(path: string): Promise<ApiListResponse<T>> {
+async function fetchFromApi<T>(path: string): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`);
 
   if (!response.ok) {
@@ -16,18 +17,24 @@ async function fetchFromApi<T>(path: string): Promise<ApiListResponse<T>> {
   return response.json();
 }
 
+export async function getHealthStatus() {
+  return fetchFromApi<HealthResponse>('/health');
+}
+
 export async function getTraffic() {
-  return fetchFromApi<TrafficRecord>('/traffic');
+  return fetchFromApi<ApiListResponse<TrafficRecord>>('/traffic');
 }
 
 export async function getTopSpeedTraffic() {
-  return fetchFromApi<TrafficRecord>('/traffic/top-speed');
+  return fetchFromApi<ApiListResponse<TrafficRecord>>('/traffic/top-speed');
 }
 
 export async function getTopCongestedStreets() {
-  return fetchFromApi<TopCongestedStreetRecord>('/streets/top-congested');
+  return fetchFromApi<ApiListResponse<TopCongestedStreetRecord>>(
+    '/streets/top-congested'
+  );
 }
 
 export async function getWeatherImpact() {
-  return fetchFromApi<WeatherImpactRecord>('/weather-impact');
+  return fetchFromApi<ApiListResponse<WeatherImpactRecord>>('/weather-impact');
 }

@@ -25,3 +25,7 @@ export type ApiListResponse<T> = {
   count: number;
   data: T[];
 };
+
+export type HealthResponse = {
+  status: string;
+};

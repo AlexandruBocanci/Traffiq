@@ -1076,60 +1076,76 @@ Notes:
 
 ---
 
-## 12. Next Task
+## 12. Update 026 - Pipeline Screen Connected To Backend
+
+Task completed:
+
+- connected the Pipeline screen to the shared mobile API layer
+- reused live backend endpoints to surface API status and project data counts
+- added a clear in-app summary of the Traffiq pipeline architecture
+- validated that the screen renders correctly in Expo Go
+
+Notes:
+
+- this completes the first full pass of the v1 mobile navigation structure
+- all four primary mobile tabs now contribute to the backend-driven portfolio story
+- the app now demonstrates both data consumption and project architecture context
+
+---
+
+## 13. Next Task
 
 ### Current active mission
 
-Connect the Pipeline screen to the backend API and present project pipeline status context.
+Polish the mobile v1 experience and align app branding/configuration for portfolio presentation.
 
 ### Exact goal
 
-Turn the Pipeline screen into a portfolio-oriented operational view that summarizes the backend/API flow and current project data layers.
+Refine the mobile app so that the visible product presentation matches the Traffiq portfolio story more cleanly.
 
 ### Deliverables
 
-1. Connect the Pipeline screen to the shared mobile API layer where appropriate
-2. Surface a clean overview of the Traffiq data flow inside the app
-3. Reuse live backend information where useful for credibility
-4. Keep the screen simple and portfolio-appropriate for v1
+1. Review the visible app naming and Expo configuration
+2. Replace generic mobile defaults where needed
+3. Make small presentation-level improvements that strengthen recruiter-facing polish
+4. Keep scope limited to v1 presentation improvements, not new features
 
 ### Expected concrete files
 
-- `mobile/src/screens/PipelineScreen.tsx`
-- optionally small supporting UI helpers if needed
+- likely `mobile/app.json`
+- optionally small mobile UI/config files if needed
 
-### What the Pipeline integration task should do
+### What the mobile polish task should do
 
-- present the ETL and serving flow clearly inside the app
-- reinforce the project architecture as part of the portfolio story
-- optionally reuse live backend counts or API-backed sections if that improves the screen
-- keep the UI simple and portfolio-appropriate for v1
+- remove remaining generic Expo/mobile defaults that weaken the portfolio presentation
+- align visible mobile metadata with the Traffiq project identity
+- improve the credibility of the mobile demo without expanding scope unnecessarily
 
 ### What this task should produce
 
-- a working Pipeline screen that strengthens the portfolio presentation
-- a more complete mobile showcase for v1
+- a cleaner and more recruiter-ready mobile presentation layer
+- a more coherent v1 app identity across code, UI, and app config
 
 ### Why this is the next task
 
-Because the app already has live Reports, Weather, and Map Preview screens.
+Because the main mobile functionality is now in place.
 
-The next correct mobile step is to complete the last remaining mobile section in the navigation structure.
+The next correct step is to tighten the visible product presentation before expanding features further.
 
-This closes the first full pass of the v1 mobile experience.
+This improves the portfolio quality of the current build without reopening the backend scope.
 
 ### Success condition for this task
 
 The task is complete when:
 
-- the Pipeline screen presents the project flow clearly
-- the screen fits coherently into the existing mobile app
+- the app no longer exposes obvious generic defaults in visible product areas
+- the visible mobile identity matches Traffiq
 - the app still runs correctly in Expo Go
 - the code is reviewed and validated before commit
 
 ---
 
-## 13. Instructions For Any New Codex Chat
+## 14. Instructions For Any New Codex Chat
 
 If you are a new Codex chat reading this file, you must do the following before suggesting any implementation:
 
