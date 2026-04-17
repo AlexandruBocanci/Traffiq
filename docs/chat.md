@@ -967,46 +967,67 @@ Notes:
 - the current base URL is tied to the local network IP and may need updating when the PC IP changes
 - the next step is to connect the first real screen to this shared API layer
 
+### Update 023 - Reports screen connected to traffic endpoint
+
+Completed:
+
+- updated:
+  - `mobile/src/screens/ReportsScreen.tsx`
+- connected the Reports screen to the shared mobile API service layer
+- loaded live traffic data from:
+  - `GET /traffic`
+- added loading state handling
+- added error state handling
+- added empty-state handling
+- rendered traffic records in a mobile list layout
+- validated that the screen loads backend data successfully in Expo Go
+
+Notes:
+
+- this is the first complete backend-to-mobile user flow in Traffiq
+- the Reports screen now consumes real local API data instead of placeholder text
+- the issue caused by swapped config/type files in the mobile API layer was corrected as part of validation
+
 ---
 
 ## 10. Next Task
 
 ### Current active mission
 
-Connect the Reports screen to the traffic endpoints.
+Connect the Weather Impact screen to the weather endpoint.
 
 ### Exact goal
 
-Turn the Reports screen into the first mobile screen that consumes real backend traffic data.
+Turn the Weather Impact screen into the next mobile screen that consumes real backend weather analytics data.
 
 ### Deliverables
 
-1. Connect the Reports screen to the shared mobile API layer
-2. Load traffic endpoint data into the screen
+1. Connect the Weather Impact screen to the shared mobile API layer
+2. Load weather impact endpoint data into the screen
 3. Display loading, success, and error states
 4. Keep the screen simple and portfolio-appropriate for v1
 
 ### Expected concrete files
 
-- `mobile/src/screens/ReportsScreen.tsx`
+- `mobile/src/screens/WeatherImpactScreen.tsx`
 - optionally small supporting UI helpers if needed
 
-### What the Reports integration task should do
+### What the Weather Impact integration task should do
 
-- call the shared API service layer from the Reports screen
-- render real traffic records from the FastAPI backend
-- establish the first true backend-to-mobile user flow
+- call the shared API service layer from the Weather Impact screen
+- render real weather impact records from the FastAPI backend
+- establish the second true backend-to-mobile user flow
 
 ### What this task should produce
 
-- a working Reports screen backed by live local API data
+- a working Weather Impact screen backed by live local API data
 - a reusable pattern for the next mobile screens
 
 ### Why this is the next task
 
-Because the mobile app now has navigation and a reusable API connection layer.
+Because the mobile app now has a working Reports screen connected to the backend.
 
-The next correct step is to make the first mobile screen actually consume backend data.
+The next correct step is to connect the second analytics screen using the same mobile API layer.
 
 This continues the v1 mobile implementation path cleanly.
 
@@ -1014,7 +1035,7 @@ This continues the v1 mobile implementation path cleanly.
 
 The task is complete when:
 
-- the Reports screen loads traffic data from the backend
+- the Weather Impact screen loads data from the backend
 - the screen handles loading and error states cleanly
 - the app still runs correctly in Expo Go
 - the code is reviewed and validated before commit
