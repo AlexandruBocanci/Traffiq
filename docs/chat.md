@@ -1042,7 +1042,79 @@ The task is complete when:
 
 ---
 
-## 11. Instructions For Any New Codex Chat
+## 10. Update 024 - Weather Impact Screen Connected To Backend
+
+Task completed:
+
+- connected the Weather Impact screen to the shared mobile API service layer
+- loaded live data from `GET /weather-impact`
+- implemented loading, success, and error states in the mobile screen
+- validated that the screen renders correctly in Expo Go
+
+Notes:
+
+- this is the second complete backend-to-mobile user flow in Traffiq
+- the Weather Impact screen now consumes real analytics data instead of placeholder text
+- the shared mobile API layer is now proven across both Reports and Weather screens
+
+---
+
+## 11. Next Task
+
+### Current active mission
+
+Connect the Map Preview screen to backend traffic analytics endpoints.
+
+### Exact goal
+
+Turn the Map Preview screen into a simple analytics preview that surfaces top-speed and top-congested traffic insights from the API.
+
+### Deliverables
+
+1. Connect the Map Preview screen to the shared mobile API layer
+2. Load top-speed traffic data into the screen
+3. Load top-congested street data into the screen
+4. Present both sections clearly in a simple v1 mobile layout
+5. Handle loading and error states cleanly
+
+### Expected concrete files
+
+- `mobile/src/screens/MapPreviewScreen.tsx`
+- optionally small supporting UI helpers if needed
+
+### What the Map Preview integration task should do
+
+- call the shared API service layer from the Map Preview screen
+- render top-speed traffic results from the FastAPI backend
+- render top-congested street results from the FastAPI backend
+- keep the UI simple and portfolio-appropriate for v1
+
+### What this task should produce
+
+- a working Map Preview screen backed by live local API data
+- the third complete backend-to-mobile user flow
+
+### Why this is the next task
+
+Because the app already has live Reports and Weather screens.
+
+The next correct mobile step is to connect the screen that previews comparative traffic analytics.
+
+This keeps the v1 app moving toward a complete backend-driven showcase.
+
+### Success condition for this task
+
+The task is complete when:
+
+- the Map Preview screen loads top-speed data from the backend
+- the Map Preview screen loads top-congested data from the backend
+- the screen handles loading and error states cleanly
+- the app still runs correctly in Expo Go
+- the code is reviewed and validated before commit
+
+---
+
+## 12. Instructions For Any New Codex Chat
 
 If you are a new Codex chat reading this file, you must do the following before suggesting any implementation:
 
