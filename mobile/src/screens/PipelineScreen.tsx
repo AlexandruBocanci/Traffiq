@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
 
+import EmptyState from '../components/EmptyState';
+import ErrorState from '../components/ErrorState';
+import LoadingState from '../components/LoadingState';
 import {
   getHealthStatus,
   getTopCongestedStreets,
@@ -84,19 +86,17 @@ export default function PipelineScreen() {
   }, []);
 
   if (isLoading) {
-    return (
-      <View style={styles.stateContainer}>
-        <ActivityIndicator size="large" color="#38bdf8" />
-        <Text style={styles.stateText}>Loading pipeline status...</Text>
-      </View>
-    );
+    return <LoadingState message="Loading pipeline status..." />;
   }
 
   if (errorMessage) {
+    return <ErrorState title="Pipeline" message={errorMessage} />;
+  }
+
+  if (!metrics) {
     return (
-      <View style={styles.stateContainer}>
-        <Text style={styles.errorTitle}>Pipeline</Text>
-        <Text style={styles.errorText}>{errorMessage}</Text>
+      <View style={styles.emptyStateWrapper}>
+        <EmptyState message="No pipeline status available." />
       </View>
     );
   }
@@ -200,29 +200,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 21,
   },
-  stateContainer: {
+  emptyStateWrapper: {
     flex: 1,
     backgroundColor: '#0f172a',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
-  },
-  stateText: {
-    color: '#cbd5e1',
-    fontSize: 16,
-    marginTop: 16,
-    textAlign: 'center',
-  },
-  errorTitle: {
-    color: '#f8fafc',
-    fontSize: 28,
-    fontWeight: '800',
-    marginBottom: 12,
-  },
-  errorText: {
-    color: '#fca5a5',
-    fontSize: 16,
-    textAlign: 'center',
-    lineHeight: 24,
   },
 });

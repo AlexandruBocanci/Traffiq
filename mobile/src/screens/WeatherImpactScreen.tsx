@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
   FlatList,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
 
+import EmptyState from '../components/EmptyState';
+import ErrorState from '../components/ErrorState';
+import LoadingState from '../components/LoadingState';
 import { getWeatherImpact } from '../services/traffiqApi';
 import { WeatherImpactRecord } from '../types/api';
 
@@ -34,21 +36,11 @@ export default function WeatherImpactScreen() {
   }, []);
 
   if (isLoading) {
-    return (
-      <View style={styles.stateContainer}>
-        <ActivityIndicator size="large" color="#38bdf8" />
-        <Text style={styles.stateText}>Loading weather impact...</Text>
-      </View>
-    );
+    return <LoadingState message="Loading weather impact..." />;
   }
 
   if (errorMessage) {
-    return (
-      <View style={styles.stateContainer}>
-        <Text style={styles.errorTitle}>Weather Impact</Text>
-        <Text style={styles.errorText}>{errorMessage}</Text>
-      </View>
-    );
+    return <ErrorState title="Weather Impact" message={errorMessage} />;
   }
 
   return (
@@ -76,11 +68,7 @@ export default function WeatherImpactScreen() {
             </Text>
           </View>
         )}
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No weather impact data available.</Text>
-          </View>
-        }
+        ListEmptyComponent={<EmptyState message="No weather impact data available." />}
       />
     </View>
   );
@@ -126,38 +114,5 @@ const styles = StyleSheet.create({
   cardText: {
     color: '#cbd5e1',
     fontSize: 14,
-  },
-  stateContainer: {
-    flex: 1,
-    backgroundColor: '#0f172a',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
-  },
-  stateText: {
-    color: '#cbd5e1',
-    fontSize: 16,
-    marginTop: 16,
-    textAlign: 'center',
-  },
-  errorTitle: {
-    color: '#f8fafc',
-    fontSize: 28,
-    fontWeight: '800',
-    marginBottom: 12,
-  },
-  errorText: {
-    color: '#fca5a5',
-    fontSize: 16,
-    textAlign: 'center',
-    lineHeight: 24,
-  },
-  emptyContainer: {
-    paddingVertical: 40,
-    alignItems: 'center',
-  },
-  emptyText: {
-    color: '#cbd5e1',
-    fontSize: 16,
   },
 });

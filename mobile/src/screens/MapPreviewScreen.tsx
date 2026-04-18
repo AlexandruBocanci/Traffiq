@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
 
+import EmptyState from '../components/EmptyState';
+import ErrorState from '../components/ErrorState';
+import LoadingState from '../components/LoadingState';
 import {
   getTopCongestedStreets,
   getTopSpeedTraffic,
@@ -43,21 +45,11 @@ export default function MapPreviewScreen() {
   }, []);
 
   if (isLoading) {
-    return (
-      <View style={styles.stateContainer}>
-        <ActivityIndicator size="large" color="#38bdf8" />
-        <Text style={styles.stateText}>Loading map preview analytics...</Text>
-      </View>
-    );
+    return <LoadingState message="Loading map preview analytics..." />;
   }
 
   if (errorMessage) {
-    return (
-      <View style={styles.stateContainer}>
-        <Text style={styles.errorTitle}>Map Preview</Text>
-        <Text style={styles.errorText}>{errorMessage}</Text>
-      </View>
-    );
+    return <ErrorState title="Map Preview" message={errorMessage} />;
   }
 
   return (
@@ -71,7 +63,7 @@ export default function MapPreviewScreen() {
         <Text style={styles.sectionTitle}>Fastest Traffic Segments</Text>
 
         {topSpeedData.length === 0 ? (
-          <Text style={styles.emptyText}>No top-speed traffic data available.</Text>
+          <EmptyState message="No top-speed traffic data available." />
         ) : (
           topSpeedData.map((item) => (
             <View key={item.traffic_obs_id} style={styles.card}>
@@ -88,7 +80,7 @@ export default function MapPreviewScreen() {
         <Text style={styles.sectionTitle}>Most Congested Streets</Text>
 
         {topCongestedData.length === 0 ? (
-          <Text style={styles.emptyText}>No congestion data available.</Text>
+          <EmptyState message="No congestion data available." />
         ) : (
           topCongestedData.map((item, index) => (
             <View
@@ -161,34 +153,5 @@ const styles = StyleSheet.create({
     color: '#94a3b8',
     fontSize: 12,
     marginTop: 4,
-  },
-  emptyText: {
-    color: '#cbd5e1',
-    fontSize: 15,
-  },
-  stateContainer: {
-    flex: 1,
-    backgroundColor: '#0f172a',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
-  },
-  stateText: {
-    color: '#cbd5e1',
-    fontSize: 16,
-    marginTop: 16,
-    textAlign: 'center',
-  },
-  errorTitle: {
-    color: '#f8fafc',
-    fontSize: 28,
-    fontWeight: '800',
-    marginBottom: 12,
-  },
-  errorText: {
-    color: '#fca5a5',
-    fontSize: 16,
-    textAlign: 'center',
-    lineHeight: 24,
   },
 });

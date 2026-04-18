@@ -1093,59 +1093,94 @@ Notes:
 
 ---
 
-## 13. Next Task
+## 13. Update 027 - Mobile Screens Cleanly Connected To Backend Endpoints
+
+Task completed:
+
+- confirmed that mobile screens consume backend data through the shared API service layer
+- verified that screen components do not call `fetch(...)` directly
+- confirmed that Reports, Weather, Map Preview, and Pipeline all rely on centralized endpoint helpers
+- aligned task tracking with the Notion board used as the active execution tracker
+
+Notes:
+
+- this task was already implemented in code as part of the previous mobile integration work
+- it is now explicitly recognized and closed in the project continuity log
+- from this point forward, task order must follow the user's Notion tracker when it is provided explicitly
+
+---
+
+## 14. Update 028 - Loading, Empty, And Error States Standardized In App
+
+Task completed:
+
+- introduced shared mobile UI components for loading, error, and empty states
+- removed duplicated state UI logic from the main mobile screens
+- standardized behavior across Reports, Weather, Map Preview, and Pipeline
+- validated that the app still compiles and runs correctly after the refactor
+
+Notes:
+
+- this task was completed through a small UI refactor, not through feature expansion
+- the app behavior is now more consistent under loading, empty, and backend-failure conditions
+- this improves maintainability and makes the mobile demo more credible
+
+---
+
+## 15. Next Task
 
 ### Current active mission
 
-Polish the mobile v1 experience and align app branding/configuration for portfolio presentation.
+Validate end-to-end local flow: pipeline -> PostgreSQL -> FastAPI -> mobile app.
 
 ### Exact goal
 
-Refine the mobile app so that the visible product presentation matches the Traffiq portfolio story more cleanly.
+Validate the full local Traffiq path from data pipeline outputs through database serving and into the mobile app UI.
 
 ### Deliverables
 
-1. Review the visible app naming and Expo configuration
-2. Replace generic mobile defaults where needed
-3. Make small presentation-level improvements that strengthen recruiter-facing polish
-4. Keep scope limited to v1 presentation improvements, not new features
+1. Verify that pipeline-produced data exists in PostgreSQL
+2. Verify that FastAPI serves the expected endpoints locally
+3. Verify that the mobile app consumes those endpoints correctly
+4. Record the local validation flow clearly for continuity and presentation
 
 ### Expected concrete files
 
-- likely `mobile/app.json`
-- optionally small mobile UI/config files if needed
+- likely `docs/chat.md`
+- possibly `docs/LOCAL_SETUP.md` if run instructions need clarification
 
-### What the mobile polish task should do
+### What the end-to-end validation task should do
 
-- remove remaining generic Expo/mobile defaults that weaken the portfolio presentation
-- align visible mobile metadata with the Traffiq project identity
-- improve the credibility of the mobile demo without expanding scope unnecessarily
+- validate the project as one connected local system
+- confirm that the demo path works reliably on the current machine
+- produce a clear local validation reference for future sessions and recruiter demos
 
 ### What this task should produce
 
-- a cleaner and more recruiter-ready mobile presentation layer
-- a more coherent v1 app identity across code, UI, and app config
+- a confirmed end-to-end local demo flow
+- a cleaner operational picture of how Traffiq should be run and presented locally
 
 ### Why this is the next task
 
-Because the main mobile functionality is now in place.
+Because the main implementation work for v1 local functionality is already in place.
 
-The next correct step is to tighten the visible product presentation before expanding features further.
+The next correct step is to validate that the whole stack works together coherently before final documentation polish.
 
-This improves the portfolio quality of the current build without reopening the backend scope.
+This keeps the v1 integration path aligned with the Notion execution plan.
 
 ### Success condition for this task
 
 The task is complete when:
 
-- the app no longer exposes obvious generic defaults in visible product areas
-- the visible mobile identity matches Traffiq
+- the pipeline data is confirmed in PostgreSQL
+- the main FastAPI endpoints are confirmed locally
+- the mobile app is confirmed to consume the live local backend
 - the app still runs correctly in Expo Go
 - the code is reviewed and validated before commit
 
 ---
 
-## 14. Instructions For Any New Codex Chat
+## 16. Instructions For Any New Codex Chat
 
 If you are a new Codex chat reading this file, you must do the following before suggesting any implementation:
 
@@ -1159,6 +1194,7 @@ If you are a new Codex chat reading this file, you must do the following before 
 3. Confirm the current Git branch
 4. Confirm what has already been implemented
 5. Continue from the `Next Task` section unless the user explicitly changes priorities
+6. If the user provides a Notion task order explicitly, treat the Notion order as the active execution source of truth
 
 Do not assume hidden context. Treat this file and the repo as the source of truth.
 
