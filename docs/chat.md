@@ -1127,44 +1127,78 @@ Notes:
 
 ---
 
-## 15. Next Task
+## 15. Update 029 - End-To-End Local Flow Validated
+
+Task completed:
+
+- validated the local Traffiq flow from pipeline outputs to PostgreSQL
+- confirmed the FastAPI layer serves the local project data
+- confirmed the mobile app consumes the live local backend successfully
+- closed the full local demo path for v1
+
+Notes:
+
+- the project is now validated as one connected local system
+- this closes the operational verification step before final presentation/documentation polish
+- task order continues to follow the user's Notion tracker
+
+---
+
+## 16. Update 030 - v1 Documentation And Recruiter Presentation Finalized
+
+Task completed:
+
+- added a root `README.md` that presents Traffiq clearly as a backend-focused Data Engineering portfolio project
+- updated `docs/Traffiq_v1.md` so the v1 commit plan reflects the real implemented state
+- added an explicit v1 completion status section to `docs/Traffiq_v1.md`
+- corrected practical setup documentation in `docs/LOCAL_SETUP.md`
+
+Notes:
+
+- the repository now has a recruiter-facing entry point instead of relying only on internal docs
+- the documentation now matches the actual delivered v1 scope more closely
+- the local API run command in setup docs now matches the mobile-connected local flow
+
+---
+
+## 17. Next Task
 
 ### Current active mission
 
-Validate end-to-end local flow: pipeline -> PostgreSQL -> FastAPI -> mobile app.
+Close Traffiq v1 and prepare the transition to Traffiq v2 work.
 
 ### Exact goal
 
-Validate the full local Traffiq path from data pipeline outputs through database serving and into the mobile app UI.
+Treat v1 as complete, merge the validated work to `main`, and begin the next task sequence from `docs/Traffiq_v2.md` on a new branch.
 
 ### Deliverables
 
-1. Verify that pipeline-produced data exists in PostgreSQL
-2. Verify that FastAPI serves the expected endpoints locally
-3. Verify that the mobile app consumes those endpoints correctly
-4. Record the local validation flow clearly for continuity and presentation
+1. Confirm that all v1 work is committed and pushed on the current branch
+2. Merge the v1 branch into `main`
+3. Create a new branch for v2
+4. Start the next implementation sequence from `docs/Traffiq_v2.md`
 
 ### Expected concrete files
 
-- likely `docs/chat.md`
-- possibly `docs/LOCAL_SETUP.md` if run instructions need clarification
+- no mandatory file edits for the handoff itself
+- `docs/Traffiq_v2.md` becomes the next planning source of truth
 
-### What the end-to-end validation task should do
+### What the v1-to-v2 handoff task should do
 
-- validate the project as one connected local system
-- confirm that the demo path works reliably on the current machine
-- produce a clear local validation reference for future sessions and recruiter demos
+- close the v1 phase cleanly
+- preserve continuity for the next branch
+- keep task sequencing aligned with the documented v2 scope
 
 ### What this task should produce
 
-- a confirmed end-to-end local demo flow
-- a cleaner operational picture of how Traffiq should be run and presented locally
+- a clean transition from v1 delivery to v2 implementation
+- a clear starting point for the next development phase
 
 ### Why this is the next task
 
-Because the main implementation work for v1 local functionality is already in place.
+Because the v1 implementation, integration, validation, and documentation work are now complete.
 
-The next correct step is to validate that the whole stack works together coherently before final documentation polish.
+The next correct step is to move to branch and scope management for v2.
 
 This keeps the v1 integration path aligned with the Notion execution plan.
 
@@ -1172,15 +1206,14 @@ This keeps the v1 integration path aligned with the Notion execution plan.
 
 The task is complete when:
 
-- the pipeline data is confirmed in PostgreSQL
-- the main FastAPI endpoints are confirmed locally
-- the mobile app is confirmed to consume the live local backend
-- the app still runs correctly in Expo Go
-- the code is reviewed and validated before commit
+- the v1 branch is safely closed
+- the work is merged to `main`
+- a new v2 branch is created
+- the next implementation work starts from `docs/Traffiq_v2.md`
 
 ---
 
-## 16. Instructions For Any New Codex Chat
+## 18. Instructions For Any New Codex Chat
 
 If you are a new Codex chat reading this file, you must do the following before suggesting any implementation:
 

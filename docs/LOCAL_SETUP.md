@@ -30,8 +30,8 @@ Optional later:
 ## 2. Clone the Repository
 
 ```powershell
-git clone https://github.com/AlexandruBocanci/Trafiq.git
-cd Trafiq
+git clone https://github.com/AlexandruBocanci/Traffiq.git
+cd Traffiq
 ```
 
 ## 3. Bootstrap Local Dependencies
@@ -117,7 +117,7 @@ Recommended values for local setup:
 From the repository root:
 
 ```powershell
-uvicorn src.api.main:app --reload
+uvicorn src.api.main:app --reload --host 0.0.0.0
 ```
 
 ## 8. Running the Mobile App
