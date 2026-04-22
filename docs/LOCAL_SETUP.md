@@ -92,11 +92,13 @@ psql -U postgres -d traffiq -f sql/ddl/create_all.sql
 
 ## 6. Environment Configuration
 
-The current project still uses hardcoded DB settings in:
+The project loads database configuration from a local `.env` file.
 
-- `src/config/settings.py`
+Create `.env` from the example file:
 
-Later this should move to a `.env` file.
+```powershell
+Copy-Item .env.example .env
+.
 
 Expected variables:
 
@@ -161,7 +163,7 @@ That means a second device must always:
 3. run the bootstrap script or install backend/mobile dependencies manually
 4. create the PostgreSQL database
 5. run the SQL DDL scripts
-6. configure environment variables later when the project moves to `.env`
+6. create `.env` from `.env.example` and fill in local database credentials
 
 ## 11. Recommended Setup Workflow On a New Device
 
@@ -169,8 +171,9 @@ That means a second device must always:
 2. Run `setup_local.ps1`
 3. Create database `traffiq`
 4. Run `sql/ddl/create_all.sql`
-5. Start the API
-6. Start the mobile app
+5. Create `.env` from `.env.example` and configure local database credentials
+6. Start the API
+7. Start the mobile app
 
 ## 12. Maintenance Rule
 
