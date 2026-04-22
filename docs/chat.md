@@ -155,32 +155,31 @@ If detailed v1 task history is needed, read:
 
 ### Current task
 
-Close and commit the completed `.env` configuration task
+Close and commit the completed API route refactor
 
 ### Current status
 
-The first v2 configuration task is implemented and validated locally.
+The backend API route refactor is implemented and validated locally.
 
 ### Files changed by the task
 
-- `.env`
-- `.env.example`
-- `.gitignore`
-- `src/config/settings.py`
+- `src/api/main.py`
+- `src/api/routes/__init__.py`
+- `src/api/routes/health.py`
+- `src/api/routes/traffic.py`
+- `src/api/routes/streets.py`
+- `src/api/routes/weather.py`
 
 ### Goal
 
-Commit the validated configuration cleanup before moving to the next v2 task.
+Commit the validated API structure cleanup before moving to pipeline orchestration work.
 
 ### Validation result
 
-- `.env` exists locally and contains the real DB values
-- `.env.example` exists and contains placeholder values
-- `src/config/settings.py` now loads DB config from environment variables
-- `requirements.txt` already contained `python-dotenv`
-- `.env` is ignored by Git
-- `.env.example` is explicitly allowed by Git
-- DB connection test passes when run through `.venv`
+- `src/api/main.py` now only creates the FastAPI app and includes routers
+- existing v1 endpoints were moved into dedicated route modules
+- endpoint URLs stayed unchanged for mobile compatibility
+- all existing API endpoints returned successful responses locally
 
 ### Next task after commit
 
@@ -234,6 +233,40 @@ Notes:
 
 - the global Python interpreter may fail if `python-dotenv` is not installed globally
 - the project should be tested through `.venv`, which has `python-dotenv` installed
+
+### Update 033 - Backend API routes refactored into modules
+
+Completed:
+
+- created `src/api/routes/`
+- moved `GET /health` into `src/api/routes/health.py`
+- moved `GET /traffic` and `GET /traffic/top-speed` into `src/api/routes/traffic.py`
+- moved `GET /streets/top-congested` into `src/api/routes/streets.py`
+- moved `GET /weather-impact` into `src/api/routes/weather.py`
+- updated `src/api/main.py` to register routers with `app.include_router(...)`
+
+Validation commands:
+
+```powershell
+Invoke-RestMethod http://localhost:8000/health
+Invoke-RestMethod http://localhost:8000/traffic
+Invoke-RestMethod http://localhost:8000/traffic/top-speed
+Invoke-RestMethod http://localhost:8000/streets/top-congested
+Invoke-RestMethod http://localhost:8000/weather-impact
+```
+
+Validation result:
+
+- `/health` returned `{"status": "ok"}`
+- `/traffic` returned `count: 22`
+- `/traffic/top-speed` returned `count: 5`
+- `/streets/top-congested` returned `count: 5`
+- `/weather-impact` returned `count: 2`
+
+Notes:
+
+- endpoint URLs stayed unchanged, so the mobile app API contract is preserved
+- this prepares the backend for v2 route, event, history, and pipeline endpoints
 
 ---
 
