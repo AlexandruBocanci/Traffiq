@@ -155,31 +155,28 @@ If detailed v1 task history is needed, read:
 
 ### Current task
 
-Close and commit the completed API route refactor
+Close and commit the completed pipeline runner task
 
 ### Current status
 
-The backend API route refactor is implemented and validated locally.
+The end-to-end traffic-weather pipeline runner is implemented and validated locally.
 
 ### Files changed by the task
 
-- `src/api/main.py`
-- `src/api/routes/__init__.py`
-- `src/api/routes/health.py`
-- `src/api/routes/traffic.py`
-- `src/api/routes/streets.py`
-- `src/api/routes/weather.py`
+- `src/pipeline/__init__.py`
+- `src/pipeline/run_pipeline.py`
+- `tests/test_run_pipeline.py`
 
 ### Goal
 
-Commit the validated API structure cleanup before moving to pipeline orchestration work.
+Commit the validated pipeline orchestration step before moving to ETL metadata logging.
 
 ### Validation result
 
-- `src/api/main.py` now only creates the FastAPI app and includes routers
-- existing v1 endpoints were moved into dedicated route modules
-- endpoint URLs stayed unchanged for mobile compatibility
-- all existing API endpoints returned successful responses locally
+- `run_traffic_weather_pipeline()` runs the full traffic and weather pipeline end to end
+- pipeline tables are reset before execution for repeatable local full-refresh runs
+- traffic raw, traffic Silver, Gold hourly metrics, weather raw, weather Silver, traffic-weather enrichment, and Gold weather impact all load successfully
+- `tests/test_run_pipeline.py` validates that all key row counts are greater than 0
 
 ### Next task after commit
 
@@ -267,6 +264,44 @@ Notes:
 
 - endpoint URLs stayed unchanged, so the mobile app API contract is preserved
 - this prepares the backend for v2 route, event, history, and pipeline endpoints
+
+### Update 034 - End-to-end pipeline runner created
+
+Completed:
+
+- created `src/pipeline/__init__.py`
+- created `src/pipeline/run_pipeline.py`
+- added `run_traffic_weather_pipeline()` as the first orchestration entry point
+- added table reset logic for repeatable local full-refresh pipeline runs
+- orchestrated the existing traffic and weather extract, transform, and load modules
+- created `tests/test_run_pipeline.py` to validate the complete runner
+
+Validation command:
+
+```powershell
+$env:PYTHONPATH='.'; .\.venv\Scripts\python.exe tests\test_run_pipeline.py
+```
+
+Validation result:
+
+```text
+SUCCESS: Pipeline tables reset.
+traffic_raw_rows: 26
+traffic_silver_rows: 22
+hourly_street_metrics_rows: 22
+weather_raw_rows: 168
+weather_silver_rows: 168
+traffic_weather_enriched_rows: 154
+weather_traffic_impact_rows: 2
+SUCCESS: Full traffic-weather pipeline test passed.
+1
+```
+
+Notes:
+
+- `weather_traffic_impact_rows = 2` is expected because the Gold table is aggregated by date and weather label
+- the global Python interpreter may fail without `python-dotenv`; project validation should use `.venv`
+- this task prepares the next v2 step: ETL metadata logging for pipeline runs
 
 ---
 
