@@ -155,28 +155,31 @@ If detailed v1 task history is needed, read:
 
 ### Current task
 
-Close and commit the completed pipeline runner task
+Close and commit the completed ETL metadata logging task
 
 ### Current status
 
-The end-to-end traffic-weather pipeline runner is implemented and validated locally.
+ETL metadata logging for pipeline runs is implemented and validated locally.
 
 ### Files changed by the task
 
-- `src/pipeline/__init__.py`
+- `sql/ddl/create_metadata_tables.sql`
+- `sql/ddl/create_all.sql`
+- `src/load/log_pipeline_run.py`
 - `src/pipeline/run_pipeline.py`
-- `tests/test_run_pipeline.py`
+- `tests/test_log_pipeline_run.py`
 
 ### Goal
 
-Commit the validated pipeline orchestration step before moving to ETL metadata logging.
+Commit pipeline run logging before moving to basic data quality checks logging.
 
 ### Validation result
 
-- `run_traffic_weather_pipeline()` runs the full traffic and weather pipeline end to end
-- pipeline tables are reset before execution for repeatable local full-refresh runs
-- traffic raw, traffic Silver, Gold hourly metrics, weather raw, weather Silver, traffic-weather enrichment, and Gold weather impact all load successfully
-- `tests/test_run_pipeline.py` validates that all key row counts are greater than 0
+- `etl_meta.pipeline_runs` exists in PostgreSQL
+- `start_pipeline_run(...)` inserts a new run with status `running`
+- `finish_pipeline_run(...)` updates the same run with status, extracted records, loaded records, and error message
+- `run_traffic_weather_pipeline()` now writes pipeline metadata automatically
+- latest validated run finished with status `success`, `records_extracted = 194`, and `records_loaded = 562`
 
 ### Next task after commit
 
@@ -302,6 +305,61 @@ Notes:
 - `weather_traffic_impact_rows = 2` is expected because the Gold table is aggregated by date and weather label
 - the global Python interpreter may fail without `python-dotenv`; project validation should use `.venv`
 - this task prepares the next v2 step: ETL metadata logging for pipeline runs
+
+### Update 035 - ETL pipeline run metadata logging added
+
+Completed:
+
+- created `sql/ddl/create_metadata_tables.sql`
+- registered metadata DDL in `sql/ddl/create_all.sql`
+- created `src/load/log_pipeline_run.py`
+- added `start_pipeline_run(...)` for opening pipeline run records
+- added `finish_pipeline_run(...)` for closing pipeline run records
+- integrated run logging into `src/pipeline/run_pipeline.py`
+- added validation coverage through `tests/test_log_pipeline_run.py`
+
+Validation command:
+
+```powershell
+$env:PYTHONPATH='.'; .\.venv\Scripts\python.exe tests\test_run_pipeline.py
+```
+
+Validation result:
+
+```text
+SUCCESS: Pipeline run started with run_id=2.
+SUCCESS: Pipeline run 2 finished with status=success.
+records_extracted: 194
+records_loaded: 562
+SUCCESS: Full traffic-weather pipeline test passed.
+1
+```
+
+Database validation:
+
+```sql
+SELECT run_id, pipeline_name, status, records_extracted, records_loaded, error_message
+FROM etl_meta.pipeline_runs
+ORDER BY run_id DESC
+LIMIT 1;
+```
+
+Database result:
+
+```text
+run_id: 2
+pipeline_name: traffic_weather_pipeline
+status: success
+records_extracted: 194
+records_loaded: 562
+error_message: null
+```
+
+Notes:
+
+- `etl_meta.pipeline_runs` is not truncated by the pipeline reset because it is operational history
+- this makes the pipeline observable and prepares the project for Pipeline/Status API and app features
+- the next v2 task is basic data quality checks logging
 
 ---
 

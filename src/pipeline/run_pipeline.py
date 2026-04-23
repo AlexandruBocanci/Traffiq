@@ -11,6 +11,8 @@ from src.load.load_weather_to_silver import load_weather_to_silver
 from src.load.load_weather_traffic_impact_to_gold import load_weather_traffic_impact_to_gold
 from src.transform.transform_traffic_data import transform_traffic_data
 from src.transform.transform_weather_data import transform_weather_data
+from src.load.log_pipeline_run import finish_pipeline_run
+from src.load.log_pipeline_run import start_pipeline_run
 from src.utils.db_utils import get_db_connection
 
 
@@ -94,11 +96,22 @@ def get_enriched_traffic_weather_df():
 
 
 def run_traffic_weather_pipeline():
+    run_id = start_pipeline_run("traffic_weather_pipeline")
+
     reset_result = reset_pipeline_tables()
 
     if reset_result == 0:
+        finish_pipeline_run(
+            run_id,
+            "failed",
+            0,
+            0,
+            "Pipeline table reset failed"
+        )
+
         return {
             "status": "failed",
+            "run_id": run_id,
             "error": "Pipeline table reset failed",
         }
 
@@ -123,8 +136,28 @@ def run_traffic_weather_pipeline():
     enriched_df = get_enriched_traffic_weather_df()
     weather_traffic_impact_rows = load_weather_traffic_impact_to_gold(enriched_df)
 
+    records_extracted = len(raw_traffic_df) + len(raw_weather_df)
+
+    records_loaded = (
+        traffic_raw_rows
+        + traffic_silver_rows
+        + hourly_street_metrics_rows
+        + weather_raw_rows
+        + weather_silver_rows
+        + traffic_weather_enriched_rows
+        + weather_traffic_impact_rows
+    )
+
+    finish_pipeline_run(
+        run_id,
+        "success",
+        records_extracted,
+        records_loaded
+    )
+
     result = {
         "status": "success",
+        "run_id": run_id,
         "traffic_raw_rows": traffic_raw_rows,
         "traffic_silver_rows": traffic_silver_rows,
         "hourly_street_metrics_rows": hourly_street_metrics_rows,
@@ -132,13 +165,11 @@ def run_traffic_weather_pipeline():
         "weather_silver_rows": weather_silver_rows,
         "traffic_weather_enriched_rows": traffic_weather_enriched_rows,
         "weather_traffic_impact_rows": weather_traffic_impact_rows,
+        "records_extracted": records_extracted,
+        "records_loaded": records_loaded,
     }
 
     print("SUCCESS: Traffic-weather pipeline completed.")
     print(result)
 
     return result
-
-
-if __name__ == "__main__":
-    run_traffic_weather_pipeline()
