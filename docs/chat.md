@@ -155,31 +155,35 @@ If detailed v1 task history is needed, read:
 
 ### Current task
 
-Close and commit the completed ETL metadata logging task
+Close and commit the completed data quality logging task
 
 ### Current status
 
-ETL metadata logging for pipeline runs is implemented and validated locally.
+Basic data quality checks logging is implemented and validated locally.
 
 ### Files changed by the task
 
 - `sql/ddl/create_metadata_tables.sql`
-- `sql/ddl/create_all.sql`
-- `src/load/log_pipeline_run.py`
 - `src/pipeline/run_pipeline.py`
-- `tests/test_log_pipeline_run.py`
+- `src/load/log_data_quality_check.py`
+- `tests/test_run_pipeline.py`
+- `tests/test_log_data_quality_check.py`
 
 ### Goal
 
-Commit pipeline run logging before moving to basic data quality checks logging.
+Commit data quality logging before moving to stronger DB and pipeline integration coverage.
 
 ### Validation result
 
-- `etl_meta.pipeline_runs` exists in PostgreSQL
-- `start_pipeline_run(...)` inserts a new run with status `running`
-- `finish_pipeline_run(...)` updates the same run with status, extracted records, loaded records, and error message
-- `run_traffic_weather_pipeline()` now writes pipeline metadata automatically
-- latest validated run finished with status `success`, `records_extracted = 194`, and `records_loaded = 562`
+- `etl_meta.data_quality_checks` exists in PostgreSQL
+- each pipeline run now logs 4 data quality checks linked to the pipeline `run_id`
+- traffic and weather raw extract checks are logged
+- traffic and weather transform cleanup checks are logged with affected record counts
+- latest validated run logged:
+  - `traffic_raw_not_empty`
+  - `traffic_transform_removed_invalid_rows`
+  - `weather_raw_not_empty`
+  - `weather_transform_removed_invalid_rows`
 
 ### Next task after commit
 
@@ -360,6 +364,55 @@ Notes:
 - `etl_meta.pipeline_runs` is not truncated by the pipeline reset because it is operational history
 - this makes the pipeline observable and prepares the project for Pipeline/Status API and app features
 - the next v2 task is basic data quality checks logging
+
+### Update 036 - Basic data quality checks logging added
+
+Completed:
+
+- extended `sql/ddl/create_metadata_tables.sql` with `etl_meta.data_quality_checks`
+- created `src/load/log_data_quality_check.py`
+- integrated data quality logging into `run_traffic_weather_pipeline()`
+- logged 4 checks for each pipeline run:
+  - `traffic_raw_not_empty`
+  - `traffic_transform_removed_invalid_rows`
+  - `weather_raw_not_empty`
+  - `weather_transform_removed_invalid_rows`
+- updated `tests/test_run_pipeline.py` to validate removed-record counters correctly
+- created `tests/test_log_data_quality_check.py`
+
+Validation commands:
+
+```powershell
+$env:PYTHONPATH='.'; .\.venv\Scripts\python.exe tests\test_run_pipeline.py
+$env:PYTHONPATH='.'; .\.venv\Scripts\python.exe tests\test_log_data_quality_check.py
+```
+
+Validation result:
+
+```text
+SUCCESS: Data quality check logged: traffic_raw_not_empty.
+SUCCESS: Data quality check logged: traffic_transform_removed_invalid_rows.
+SUCCESS: Data quality check logged: weather_raw_not_empty.
+SUCCESS: Data quality check logged: weather_transform_removed_invalid_rows.
+SUCCESS: Full traffic-weather pipeline test passed.
+SUCCESS: Data quality logging test passed.
+1
+```
+
+Latest validated data quality rows:
+
+```text
+traffic_raw_not_empty -> passed, affected_records=0
+traffic_transform_removed_invalid_rows -> passed, affected_records=4
+weather_raw_not_empty -> passed, affected_records=0
+weather_transform_removed_invalid_rows -> passed, affected_records=0
+```
+
+Notes:
+
+- data quality checks are stored separately from pipeline run status, but linked through `run_id`
+- `affected_records` represents how many rows were removed during transform, not a pipeline failure count
+- the next v2 task is stronger DB and pipeline integration coverage
 
 ---
 

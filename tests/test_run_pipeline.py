@@ -24,6 +24,16 @@ def test_run_traffic_weather_pipeline():
       print(result)
       return 0
 
+  if result.get("traffic_records_removed", -1) < 0:
+    print("FAILED: traffic_records_removed should be greater than or equal to 0.")
+    print(result)
+    return 0
+
+  if result.get("weather_records_removed", -1) < 0:
+    print("FAILED: weather_records_removed should be greater than or equal to 0.")
+    print(result)
+    return 0
+
   print("SUCCESS: Full traffic-weather pipeline test passed.")
   print(result)
   return 1

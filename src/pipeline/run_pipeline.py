@@ -9,6 +9,7 @@ from src.load.load_traffic_weather_enriched_to_silver import load_traffic_weathe
 from src.load.load_weather_raw_to_bronze import load_weather_raw_to_bronze
 from src.load.load_weather_to_silver import load_weather_to_silver
 from src.load.load_weather_traffic_impact_to_gold import load_weather_traffic_impact_to_gold
+from src.load.log_data_quality_check import log_data_quality_check
 from src.transform.transform_traffic_data import transform_traffic_data
 from src.transform.transform_weather_data import transform_weather_data
 from src.load.log_pipeline_run import finish_pipeline_run
@@ -98,6 +99,12 @@ def get_enriched_traffic_weather_df():
 def run_traffic_weather_pipeline():
     run_id = start_pipeline_run("traffic_weather_pipeline")
 
+    if run_id is None:
+        return {
+            "status": "failed",
+            "error": "Could not start pipeline run metadata logging",
+        }
+
     reset_result = reset_pipeline_tables()
 
     if reset_result == 0:
@@ -117,6 +124,23 @@ def run_traffic_weather_pipeline():
 
     raw_traffic_df = extract_traffic_csv(TRAFFIC_SOURCE_FILE)
     clean_traffic_df = transform_traffic_data(raw_traffic_df)
+    traffic_removed_records = len(raw_traffic_df) - len(clean_traffic_df)
+
+    log_data_quality_check(
+        run_id,
+        "traffic_raw_not_empty",
+        "passed" if len(raw_traffic_df) > 0 else "failed",
+        0,
+        "Traffic raw extract should return at least one row."
+    )
+
+    log_data_quality_check(
+        run_id,
+        "traffic_transform_removed_invalid_rows",
+        "passed",
+        traffic_removed_records,
+        "Traffic transform removed invalid, null, negative, or duplicate rows."
+    )
 
     traffic_raw_rows = load_traffic_raw_to_bronze(raw_traffic_df, TRAFFIC_SOURCE_FILE)
     traffic_silver_rows = load_traffic_to_silver(clean_traffic_df)
@@ -124,6 +148,23 @@ def run_traffic_weather_pipeline():
 
     raw_weather_df = extract_weather_api(WEATHER_LATITUDE, WEATHER_LONGITUDE)
     clean_weather_df = transform_weather_data(raw_weather_df)
+    weather_removed_records = len(raw_weather_df) - len(clean_weather_df)
+
+    log_data_quality_check(
+        run_id,
+        "weather_raw_not_empty",
+        "passed" if len(raw_weather_df) > 0 else "failed",
+        0,
+        "Weather raw extract should return at least one row."
+    )
+
+    log_data_quality_check(
+        run_id,
+        "weather_transform_removed_invalid_rows",
+        "passed",
+        weather_removed_records,
+        "Weather transform removed invalid, null, negative, or duplicate rows."
+    )
 
     weather_raw_rows = load_weather_raw_to_bronze(raw_weather_df)
     weather_silver_rows = load_weather_to_silver(clean_weather_df)
@@ -167,6 +208,8 @@ def run_traffic_weather_pipeline():
         "weather_traffic_impact_rows": weather_traffic_impact_rows,
         "records_extracted": records_extracted,
         "records_loaded": records_loaded,
+        "traffic_records_removed": traffic_removed_records,
+        "weather_records_removed": weather_removed_records,
     }
 
     print("SUCCESS: Traffic-weather pipeline completed.")
