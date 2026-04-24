@@ -155,35 +155,42 @@ If detailed v1 task history is needed, read:
 
 ### Current task
 
-Close and commit the completed data quality logging task
+Close and commit the completed test structure reorganization task
 
 ### Current status
 
-Basic data quality checks logging is implemented and validated locally.
+Test structure was reorganized into unit and integration categories and validated locally.
 
 ### Files changed by the task
 
-- `sql/ddl/create_metadata_tables.sql`
-- `src/pipeline/run_pipeline.py`
-- `src/load/log_data_quality_check.py`
-- `tests/test_run_pipeline.py`
-- `tests/test_log_data_quality_check.py`
+- `tests/unit/__init__.py`
+- `tests/unit/test_extract_traffic_csv.py`
+- `tests/unit/test_transform_traffic_data.py`
+- `tests/unit/test_transform_weather_data.py`
+- `tests/integration/__init__.py`
+- `tests/integration/test_connection.py`
+- `tests/integration/test_extract_weather_api.py`
+- `tests/integration/test_load_traffic_raw_to_bronze.py`
+- `tests/integration/test_load_traffic_to_silver.py`
+- `tests/integration/test_load_hourly_street_metrics_to_gold.py`
+- `tests/integration/test_load_weather_raw_to_bronze.py`
+- `tests/integration/test_load_weather_to_silver.py`
+- `tests/integration/test_load_traffic_weather_enriched_to_silver.py`
+- `tests/integration/test_load_weather_traffic_impact_to_gold.py`
+- `tests/integration/test_run_pipeline.py`
+- `tests/integration/test_log_data_quality_check.py`
 
 ### Goal
 
-Commit data quality logging before moving to stronger DB and pipeline integration coverage.
+Commit the stronger test organization before moving to route intelligence work.
 
 ### Validation result
 
-- `etl_meta.data_quality_checks` exists in PostgreSQL
-- each pipeline run now logs 4 data quality checks linked to the pipeline `run_id`
-- traffic and weather raw extract checks are logged
-- traffic and weather transform cleanup checks are logged with affected record counts
-- latest validated run logged:
-  - `traffic_raw_not_empty`
-  - `traffic_transform_removed_invalid_rows`
-  - `weather_raw_not_empty`
-  - `weather_transform_removed_invalid_rows`
+- unit tests run correctly from `tests/unit/`
+- integration tests run correctly from `tests/integration/`
+- pipeline integration test still passes after the move
+- data quality logging integration test still passes after the move
+- no import path broke after the reorganization
 
 ### Next task after commit
 
@@ -413,6 +420,50 @@ Notes:
 - data quality checks are stored separately from pipeline run status, but linked through `run_id`
 - `affected_records` represents how many rows were removed during transform, not a pipeline failure count
 - the next v2 task is stronger DB and pipeline integration coverage
+
+### Update 037 - Test structure reorganized into unit and integration
+
+Completed:
+
+- created `tests/unit/`
+- created `tests/integration/`
+- added `__init__.py` in both folders
+- moved local logic tests into `tests/unit/`
+- moved DB, pipeline, and API-dependent tests into `tests/integration/`
+
+Validated unit tests:
+
+```powershell
+$env:PYTHONPATH='.'; .\.venv\Scripts\python.exe tests\unit\test_extract_traffic_csv.py
+$env:PYTHONPATH='.'; .\.venv\Scripts\python.exe tests\unit\test_transform_traffic_data.py
+$env:PYTHONPATH='.'; .\.venv\Scripts\python.exe tests\unit\test_transform_weather_data.py
+```
+
+Validated integration tests:
+
+```powershell
+$env:PYTHONPATH='.'; .\.venv\Scripts\python.exe tests\integration\test_connection.py
+$env:PYTHONPATH='.'; .\.venv\Scripts\python.exe tests\integration\test_run_pipeline.py
+$env:PYTHONPATH='.'; .\.venv\Scripts\python.exe tests\integration\test_log_data_quality_check.py
+```
+
+Validation result:
+
+```text
+Extraction test passed.
+Transform test passed.
+SUCCESS: Transform test completed successfully.
+Database connection test passed.
+SUCCESS: Full traffic-weather pipeline test passed.
+SUCCESS: Data quality logging test passed.
+1
+```
+
+Notes:
+
+- the move is a structural cleanup only; test logic did not need major changes
+- the project now distinguishes clearly between local logic tests and DB/pipeline integration tests
+- the next v2 task is route intelligence, starting with route reference data model and load flow
 
 ---
 
