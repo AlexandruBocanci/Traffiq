@@ -155,42 +155,31 @@ If detailed v1 task history is needed, read:
 
 ### Current task
 
-Close and commit the completed test structure reorganization task
+Close and commit the completed route reference data model and load flow
 
 ### Current status
 
-Test structure was reorganized into unit and integration categories and validated locally.
+Route reference data model and Silver load flow are implemented and validated locally.
 
 ### Files changed by the task
 
-- `tests/unit/__init__.py`
-- `tests/unit/test_extract_traffic_csv.py`
-- `tests/unit/test_transform_traffic_data.py`
-- `tests/unit/test_transform_weather_data.py`
-- `tests/integration/__init__.py`
-- `tests/integration/test_connection.py`
-- `tests/integration/test_extract_weather_api.py`
-- `tests/integration/test_load_traffic_raw_to_bronze.py`
-- `tests/integration/test_load_traffic_to_silver.py`
-- `tests/integration/test_load_hourly_street_metrics_to_gold.py`
-- `tests/integration/test_load_weather_raw_to_bronze.py`
-- `tests/integration/test_load_weather_to_silver.py`
-- `tests/integration/test_load_traffic_weather_enriched_to_silver.py`
-- `tests/integration/test_load_weather_traffic_impact_to_gold.py`
-- `tests/integration/test_run_pipeline.py`
-- `tests/integration/test_log_data_quality_check.py`
+- `sql/ddl/create_silver_tables.sql`
+- `data/raw/route_reference.csv`
+- `src/extract/extract_route_reference_csv.py`
+- `src/load/load_route_reference_to_silver.py`
+- `tests/integration/test_load_route_reference_to_silver.py`
 
 ### Goal
 
-Commit the stronger test organization before moving to route intelligence work.
+Commit the route reference foundation before building route-level Gold summaries.
 
 ### Validation result
 
-- unit tests run correctly from `tests/unit/`
-- integration tests run correctly from `tests/integration/`
-- pipeline integration test still passes after the move
-- data quality logging integration test still passes after the move
-- no import path broke after the reorganization
+- `silver.route_reference` exists in PostgreSQL
+- `route_reference.csv` contains 5 controlled demo routes
+- `extract_route_reference_csv(...)` reads the route reference CSV
+- `load_route_reference_to_silver(...)` inserts the routes into Silver
+- integration test confirms DB row count matches inserted row count
 
 ### Next task after commit
 
@@ -464,6 +453,47 @@ Notes:
 - the move is a structural cleanup only; test logic did not need major changes
 - the project now distinguishes clearly between local logic tests and DB/pipeline integration tests
 - the next v2 task is route intelligence, starting with route reference data model and load flow
+
+### Update 038 - Route reference data model and load flow added
+
+Completed:
+
+- added `silver.route_reference` to `sql/ddl/create_silver_tables.sql`
+- created `data/raw/route_reference.csv`
+- created `src/extract/extract_route_reference_csv.py`
+- created `src/load/load_route_reference_to_silver.py`
+- created `tests/integration/test_load_route_reference_to_silver.py`
+
+Validation commands:
+
+```powershell
+$env:PYTHONPATH='.'; .\.venv\Scripts\python.exe tests\integration\test_load_route_reference_to_silver.py
+$env:PYTHONPATH='.'; .\.venv\Scripts\python.exe -c "from src.utils.db_utils import get_db_connection; conn=get_db_connection(); cur=conn.cursor(); cur.execute('SELECT route_id, origin_name, destination_name, route_name, route_distance_km, route_geometry_ref FROM silver.route_reference ORDER BY route_id;'); print(cur.fetchall()); cur.close(); conn.close()"
+```
+
+Validation result:
+
+```text
+SUCCESS: 5 rows inserted into silver.route_reference.
+SUCCESS: Test loading the route references passed successfully.
+1
+```
+
+Inserted routes:
+
+```text
+1 | Unirii | Romana | Unirii to Romana | 3.20 | route_unirii_romana
+2 | Romana | Dorobanti | Romana to Dorobanti | 2.10 | route_romana_dorobanti
+3 | Unirii | Victoriei | Unirii to Victoriei | 2.80 | route_unirii_victoriei
+4 | Dorobanti | Victoriei | Dorobanti to Victoriei | 2.40 | route_dorobanti_victoriei
+5 | Unirii | Dorobanti | Unirii to Dorobanti | 3.60 | route_unirii_dorobanti
+```
+
+Notes:
+
+- `route_reference` is controlled reference data, so it is loaded directly into Silver
+- if route data later comes from a real routing API, the architecture can add a Bronze route raw table before Silver
+- the next v2 task is route-level Gold summary module and validation
 
 ---
 

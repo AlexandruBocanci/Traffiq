@@ -1,0 +1,6 @@
+route_id,origin_name,destination_name,route_name,route_distance_km,route_geometry_ref
+1,Unirii,Romana,Unirii to Romana,3.20,route_unirii_romana
+2,Romana,Dorobanti,Romana to Dorobanti,2.10,route_romana_dorobanti
+3,Unirii,Victoriei,Unirii to Victoriei,2.80,route_unirii_victoriei
+4,Dorobanti,Victoriei,Dorobanti to Victoriei,2.40,route_dorobanti_victoriei
+5,Unirii,Dorobanti,Unirii to Dorobanti,3.60,route_unirii_dorobanti

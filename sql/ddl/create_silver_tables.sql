@@ -24,3 +24,12 @@ CREATE TABLE IF NOT EXISTS silver.traffic_weather_enriched (
   precipitation_mm NUMERIC(5,2),
   wind_speed_kmh NUMERIC(5,2)
 );
+
+CREATE TABLE IF NOT EXISTS silver.route_reference (
+  route_id INTEGER PRIMARY KEY,
+  origin_name VARCHAR(255) NOT NULL,
+  destination_name VARCHAR(255) NOT NULL,
+  route_name VARCHAR(255) NOT NULL,
+  route_distance_km NUMERIC(10, 2) NOT NULL,
+  route_geometry_ref VARCHAR(255)
+);
