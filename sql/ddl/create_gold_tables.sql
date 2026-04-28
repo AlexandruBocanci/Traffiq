@@ -12,3 +12,14 @@ CREATE TABLE IF NOT EXISTS gold.weather_traffic_impact (
   avg_speed NUMERIC(10, 2),
   avg_congestion_score NUMERIC(5, 2)
 );
+
+CREATE TABLE IF NOT EXISTS gold.route_summary (
+  route_id INTEGER,
+  route_name VARCHAR(255),
+  origin_name VARCHAR(255),
+  destination_name VARCHAR(255),
+  route_distance_km NUMERIC(10, 2),
+  avg_speed NUMERIC(10, 2),
+  avg_congestion_score NUMERIC(5, 2),
+  estimated_duration_minutes NUMERIC(10, 2)
+);

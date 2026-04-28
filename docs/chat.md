@@ -155,31 +155,29 @@ If detailed v1 task history is needed, read:
 
 ### Current task
 
-Close and commit the completed route reference data model and load flow
+Close and commit the completed route-level Gold summary module
 
 ### Current status
 
-Route reference data model and Silver load flow are implemented and validated locally.
+Route-level Gold summary module is implemented and validated locally.
 
 ### Files changed by the task
 
-- `sql/ddl/create_silver_tables.sql`
-- `data/raw/route_reference.csv`
-- `src/extract/extract_route_reference_csv.py`
-- `src/load/load_route_reference_to_silver.py`
-- `tests/integration/test_load_route_reference_to_silver.py`
+- `sql/ddl/create_gold_tables.sql`
+- `src/load/load_route_summary_to_gold.py`
+- `tests/integration/test_load_route_summary_to_gold.py`
 
 ### Goal
 
-Commit the route reference foundation before building route-level Gold summaries.
+Commit the first route-level Gold analytics table before building route hourly reporting.
 
 ### Validation result
 
-- `silver.route_reference` exists in PostgreSQL
-- `route_reference.csv` contains 5 controlled demo routes
-- `extract_route_reference_csv(...)` reads the route reference CSV
-- `load_route_reference_to_silver(...)` inserts the routes into Silver
-- integration test confirms DB row count matches inserted row count
+- `gold.route_summary` exists in PostgreSQL
+- `load_route_summary_to_gold(...)` builds route-level metrics from `silver.route_reference` and `silver.traffic_observations`
+- 5 route summary rows are inserted
+- `avg_congestion_score` is bounded between 0 and 100
+- `estimated_duration_minutes` is greater than 0 for all inserted routes
 
 ### Next task after commit
 
@@ -494,6 +492,48 @@ Notes:
 - `route_reference` is controlled reference data, so it is loaded directly into Silver
 - if route data later comes from a real routing API, the architecture can add a Bronze route raw table before Silver
 - the next v2 task is route-level Gold summary module and validation
+
+### Update 039 - Route-level Gold summary module added
+
+Completed:
+
+- added `gold.route_summary` to `sql/ddl/create_gold_tables.sql`
+- created `src/load/load_route_summary_to_gold.py`
+- created `tests/integration/test_load_route_summary_to_gold.py`
+- calculated route-level `avg_speed`
+- calculated route-level `avg_congestion_score`
+- calculated `estimated_duration_minutes`
+
+Validation commands:
+
+```powershell
+$env:PYTHONPATH='.'; .\.venv\Scripts\python.exe tests\integration\test_load_route_summary_to_gold.py
+$env:PYTHONPATH='.'; .\.venv\Scripts\python.exe -c "from src.utils.db_utils import get_db_connection; conn=get_db_connection(); cur=conn.cursor(); cur.execute('SELECT route_id, route_name, avg_speed, avg_congestion_score, estimated_duration_minutes FROM gold.route_summary ORDER BY route_id;'); print(cur.fetchall()); cur.close(); conn.close()"
+```
+
+Validation result:
+
+```text
+SUCCESS: 5 rows inserted into gold.route_summary.
+SUCCESS: Test loading the route summary into gold passed successfully.
+1
+```
+
+Inserted route summaries:
+
+```text
+1 | Unirii to Romana | avg_speed=35.00 | avg_congestion_score=41.67 | estimated_duration_minutes=5.49
+2 | Romana to Dorobanti | avg_speed=29.09 | avg_congestion_score=51.52 | estimated_duration_minutes=4.33
+3 | Unirii to Victoriei | avg_speed=28.73 | avg_congestion_score=52.12 | estimated_duration_minutes=5.85
+4 | Dorobanti to Victoriei | avg_speed=21.60 | avg_congestion_score=64.00 | estimated_duration_minutes=6.67
+5 | Unirii to Dorobanti | avg_speed=25.09 | avg_congestion_score=58.18 | estimated_duration_minutes=8.61
+```
+
+Notes:
+
+- this is an initial route analytics approximation based on traffic from each route's origin and destination streets
+- `avg_congestion_score` is clamped between 0 and 100
+- the next v2 task is route hourly reporting module and validation
 
 ---
 
