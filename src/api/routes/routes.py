@@ -65,3 +65,60 @@ def get_routes_report():
       cur.close()
     if conn is not None:
       conn.close()
+
+@router.get("/routes/hourly")
+def get_routes_hourly():
+  conn = None
+  cur = None
+
+  try:
+    conn = get_db_connection()
+
+    if conn is None:
+      raise HTTPException(status_code=500, detail="Database connection failed.")
+
+    cur = conn.cursor()
+    cur.execute(
+      """
+      SELECT
+        route_id,
+        route_name,
+        metric_date,
+        hour_of_day,
+        avg_speed,
+        avg_congestion_score,
+        estimated_duration_minutes
+      FROM gold.route_hourly_report
+      ORDER BY route_id ASC, metric_date DESC, hour_of_day ASC;
+      """
+    )
+
+    rows = cur.fetchall()
+    data = []
+
+    for row in rows:
+      data.append(
+        {
+          "route_id": row[0],
+          "route_name": row[1],
+          "metric_date": row[2],
+          "hour_of_day": row[3],
+          "avg_speed": float(row[4]) if row[4] is not None else None,
+          "avg_congestion_score": float(row[5]) if row[5] is not None else None,
+          "estimated_duration_minutes": float(row[6]) if row[6] is not None else None,
+        }
+      )
+
+    return {
+      "count": len(rows),
+      "data": data,
+    }
+
+  except Exception:
+    raise HTTPException(status_code=500, detail="An error occurred.")
+
+  finally:
+    if cur is not None:
+      cur.close()
+    if conn is not None:
+      conn.close()

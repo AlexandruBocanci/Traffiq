@@ -155,29 +155,26 @@ If detailed v1 task history is needed, read:
 
 ### Current task
 
-Close and commit the completed routes report API endpoint
+Close and commit the completed routes hourly API endpoint
 
 ### Current status
 
-Routes report API endpoint is implemented and validated locally.
+Routes hourly API endpoint is implemented and validated locally.
 
 ### Files changed by the task
 
-- `requirements.txt`
-- `src/api/main.py`
 - `src/api/routes/routes.py`
-- `tests/integration/test_routes_report_endpoint.py`
+- `tests/integration/test_routes_hourly_endpoint.py`
 
 ### Goal
 
-Commit the first route-level API endpoint before adding the route hourly API endpoint.
+Commit the route hourly API endpoint before moving to events and history work.
 
 ### Validation result
 
-- `GET /routes/report` returns route summary data from `gold.route_summary`
+- `GET /routes/hourly` returns route hourly data from `gold.route_hourly_report`
 - response uses the existing API shape: `count` and `data`
-- endpoint returns 5 route records
-- `httpx` was added to `requirements.txt` because FastAPI `TestClient` depends on it
+- endpoint returns 29 route-hour records
 - integration test passes through `fastapi.testclient.TestClient`
 
 ### Next task after commit
@@ -608,6 +605,35 @@ Notes:
 - `GET /routes/report` serves `gold.route_summary`
 - this endpoint is the backend source for the future Route Report mobile screen
 - the next v2 task is `GET /routes/hourly`
+
+### Update 042 - Routes hourly API endpoint added
+
+Completed:
+
+- added `GET /routes/hourly` in `src/api/routes/routes.py`
+- created `tests/integration/test_routes_hourly_endpoint.py`
+- exposed route-hour metrics from `gold.route_hourly_report`
+
+Validation command:
+
+```powershell
+$env:PYTHONPATH='.'; .\.venv\Scripts\python.exe tests\integration\test_routes_hourly_endpoint.py
+```
+
+Validation result:
+
+```text
+SUCCESS: Routes hourly endpoint test passed.
+count: 29
+1
+```
+
+Notes:
+
+- `GET /routes/hourly` serves `gold.route_hourly_report`
+- this endpoint is the backend source for hourly route analysis in the future Routes mobile screen
+- route intelligence backend endpoints are now available for both route summary and hourly route analysis
+- the next v2 section starts Events and History work
 
 ---
 
