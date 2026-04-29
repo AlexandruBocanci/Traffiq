@@ -1,0 +1,6 @@
+ride_id,started_at,ended_at,origin_name,destination_name,route_name,distance_km,avg_speed,congestion_score,status
+1,2026-03-25 07:10:00,2026-03-25 07:28:00,Dorobanti,Victoriei,Dorobanti to Victoriei,4.20,14.00,72.50,completed
+2,2026-03-25 08:05:00,2026-03-25 08:32:00,Unirii,Dorobanti,Unirii to Dorobanti,6.10,13.56,77.40,completed
+3,2026-03-25 09:20:00,2026-03-25 09:38:00,Romana,Dorobanti,Romana to Dorobanti,3.50,11.67,80.00,completed
+4,2026-03-25 10:00:00,2026-03-25 10:15:00,Unirii,Romana,Unirii to Romana,3.90,15.60,68.80,completed
+5,2026-03-25 12:10:00,2026-03-25 12:35:00,Unirii,Victoriei,Unirii to Victoriei,5.40,12.96,79.10,completed

@@ -42,3 +42,17 @@ CREATE TABLE IF NOT EXISTS silver.events_observations (
   event_description TEXT,
   severity VARCHAR(50) NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS silver.ride_history (
+  ride_id INTEGER PRIMARY KEY,
+  started_at TIMESTAMP NOT NULL,
+  ended_at TIMESTAMP NOT NULL,
+  origin_name VARCHAR(255) NOT NULL,
+  destination_name VARCHAR(255) NOT NULL,
+  route_name VARCHAR(255) NOT NULL,
+  distance_km NUMERIC(10, 2) NOT NULL,
+  avg_speed NUMERIC(10, 2) NOT NULL,
+  congestion_score NUMERIC(10, 2) NOT NULL,
+  estimated_duration_minutes NUMERIC(10, 2) NOT NULL,
+  ride_status VARCHAR(50) NOT NULL
+);

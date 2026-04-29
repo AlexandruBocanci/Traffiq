@@ -752,6 +752,46 @@ Notes:
 - the integration test seeds Bronze and Silver event data before calling the endpoint, so it does not depend on leftover database state
 - this endpoint is the backend source for the future mobile Events view
 
+### Update 046 - Ride history data model and load flow added
+
+Completed:
+
+- added `bronze.rides_raw` to `sql/ddl/create_bronze_tables.sql`
+- added `silver.ride_history` to `sql/ddl/create_silver_tables.sql`
+- created `data/raw/rides_history_raw.csv`
+- created `src/extract/extract_rides_history_csv.py`
+- created `src/load/load_rides_raw_to_bronze.py`
+- created `src/transform/transform_rides_history_data.py`
+- created `src/load/load_ride_history_to_silver.py`
+- created `tests/integration/test_load_ride_history_to_silver.py`
+
+Validation commands:
+
+```powershell
+psql -U postgres -d traffiq -f sql\ddl\create_bronze_tables.sql
+psql -U postgres -d traffiq -f sql\ddl\create_silver_tables.sql
+$env:PYTHONPATH='.'; .\.venv\Scripts\python.exe tests\integration\test_load_ride_history_to_silver.py
+```
+
+Validation result:
+
+```text
+SUCCESS: Rides history data extracted from data/raw/rides_history_raw.csv.
+SUCCESS: Rides history data transformed successfully.
+SUCCESS: 5 rows inserted into bronze.rides_raw.
+SUCCESS: 5 rows inserted into silver.ride_history.
+SUCCESS: Ride history Silver load test passed.
+1
+```
+
+Notes:
+
+- ride history now follows a CSV to Bronze to Silver load flow
+- Bronze stores raw ride history fields exactly as ingested
+- Silver stores typed and validated ride history records
+- `estimated_duration_minutes` is calculated from `started_at` and `ended_at`
+- this Silver table will be the source for the future `GET /rides/history` endpoint
+
 ---
 
 ## 9. Instructions For Any New Chat
