@@ -713,6 +713,45 @@ Notes:
 - Silver stores cleaned event timestamps, normalized event types, normalized street names, descriptions, and severity values
 - this Silver table will be the source for the future `GET /map/events` endpoint
 
+### Update 045 - Map events API endpoint added
+
+Completed:
+
+- created `src/api/routes/map.py`
+- added `GET /map/events`
+- registered the map router in `src/api/main.py`
+- created `tests/integration/test_map_events_endpoint.py`
+
+Validation command:
+
+```powershell
+$env:PYTHONPATH='.'; .\.venv\Scripts\python.exe tests\integration\test_map_events_endpoint.py
+```
+
+Validation result:
+
+```text
+SUCCESS: Events data extracted from data/raw/events_raw.csv.
+SUCCESS: Events data transformed successfully.
+SUCCESS: 5 rows inserted into bronze.events_raw.
+SUCCESS: 5 rows inserted into silver.events_observations.
+SUCCESS: Map events endpoint test passed.
+1
+```
+
+Returned event count:
+
+```text
+5
+```
+
+Notes:
+
+- `GET /map/events` serves cleaned event data from `silver.events_observations`
+- the endpoint returns event id, timestamp, event type, street name, description, and severity
+- the integration test seeds Bronze and Silver event data before calling the endpoint, so it does not depend on leftover database state
+- this endpoint is the backend source for the future mobile Events view
+
 ---
 
 ## 9. Instructions For Any New Chat
