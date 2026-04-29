@@ -33,3 +33,12 @@ CREATE TABLE IF NOT EXISTS silver.route_reference (
   route_distance_km NUMERIC(10, 2) NOT NULL,
   route_geometry_ref VARCHAR(255)
 );
+
+CREATE TABLE IF NOT EXISTS silver.events_observations (
+  event_obs_id SERIAL PRIMARY KEY,
+  event_timestamp TIMESTAMP NOT NULL,
+  event_type VARCHAR(100) NOT NULL,
+  street_name VARCHAR(255) NOT NULL,
+  event_description TEXT,
+  severity VARCHAR(50) NOT NULL
+);

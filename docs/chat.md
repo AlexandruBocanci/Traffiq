@@ -680,6 +680,39 @@ Notes:
 - the architecture can later replace this source with `extract_events_api.py`
 - the next v2 task is event load flow into Silver
 
+### Update 044 - Event Silver load flow added
+
+Completed:
+
+- added `silver.events_observations` to `sql/ddl/create_silver_tables.sql`
+- created `src/transform/transform_events_data.py`
+- created `src/load/load_events_to_silver.py`
+- created `tests/integration/test_load_events_to_silver.py`
+
+Validation commands:
+
+```powershell
+psql -U postgres -d traffiq -f sql\ddl\create_silver_tables.sql
+$env:PYTHONPATH='.'; .\.venv\Scripts\python.exe tests\integration\test_load_events_to_silver.py
+```
+
+Validation result:
+
+```text
+SUCCESS: Events data transformed successfully.
+SUCCESS: 5 rows inserted into bronze.events_raw.
+SUCCESS: 5 rows inserted into silver.events_observations.
+SUCCESS: Silver events load test passed.
+1
+```
+
+Notes:
+
+- event data now follows the same Bronze to Silver pattern as the other pipeline domains
+- Bronze stores raw event fields from the CSV source
+- Silver stores cleaned event timestamps, normalized event types, normalized street names, descriptions, and severity values
+- this Silver table will be the source for the future `GET /map/events` endpoint
+
 ---
 
 ## 9. Instructions For Any New Chat
