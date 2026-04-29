@@ -792,6 +792,45 @@ Notes:
 - `estimated_duration_minutes` is calculated from `started_at` and `ended_at`
 - this Silver table will be the source for the future `GET /rides/history` endpoint
 
+### Update 047 - Ride history API endpoint added
+
+Completed:
+
+- created `src/api/routes/rides.py`
+- added `GET /rides/history`
+- registered the rides router in `src/api/main.py`
+- created `tests/integration/test_rides_history_endpoint.py`
+
+Validation command:
+
+```powershell
+$env:PYTHONPATH='.'; .\.venv\Scripts\python.exe tests\integration\test_rides_history_endpoint.py
+```
+
+Validation result:
+
+```text
+SUCCESS: Rides history data extracted from data/raw/rides_history_raw.csv.
+SUCCESS: Rides history data transformed successfully.
+SUCCESS: 5 rows inserted into bronze.rides_raw.
+SUCCESS: 5 rows inserted into silver.ride_history.
+SUCCESS: Rides history endpoint test passed.
+1
+```
+
+Returned ride count:
+
+```text
+5
+```
+
+Notes:
+
+- `GET /rides/history` serves cleaned ride history data from `silver.ride_history`
+- the endpoint returns route names, start/end timestamps, distance, average speed, congestion score, estimated duration, and ride status
+- the integration test seeds Bronze and Silver ride history data before calling the endpoint, so it does not depend on leftover database state
+- this endpoint is the backend source for the future mobile Ride History screen
+
 ---
 
 ## 9. Instructions For Any New Chat
