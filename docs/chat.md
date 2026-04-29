@@ -155,30 +155,30 @@ If detailed v1 task history is needed, read:
 
 ### Current task
 
-Close and commit the completed route hourly reporting module
+Close and commit the completed routes report API endpoint
 
 ### Current status
 
-Route hourly reporting Gold module is implemented and validated locally.
+Routes report API endpoint is implemented and validated locally.
 
 ### Files changed by the task
 
-- `sql/ddl/create_gold_tables.sql`
-- `src/load/load_route_hourly_report_to_gold.py`
-- `tests/integration/test_load_route_hourly_report_to_gold.py`
+- `requirements.txt`
+- `src/api/main.py`
+- `src/api/routes/routes.py`
+- `tests/integration/test_routes_report_endpoint.py`
 
 ### Goal
 
-Commit hourly route analytics before creating route API endpoints.
+Commit the first route-level API endpoint before adding the route hourly API endpoint.
 
 ### Validation result
 
-- `gold.route_hourly_report` exists in PostgreSQL
-- `load_route_hourly_report_to_gold(...)` builds hourly route metrics from `silver.route_reference` and `silver.traffic_observations`
-- 29 route-hour rows are inserted
-- each row has a valid `metric_date` and `hour_of_day`
-- `avg_congestion_score` is bounded between 0 and 100
-- `estimated_duration_minutes` is greater than 0
+- `GET /routes/report` returns route summary data from `gold.route_summary`
+- response uses the existing API shape: `count` and `data`
+- endpoint returns 5 route records
+- `httpx` was added to `requirements.txt` because FastAPI `TestClient` depends on it
+- integration test passes through `fastapi.testclient.TestClient`
 
 ### Next task after commit
 
@@ -568,6 +568,46 @@ Notes:
 - route hourly reporting uses the same controlled approximation as route summary: origin and destination street traffic represent the route
 - this table is the source for the future `GET /routes/hourly` endpoint
 - the next v2 task is routes report API endpoint
+
+### Update 041 - Routes report API endpoint added
+
+Completed:
+
+- created `src/api/routes/routes.py`
+- added `GET /routes/report`
+- registered the routes router in `src/api/main.py`
+- added `httpx` to `requirements.txt` for FastAPI `TestClient`
+- created `tests/integration/test_routes_report_endpoint.py`
+
+Validation command:
+
+```powershell
+$env:PYTHONPATH='.'; .\.venv\Scripts\python.exe tests\integration\test_routes_report_endpoint.py
+```
+
+Validation result:
+
+```text
+SUCCESS: Routes report endpoint test passed.
+count: 5
+1
+```
+
+Returned routes:
+
+```text
+Dorobanti to Victoriei
+Unirii to Dorobanti
+Unirii to Victoriei
+Romana to Dorobanti
+Unirii to Romana
+```
+
+Notes:
+
+- `GET /routes/report` serves `gold.route_summary`
+- this endpoint is the backend source for the future Route Report mobile screen
+- the next v2 task is `GET /routes/hourly`
 
 ---
 
