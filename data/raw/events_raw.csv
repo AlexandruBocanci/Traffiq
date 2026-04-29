@@ -1,0 +1,6 @@
+event_timestamp,event_type,street_name,description,severity
+2026-03-25 07:30:00,accident,Dorobanti,Minor accident causing slow traffic,medium
+2026-03-25 08:15:00,roadwork,Unirii,Lane maintenance near central area,low
+2026-03-25 09:45:00,hazard,Victoriei,Debris reported on the road,medium
+2026-03-25 10:30:00,police,Romana,Police traffic control checkpoint,low
+2026-03-25 12:00:00,accident,Unirii,Collision blocking one lane,high

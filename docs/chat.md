@@ -155,27 +155,31 @@ If detailed v1 task history is needed, read:
 
 ### Current task
 
-Close and commit the completed routes hourly API endpoint
+Close and commit the completed mock traffic event ingestion layer
 
 ### Current status
 
-Routes hourly API endpoint is implemented and validated locally.
+Mock traffic event Bronze ingestion is implemented and validated locally.
 
 ### Files changed by the task
 
-- `src/api/routes/routes.py`
-- `tests/integration/test_routes_hourly_endpoint.py`
+- `sql/ddl/create_bronze_tables.sql`
+- `data/raw/events_raw.csv`
+- `src/extract/extract_events_csv.py`
+- `src/load/load_events_raw_to_bronze.py`
+- `tests/integration/test_load_events_raw_to_bronze.py`
 
 ### Goal
 
-Commit the route hourly API endpoint before moving to events and history work.
+Commit the first events ingestion step before creating the Silver events load flow.
 
 ### Validation result
 
-- `GET /routes/hourly` returns route hourly data from `gold.route_hourly_report`
-- response uses the existing API shape: `count` and `data`
-- endpoint returns 29 route-hour records
-- integration test passes through `fastapi.testclient.TestClient`
+- `bronze.events_raw` exists in PostgreSQL
+- `events_raw.csv` contains 5 controlled demo traffic events
+- `extract_events_csv(...)` reads the events CSV
+- `load_events_raw_to_bronze(...)` inserts events into Bronze
+- integration test confirms DB row count matches inserted row count
 
 ### Next task after commit
 
@@ -634,6 +638,47 @@ Notes:
 - this endpoint is the backend source for hourly route analysis in the future Routes mobile screen
 - route intelligence backend endpoints are now available for both route summary and hourly route analysis
 - the next v2 section starts Events and History work
+
+### Update 043 - Mock traffic event Bronze ingestion added
+
+Completed:
+
+- added `bronze.events_raw` to `sql/ddl/create_bronze_tables.sql`
+- created `data/raw/events_raw.csv`
+- created `src/extract/extract_events_csv.py`
+- created `src/load/load_events_raw_to_bronze.py`
+- created `tests/integration/test_load_events_raw_to_bronze.py`
+
+Validation commands:
+
+```powershell
+$env:PYTHONPATH='.'; .\.venv\Scripts\python.exe tests\integration\test_load_events_raw_to_bronze.py
+$env:PYTHONPATH='.'; .\.venv\Scripts\python.exe -c "from src.utils.db_utils import get_db_connection; conn=get_db_connection(); cur=conn.cursor(); cur.execute('SELECT ingestion_id, raw_event_timestamp, raw_event_type, raw_street_name, raw_severity FROM bronze.events_raw ORDER BY ingestion_id;'); print(cur.fetchall()); cur.close(); conn.close()"
+```
+
+Validation result:
+
+```text
+SUCCESS: 5 rows inserted into bronze.events_raw.
+SUCCESS: Bronze events raw load test passed.
+1
+```
+
+Inserted events:
+
+```text
+1 | 2026-03-25 07:30:00 | accident | Dorobanti | medium
+2 | 2026-03-25 08:15:00 | roadwork | Unirii | low
+3 | 2026-03-25 09:45:00 | hazard | Victoriei | medium
+4 | 2026-03-25 10:30:00 | police | Romana | low
+5 | 2026-03-25 12:00:00 | accident | Unirii | high
+```
+
+Notes:
+
+- events are mocked through CSV for v2 to keep the pipeline stable and cost-free
+- the architecture can later replace this source with `extract_events_api.py`
+- the next v2 task is event load flow into Silver
 
 ---
 
