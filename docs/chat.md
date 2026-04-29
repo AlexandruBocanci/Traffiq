@@ -155,29 +155,30 @@ If detailed v1 task history is needed, read:
 
 ### Current task
 
-Close and commit the completed route-level Gold summary module
+Close and commit the completed route hourly reporting module
 
 ### Current status
 
-Route-level Gold summary module is implemented and validated locally.
+Route hourly reporting Gold module is implemented and validated locally.
 
 ### Files changed by the task
 
 - `sql/ddl/create_gold_tables.sql`
-- `src/load/load_route_summary_to_gold.py`
-- `tests/integration/test_load_route_summary_to_gold.py`
+- `src/load/load_route_hourly_report_to_gold.py`
+- `tests/integration/test_load_route_hourly_report_to_gold.py`
 
 ### Goal
 
-Commit the first route-level Gold analytics table before building route hourly reporting.
+Commit hourly route analytics before creating route API endpoints.
 
 ### Validation result
 
-- `gold.route_summary` exists in PostgreSQL
-- `load_route_summary_to_gold(...)` builds route-level metrics from `silver.route_reference` and `silver.traffic_observations`
-- 5 route summary rows are inserted
+- `gold.route_hourly_report` exists in PostgreSQL
+- `load_route_hourly_report_to_gold(...)` builds hourly route metrics from `silver.route_reference` and `silver.traffic_observations`
+- 29 route-hour rows are inserted
+- each row has a valid `metric_date` and `hour_of_day`
 - `avg_congestion_score` is bounded between 0 and 100
-- `estimated_duration_minutes` is greater than 0 for all inserted routes
+- `estimated_duration_minutes` is greater than 0
 
 ### Next task after commit
 
@@ -534,6 +535,39 @@ Notes:
 - this is an initial route analytics approximation based on traffic from each route's origin and destination streets
 - `avg_congestion_score` is clamped between 0 and 100
 - the next v2 task is route hourly reporting module and validation
+
+### Update 040 - Route hourly reporting module added
+
+Completed:
+
+- added `gold.route_hourly_report` to `sql/ddl/create_gold_tables.sql`
+- created `src/load/load_route_hourly_report_to_gold.py`
+- created `tests/integration/test_load_route_hourly_report_to_gold.py`
+- calculated route metrics grouped by `metric_date` and `hour_of_day`
+- calculated hourly `avg_speed`
+- calculated hourly `avg_congestion_score`
+- calculated hourly `estimated_duration_minutes`
+
+Validation commands:
+
+```powershell
+$env:PYTHONPATH='.'; .\.venv\Scripts\python.exe tests\integration\test_load_route_hourly_report_to_gold.py
+$env:PYTHONPATH='.'; .\.venv\Scripts\python.exe -c "from src.utils.db_utils import get_db_connection; conn=get_db_connection(); cur=conn.cursor(); cur.execute('SELECT route_id, route_name, metric_date, hour_of_day, avg_speed, avg_congestion_score, estimated_duration_minutes FROM gold.route_hourly_report ORDER BY route_id, metric_date, hour_of_day;'); print(cur.fetchall()); cur.close(); conn.close()"
+```
+
+Validation result:
+
+```text
+SUCCESS: 29 rows inserted into gold.route_hourly_report.
+SUCCESS: Route hourly report Gold load test passed.
+1
+```
+
+Notes:
+
+- route hourly reporting uses the same controlled approximation as route summary: origin and destination street traffic represent the route
+- this table is the source for the future `GET /routes/hourly` endpoint
+- the next v2 task is routes report API endpoint
 
 ---
 
