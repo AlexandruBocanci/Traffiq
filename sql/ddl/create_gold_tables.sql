@@ -33,3 +33,11 @@ CREATE TABLE IF NOT EXISTS gold.route_hourly_report (
   avg_congestion_score NUMERIC(5, 2),
   estimated_duration_minutes NUMERIC(10, 2)
 );
+
+CREATE TABLE IF NOT EXISTS gold.top_congested_segments (
+  segment_rank INTEGER,
+  street_name VARCHAR(255),
+  observation_count INTEGER,
+  avg_speed NUMERIC(10, 2),
+  avg_congestion_score NUMERIC(5, 2)
+);

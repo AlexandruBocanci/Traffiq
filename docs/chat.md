@@ -831,6 +831,47 @@ Notes:
 - the integration test seeds Bronze and Silver ride history data before calling the endpoint, so it does not depend on leftover database state
 - this endpoint is the backend source for the future mobile Ride History screen
 
+### Update 048 - Top congested segments Gold module added
+
+Completed:
+
+- added `gold.top_congested_segments` to `sql/ddl/create_gold_tables.sql`
+- created `src/load/load_top_congested_segments_to_gold.py`
+- created `tests/integration/test_load_top_congested_segments_to_gold.py`
+
+Validation commands:
+
+```powershell
+psql -U postgres -d traffiq -f sql\ddl\create_gold_tables.sql
+$env:PYTHONPATH='.'; .\.venv\Scripts\python.exe tests\integration\test_load_top_congested_segments_to_gold.py
+```
+
+Validation result:
+
+```text
+22 rows inserted into silver.traffic_observations successfully.
+SUCCESS: 4 rows inserted into gold.top_congested_segments.
+SUCCESS: Top congested segments Gold load test passed.
+1
+```
+
+Generated top congested segments:
+
+```text
+1 | dorobanti | observations=5 | avg_speed=17.60 | avg_congestion_score=70.67
+2 | victoriei | observations=5 | avg_speed=25.60 | avg_congestion_score=57.33
+3 | unirii    | observations=6 | avg_speed=31.33 | avg_congestion_score=47.78
+4 | romana    | observations=6 | avg_speed=38.67 | avg_congestion_score=35.56
+```
+
+Notes:
+
+- Gold top congested segments are calculated from `silver.traffic_observations`
+- streets are grouped by `street_name`
+- `avg_speed` is calculated per street
+- `avg_congestion_score` uses the existing 60 km/h reference-speed formula and is clipped between 0 and 100
+- rows are ranked from most congested to least congested
+
 ---
 
 ## 9. Instructions For Any New Chat
