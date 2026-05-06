@@ -872,6 +872,57 @@ Notes:
 - `avg_congestion_score` uses the existing 60 km/h reference-speed formula and is clipped between 0 and 100
 - rows are ranked from most congested to least congested
 
+### Update 049 - Richer route summary metrics added
+
+Completed:
+
+- extended `gold.route_summary` in `sql/ddl/create_gold_tables.sql`
+- added `observation_count`, `min_speed`, `max_speed`, and `congestion_level`
+- updated `src/load/load_route_summary_to_gold.py`
+- updated `GET /routes/report` in `src/api/routes/routes.py`
+- strengthened `tests/integration/test_load_route_summary_to_gold.py`
+- strengthened `tests/integration/test_routes_report_endpoint.py`
+
+Validation commands:
+
+```powershell
+psql -U postgres -d traffiq -f sql\ddl\create_gold_tables.sql
+$env:PYTHONPATH='.'; .\.venv\Scripts\python.exe tests\integration\test_load_route_summary_to_gold.py
+$env:PYTHONPATH='.'; .\.venv\Scripts\python.exe tests\integration\test_routes_report_endpoint.py
+```
+
+Validation result:
+
+```text
+SUCCESS: 5 rows inserted into gold.route_summary.
+SUCCESS: Test loading the route summary into gold passed successfully.
+1
+
+SUCCESS: Routes report endpoint test passed.
+1
+```
+
+Example enriched route report row:
+
+```text
+Dorobanti to Victoriei
+observation_count=10
+avg_speed=21.60
+min_speed=16.00
+max_speed=28.00
+avg_congestion_score=64.00
+estimated_duration_minutes=6.67
+congestion_level=medium
+```
+
+Notes:
+
+- route summary now provides richer report-ready metrics for the mobile app
+- `observation_count` shows how many traffic observations were used for each route
+- `min_speed` and `max_speed` show the speed range behind the average
+- `congestion_level` converts the numeric congestion score into a simple label: `low`, `medium`, or `high`
+- `/routes/report` now exposes these enriched fields directly
+
 ---
 
 ## 9. Instructions For Any New Chat

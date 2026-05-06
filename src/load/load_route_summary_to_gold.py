@@ -1,7 +1,18 @@
 from src.utils.db_utils import get_db_connection
+import pandas as pd
 
 
 REFERENCE_SPEED_KMH = 60
+
+
+def get_congestion_level(congestion_score):
+  if congestion_score >= 65:
+    return "high"
+
+  if congestion_score >= 40:
+    return "medium"
+
+  return "low"
 
 
 def load_route_summary_to_gold(route_df, traffic_df):
@@ -15,6 +26,9 @@ def load_route_summary_to_gold(route_df, traffic_df):
   route_df["origin_key"] = route_df["origin_name"].str.strip().str.lower()
   route_df["destination_key"] = route_df["destination_name"].str.strip().str.lower()
   traffic_df["street_key"] = traffic_df["street_name"].str.strip().str.lower()
+  traffic_df["avg_speed"] = pd.to_numeric(traffic_df["avg_speed"], errors="coerce")
+  traffic_df = traffic_df.dropna(subset=["avg_speed"])
+  traffic_df = traffic_df[traffic_df["avg_speed"] > 0]
 
   route_summary_rows = []
 
@@ -28,7 +42,10 @@ def load_route_summary_to_gold(route_df, traffic_df):
       continue
 
     route_distance_km = float(route_row["route_distance_km"])
+    observation_count = int(len(route_traffic_df))
     avg_speed = float(route_traffic_df["avg_speed"].mean())
+    min_speed = float(route_traffic_df["avg_speed"].min())
+    max_speed = float(route_traffic_df["avg_speed"].max())
 
     if avg_speed is None or avg_speed <= 0:
       continue
@@ -36,6 +53,7 @@ def load_route_summary_to_gold(route_df, traffic_df):
     avg_congestion_score = ((REFERENCE_SPEED_KMH - avg_speed) / REFERENCE_SPEED_KMH) * 100
     avg_congestion_score = max(0, min(100, avg_congestion_score))
     estimated_duration_minutes = (route_distance_km / avg_speed) * 60
+    congestion_level = get_congestion_level(avg_congestion_score)
 
     route_summary_rows.append(
       {
@@ -44,9 +62,13 @@ def load_route_summary_to_gold(route_df, traffic_df):
         "origin_name": route_row["origin_name"],
         "destination_name": route_row["destination_name"],
         "route_distance_km": route_distance_km,
+        "observation_count": observation_count,
         "avg_speed": avg_speed,
+        "min_speed": min_speed,
+        "max_speed": max_speed,
         "avg_congestion_score": avg_congestion_score,
         "estimated_duration_minutes": estimated_duration_minutes,
+        "congestion_level": congestion_level,
       }
     )
 
@@ -65,8 +87,21 @@ def load_route_summary_to_gold(route_df, traffic_df):
       cur.execute(
         """
         INSERT INTO gold.route_summary
-        (route_id, route_name, origin_name, destination_name, route_distance_km, avg_speed, avg_congestion_score, estimated_duration_minutes)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        (
+          route_id,
+          route_name,
+          origin_name,
+          destination_name,
+          route_distance_km,
+          observation_count,
+          avg_speed,
+          min_speed,
+          max_speed,
+          avg_congestion_score,
+          estimated_duration_minutes,
+          congestion_level
+        )
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """,
         (
           row["route_id"],
@@ -74,9 +109,13 @@ def load_route_summary_to_gold(route_df, traffic_df):
           row["origin_name"],
           row["destination_name"],
           row["route_distance_km"],
+          row["observation_count"],
           row["avg_speed"],
+          row["min_speed"],
+          row["max_speed"],
           row["avg_congestion_score"],
           row["estimated_duration_minutes"],
+          row["congestion_level"],
         )
       )
 

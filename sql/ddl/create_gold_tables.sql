@@ -19,10 +19,20 @@ CREATE TABLE IF NOT EXISTS gold.route_summary (
   origin_name VARCHAR(255),
   destination_name VARCHAR(255),
   route_distance_km NUMERIC(10, 2),
+  observation_count INTEGER,
   avg_speed NUMERIC(10, 2),
+  min_speed NUMERIC(10, 2),
+  max_speed NUMERIC(10, 2),
   avg_congestion_score NUMERIC(5, 2),
-  estimated_duration_minutes NUMERIC(10, 2)
+  estimated_duration_minutes NUMERIC(10, 2),
+  congestion_level VARCHAR(50)
 );
+
+ALTER TABLE gold.route_summary
+ADD COLUMN IF NOT EXISTS observation_count INTEGER,
+ADD COLUMN IF NOT EXISTS min_speed NUMERIC(10, 2),
+ADD COLUMN IF NOT EXISTS max_speed NUMERIC(10, 2),
+ADD COLUMN IF NOT EXISTS congestion_level VARCHAR(50);
 
 CREATE TABLE IF NOT EXISTS gold.route_hourly_report (
   route_id INTEGER,

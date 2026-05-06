@@ -27,9 +27,13 @@ def get_routes_report():
         origin_name,
         destination_name,
         route_distance_km,
+        observation_count,
         avg_speed,
+        min_speed,
+        max_speed,
         avg_congestion_score,
-        estimated_duration_minutes
+        estimated_duration_minutes,
+        congestion_level
       FROM gold.route_summary
       ORDER BY avg_congestion_score DESC, route_id ASC;
       """
@@ -46,9 +50,13 @@ def get_routes_report():
           "origin_name": row[2],
           "destination_name": row[3],
           "route_distance_km": float(row[4]) if row[4] is not None else None,
-          "avg_speed": float(row[5]) if row[5] is not None else None,
-          "avg_congestion_score": float(row[6]) if row[6] is not None else None,
-          "estimated_duration_minutes": float(row[7]) if row[7] is not None else None,
+          "observation_count": row[5],
+          "avg_speed": float(row[6]) if row[6] is not None else None,
+          "min_speed": float(row[7]) if row[7] is not None else None,
+          "max_speed": float(row[8]) if row[8] is not None else None,
+          "avg_congestion_score": float(row[9]) if row[9] is not None else None,
+          "estimated_duration_minutes": float(row[10]) if row[10] is not None else None,
+          "congestion_level": row[11],
         }
       )
 
