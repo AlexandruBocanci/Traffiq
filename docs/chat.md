@@ -1090,6 +1090,120 @@ Notes:
 - this connects the v2 events layer to the mobile product experience
 - the Map tab now combines event visibility, fastest traffic segments, and congested street preview
 
+### Update 055 - Mobile UI upgraded to premium dark mobility style
+
+Completed:
+
+- created `mobile/src/theme/theme.ts`
+- updated `mobile/src/navigation/AppNavigator.tsx`
+- upgraded shared states:
+  - `mobile/src/components/LoadingState.tsx`
+  - `mobile/src/components/ErrorState.tsx`
+  - `mobile/src/components/EmptyState.tsx`
+- upgraded mobile screens:
+  - `mobile/src/screens/ReportsScreen.tsx`
+  - `mobile/src/screens/WeatherImpactScreen.tsx`
+  - `mobile/src/screens/MapPreviewScreen.tsx`
+  - `mobile/src/screens/RoutesScreen.tsx`
+  - `mobile/src/screens/HistoryScreen.tsx`
+  - `mobile/src/screens/PipelineScreen.tsx`
+
+Validation command:
+
+```powershell
+npx.cmd tsc --noEmit
+```
+
+Validation result:
+
+```text
+TypeScript check passed.
+```
+
+Notes:
+
+- the app now uses a centralized premium dark mobility theme
+- palette direction: dark navy background, cyan/teal primary accents, lime/amber/red semantic emphasis
+- tab navigation is now floating, rounded, and visually separated from screen content
+- cards now use stronger elevation, consistent borders, premium spacing, and clearer metric hierarchy
+- Reports, Weather, Map, Routes, History, and Pipeline now share one visual language
+- this closes the Mobile App Expansion section for v2
+
+### Update 056 - Mobile UI product shell corrected
+
+Completed:
+
+- created `mobile/src/screens/DriveScreen.tsx`
+- replaced the 6-tab dashboard-style navigation with a product-focused app shell
+- reduced primary navigation to:
+  - `Drive`
+  - `Pipeline`
+- moved traffic reports, routes, events, weather impact, congestion, and ride history into one main driving experience
+- kept `Pipeline` as a temporary development/admin tab
+- updated `mobile/src/navigation/AppNavigator.tsx`
+
+Validation command:
+
+```powershell
+npx.cmd tsc --noEmit
+```
+
+Validation result:
+
+```text
+TypeScript check passed.
+```
+
+Notes:
+
+- the app now behaves more like a traffic/mobility product instead of a collection of unrelated analytics tabs
+- `Drive` is the main user-facing surface
+- `Drive` includes route planning UI, simulated map surface, route recommendation, traffic events, congestion status, weather impact, and recent ride context
+- the real map, live routing, device location, and push alerts are explicitly prepared as future layers
+- this replaces the previous 6-tab UI direction, which was too dashboard-like for the product goal
+
+### Update 057 - Mobile shell simplified to Drive-first product flow
+
+Completed:
+
+- updated `mobile/src/theme/theme.ts` to the Graphite Lime palette
+- removed the bottom tab navigation entirely
+- updated `mobile/src/navigation/AppNavigator.tsx`
+- kept only two runtime surfaces:
+  - `Drive`
+  - `Pipeline`
+- made `Pipeline` accessible from the settings button in the Drive header
+- removed unused separate mobile screens:
+  - `ReportsScreen`
+  - `WeatherImpactScreen`
+  - `MapPreviewScreen`
+  - `RoutesScreen`
+  - `HistoryScreen`
+- updated `mobile/src/screens/DriveScreen.tsx`
+- updated `mobile/src/screens/PipelineScreen.tsx`
+
+Validation command:
+
+```powershell
+npx.cmd tsc --noEmit
+```
+
+Validation result:
+
+```text
+TypeScript check passed.
+```
+
+Notes:
+
+- `Drive` is now the only main product screen
+- `Pipeline` remains available temporarily through the settings-style button
+- the destination area is now a single minimalist `Where to?` button with a bottom sheet
+- weather impact is moved higher in the screen
+- `Traffic alerts` remains visible as a core product section
+- recent rides are moved to the bottom and open a bottom sheet with the last 5 rides
+- this is closer to a Waze/Uber-style app shell than a portfolio dashboard
+
 ---
 
 ## 9. Instructions For Any New Chat

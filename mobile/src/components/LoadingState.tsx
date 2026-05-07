@@ -1,5 +1,7 @@
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
+import { colors, radius, shadows } from '../theme/theme';
+
 type LoadingStateProps = {
   message: string;
 };
@@ -7,8 +9,11 @@ type LoadingStateProps = {
 export default function LoadingState({ message }: LoadingStateProps) {
   return (
     <View style={styles.container}>
-      <ActivityIndicator size="large" color="#38bdf8" />
-      <Text style={styles.text}>{message}</Text>
+      <View style={styles.card}>
+        <ActivityIndicator size="large" color={colors.cyan} />
+        <Text style={styles.label}>Traffiq</Text>
+        <Text style={styles.text}>{message}</Text>
+      </View>
     </View>
   );
 }
@@ -16,15 +21,35 @@ export default function LoadingState({ message }: LoadingStateProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0f172a',
+    backgroundColor: colors.background,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
   },
+  card: {
+    ...shadows.card,
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    paddingHorizontal: 28,
+    paddingVertical: 30,
+    width: '100%',
+  },
+  label: {
+    color: colors.cyan,
+    fontSize: 12,
+    fontWeight: '900',
+    letterSpacing: 2,
+    marginTop: 18,
+    textTransform: 'uppercase',
+  },
   text: {
-    color: '#cbd5e1',
+    color: colors.textSoft,
     fontSize: 16,
-    marginTop: 16,
+    lineHeight: 23,
+    marginTop: 10,
     textAlign: 'center',
   },
 });

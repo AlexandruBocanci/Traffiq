@@ -1,5 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 
+import { colors, radius, shadows } from '../theme/theme';
+
 type ErrorStateProps = {
   title: string;
   message: string;
@@ -8,8 +10,11 @@ type ErrorStateProps = {
 export default function ErrorState({ title, message }: ErrorStateProps) {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{title}</Text>
-      <Text style={styles.message}>{message}</Text>
+      <View style={styles.card}>
+        <Text style={styles.label}>Connection issue</Text>
+        <Text style={styles.title}>{title}</Text>
+        <Text style={styles.message}>{message}</Text>
+      </View>
     </View>
   );
 }
@@ -17,13 +22,30 @@ export default function ErrorState({ title, message }: ErrorStateProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0f172a',
+    backgroundColor: colors.background,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
   },
+  card: {
+    ...shadows.card,
+    backgroundColor: colors.surface,
+    borderColor: colors.redDark,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    padding: 24,
+    width: '100%',
+  },
+  label: {
+    color: '#fecaca',
+    fontSize: 12,
+    fontWeight: '900',
+    letterSpacing: 1.5,
+    marginBottom: 10,
+    textTransform: 'uppercase',
+  },
   title: {
-    color: '#f8fafc',
+    color: colors.text,
     fontSize: 28,
     fontWeight: '800',
     marginBottom: 12,
@@ -31,7 +53,6 @@ const styles = StyleSheet.create({
   message: {
     color: '#fca5a5',
     fontSize: 16,
-    textAlign: 'center',
     lineHeight: 24,
   },
 });

@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
+  Pressable,
+  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -15,6 +17,7 @@ import {
   getTraffic,
   getWeatherImpact,
 } from '../services/traffiqApi';
+import { colors, radius, shadows, spacing } from '../theme/theme';
 
 const PIPELINE_STEPS = [
   {
@@ -50,7 +53,11 @@ type PipelineMetrics = {
   topCongestedCount: number;
 };
 
-export default function PipelineScreen() {
+type PipelineScreenProps = {
+  onBackToDrive?: () => void;
+};
+
+export default function PipelineScreen({ onBackToDrive }: PipelineScreenProps) {
   const [metrics, setMetrics] = useState<PipelineMetrics | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
@@ -102,75 +109,110 @@ export default function PipelineScreen() {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>Pipeline</Text>
-      <Text style={styles.subtitle}>
-        End-to-end Traffiq flow from ingestion to analytics serving in the mobile app.
-      </Text>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Live Backend Status</Text>
-
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>API Health</Text>
-          <Text style={styles.cardText}>Status: {metrics?.apiStatus ?? 'unknown'}</Text>
-        </View>
-
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Traffic Records</Text>
-          <Text style={styles.cardText}>
-            Records exposed by `/traffic`: {metrics?.trafficCount ?? 0}
-          </Text>
-        </View>
-
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Weather Impact Rows</Text>
-          <Text style={styles.cardText}>
-            Analytics rows exposed by `/weather-impact`: {metrics?.weatherImpactCount ?? 0}
-          </Text>
-        </View>
-
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Top Congestion Analytics</Text>
-          <Text style={styles.cardText}>
-            Rows exposed by `/streets/top-congested`: {metrics?.topCongestedCount ?? 0}
-          </Text>
-        </View>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Pipeline Architecture</Text>
-
-        {PIPELINE_STEPS.map((step) => (
-          <View key={step.title} style={styles.card}>
-            <Text style={styles.cardTitle}>{step.title}</Text>
-            <Text style={styles.cardText}>{step.description}</Text>
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+        <View style={styles.headerRow}>
+          <View>
+            <Text style={styles.eyebrow}>Developer layer</Text>
+            <Text style={styles.title}>Pipeline</Text>
           </View>
-        ))}
-      </View>
-    </ScrollView>
+
+          {onBackToDrive ? (
+            <Pressable onPress={onBackToDrive} style={styles.backButton}>
+              <Text style={styles.backButtonText}>Drive</Text>
+            </Pressable>
+          ) : null}
+        </View>
+
+        <Text style={styles.subtitle}>
+          Temporary project status surface. This will later become account/settings or admin-only.
+        </Text>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Backend status</Text>
+
+          <View style={styles.metricsGrid}>
+            <View style={styles.metricCard}>
+              <Text style={styles.metricLabel}>API</Text>
+              <Text style={styles.metricValue}>{metrics.apiStatus}</Text>
+            </View>
+            <View style={styles.metricCard}>
+              <Text style={styles.metricLabel}>Traffic</Text>
+              <Text style={styles.metricValue}>{metrics.trafficCount}</Text>
+            </View>
+            <View style={styles.metricCard}>
+              <Text style={styles.metricLabel}>Weather</Text>
+              <Text style={styles.metricValue}>{metrics.weatherImpactCount}</Text>
+            </View>
+            <View style={styles.metricCard}>
+              <Text style={styles.metricLabel}>Congestion</Text>
+              <Text style={styles.metricValue}>{metrics.topCongestedCount}</Text>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Pipeline architecture</Text>
+
+          {PIPELINE_STEPS.map((step) => (
+            <View key={step.title} style={styles.card}>
+              <Text style={styles.cardTitle}>{step.title}</Text>
+              <Text style={styles.cardText}>{step.description}</Text>
+            </View>
+          ))}
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
   container: {
     flex: 1,
-    backgroundColor: '#0f172a',
+    backgroundColor: colors.background,
   },
   content: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 32,
-    gap: 24,
+    paddingHorizontal: spacing.screenX,
+    paddingTop: 54,
+    paddingBottom: 42,
+    gap: 22,
+  },
+  headerRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  eyebrow: {
+    color: colors.primary,
+    fontSize: 12,
+    fontWeight: '900',
+    letterSpacing: 1.4,
+    textTransform: 'uppercase',
   },
   title: {
-    color: '#f8fafc',
-    fontSize: 28,
-    fontWeight: '800',
-    marginBottom: 8,
+    color: colors.text,
+    fontSize: 32,
+    fontWeight: '900',
+    letterSpacing: -0.8,
+    marginTop: 4,
+  },
+  backButton: {
+    backgroundColor: colors.primary,
+    borderRadius: 999,
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+  },
+  backButtonText: {
+    color: colors.primaryText,
+    fontSize: 13,
+    fontWeight: '900',
   },
   subtitle: {
-    color: '#cbd5e1',
+    color: colors.textMuted,
     fontSize: 15,
     lineHeight: 22,
   },
@@ -178,31 +220,60 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   sectionTitle: {
-    color: '#f8fafc',
+    color: colors.text,
     fontSize: 20,
-    fontWeight: '700',
+    fontWeight: '900',
+  },
+  metricsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  metricCard: {
+    ...shadows.card,
+    width: '48%',
+    backgroundColor: colors.card,
+    borderColor: colors.border,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    padding: 16,
+  },
+  metricLabel: {
+    color: colors.textMuted,
+    fontSize: 12,
+    fontWeight: '900',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+  },
+  metricValue: {
+    color: colors.text,
+    fontSize: 26,
+    fontWeight: '900',
+    marginTop: 8,
+    textTransform: 'capitalize',
   },
   card: {
-    backgroundColor: '#132238',
+    ...shadows.card,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: '#1e3a5f',
-    borderRadius: 16,
+    borderColor: colors.border,
+    borderRadius: radius.lg,
     padding: 16,
     gap: 6,
   },
   cardTitle: {
-    color: '#f8fafc',
+    color: colors.text,
     fontSize: 17,
-    fontWeight: '700',
+    fontWeight: '900',
   },
   cardText: {
-    color: '#cbd5e1',
+    color: colors.textSoft,
     fontSize: 14,
     lineHeight: 21,
   },
   emptyStateWrapper: {
     flex: 1,
-    backgroundColor: '#0f172a',
+    backgroundColor: colors.background,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
