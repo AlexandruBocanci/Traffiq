@@ -5,6 +5,8 @@ import ReportsScreen from '../screens/ReportsScreen';
 import WeatherImpactScreen from '../screens/WeatherImpactScreen';
 import MapPreviewScreen from '../screens/MapPreviewScreen';
 import PipelineScreen from '../screens/PipelineScreen';
+import RoutesScreen from '../screens/RoutesScreen';
+import HistoryScreen from '../screens/HistoryScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -32,8 +34,10 @@ export default function AppNavigator() {
         }}
       >
         <Tab.Screen name="Reports" component={ReportsScreen} />
+        <Tab.Screen name="Routes" component={RoutesScreen} />
         <Tab.Screen name="Weather" component={WeatherImpactScreen} />
         <Tab.Screen name="Map" component={MapPreviewScreen} />
+        <Tab.Screen name="History" component={HistoryScreen} />
         <Tab.Screen name="Pipeline" component={PipelineScreen} />
       </Tab.Navigator>
     </NavigationContainer>

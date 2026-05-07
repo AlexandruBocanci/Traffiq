@@ -967,6 +967,69 @@ Notes:
 - the integration test seeds all required Bronze, Silver, and Gold data before calling the endpoint
 - this closes the Advanced Analytics section for v2
 
+### Update 051 - Mobile navigation expanded for route-focused experience
+
+Completed:
+
+- created `mobile/src/screens/RoutesScreen.tsx`
+- created `mobile/src/screens/HistoryScreen.tsx`
+- updated `mobile/src/navigation/AppNavigator.tsx`
+- added `Routes` tab
+- added `History` tab
+
+Validation command:
+
+```powershell
+npx.cmd tsc --noEmit
+```
+
+Validation result:
+
+```text
+TypeScript check passed.
+```
+
+Notes:
+
+- mobile navigation now matches the v2 product areas more closely
+- `Routes` is prepared for route report and route hourly analytics
+- `History` is prepared for ride history data
+- the screens are placeholders for this task only
+- backend API connection for these screens comes in the next mobile tasks
+
+### Update 052 - Route Report mobile screen connected to backend
+
+Completed:
+
+- updated `mobile/src/types/api.ts`
+- added route report and route hourly response types
+- updated `mobile/src/services/traffiqApi.ts`
+- added `getRoutesReport()`
+- added `getRoutesHourly()`
+- updated `mobile/src/screens/RoutesScreen.tsx`
+- connected the `Routes` tab to `/routes/report`
+- connected the `Routes` tab to `/routes/hourly`
+
+Validation commands:
+
+```powershell
+npx.cmd tsc --noEmit
+```
+
+Backend endpoint check:
+
+```text
+/routes/report 200
+/routes/hourly 200
+```
+
+Notes:
+
+- `RoutesScreen` now loads real route analytics from the FastAPI backend
+- route cards show route name, origin, destination, average speed, congestion score, estimated duration, congestion level, observation count, and speed range
+- the hourly section shows a compact snapshot from `gold.route_hourly_report`
+- this replaces the placeholder Routes screen created in the previous task
+
 ---
 
 ## 9. Instructions For Any New Chat

@@ -21,6 +21,31 @@ export type WeatherImpactRecord = {
   avg_congestion_score: number | null;
 };
 
+export type RouteReportRecord = {
+  route_id: number;
+  route_name: string;
+  origin_name: string;
+  destination_name: string;
+  route_distance_km: number | null;
+  observation_count: number;
+  avg_speed: number | null;
+  min_speed: number | null;
+  max_speed: number | null;
+  avg_congestion_score: number | null;
+  estimated_duration_minutes: number | null;
+  congestion_level: string | null;
+};
+
+export type RouteHourlyRecord = {
+  route_id: number;
+  route_name: string;
+  metric_date: string;
+  hour_of_day: number;
+  avg_speed: number | null;
+  avg_congestion_score: number | null;
+  estimated_duration_minutes: number | null;
+};
+
 export type ApiListResponse<T> = {
   count: number;
   data: T[];

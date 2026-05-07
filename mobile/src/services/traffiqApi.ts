@@ -2,6 +2,8 @@ import { API_BASE_URL } from '../config/api';
 import {
   ApiListResponse,
   HealthResponse,
+  RouteHourlyRecord,
+  RouteReportRecord,
   TopCongestedStreetRecord,
   TrafficRecord,
   WeatherImpactRecord,
@@ -37,4 +39,12 @@ export async function getTopCongestedStreets() {
 
 export async function getWeatherImpact() {
   return fetchFromApi<ApiListResponse<WeatherImpactRecord>>('/weather-impact');
+}
+
+export async function getRoutesReport() {
+  return fetchFromApi<ApiListResponse<RouteReportRecord>>('/routes/report');
+}
+
+export async function getRoutesHourly() {
+  return fetchFromApi<ApiListResponse<RouteHourlyRecord>>('/routes/hourly');
 }
