@@ -6,6 +6,7 @@ from src.api.routes.weather import router as weather_router
 from src.api.routes.routes import router as routes_router
 from src.api.routes.map import router as map_router
 from src.api.routes.rides import router as rides_router
+from src.api.routes.reports import router as reports_router
 
 app = FastAPI(
     title="Traffiq API",
@@ -20,3 +21,4 @@ app.include_router(weather_router)
 app.include_router(routes_router)
 app.include_router(map_router)
 app.include_router(rides_router)
+app.include_router(reports_router)

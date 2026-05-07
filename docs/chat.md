@@ -923,6 +923,50 @@ Notes:
 - `congestion_level` converts the numeric congestion score into a simple label: `low`, `medium`, or `high`
 - `/routes/report` now exposes these enriched fields directly
 
+### Update 050 - Serving-ready reports overview endpoint added
+
+Completed:
+
+- created `src/api/routes/reports.py`
+- added `GET /reports/overview`
+- registered the reports router in `src/api/main.py`
+- created `tests/integration/test_reports_overview_endpoint.py`
+
+Validation command:
+
+```powershell
+$env:PYTHONPATH='.'; .\.venv\Scripts\python.exe tests\integration\test_reports_overview_endpoint.py
+```
+
+Validation result:
+
+```text
+SUCCESS: 5 rows inserted into gold.route_summary.
+SUCCESS: 4 rows inserted into gold.top_congested_segments.
+SUCCESS: 5 rows inserted into silver.events_observations.
+SUCCESS: 5 rows inserted into silver.ride_history.
+SUCCESS: Reports overview endpoint test passed.
+1
+```
+
+Returned overview sections:
+
+```text
+summary
+route_highlights
+top_congested_segments
+recent_events
+recent_rides
+```
+
+Notes:
+
+- `GET /reports/overview` is a serving-ready API output for the mobile app
+- it combines route summary, top congested segments, recent events, and recent rides into one response
+- this avoids forcing the frontend to call multiple endpoints and manually combine analytical data
+- the integration test seeds all required Bronze, Silver, and Gold data before calling the endpoint
+- this closes the Advanced Analytics section for v2
+
 ---
 
 ## 9. Instructions For Any New Chat
