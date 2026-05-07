@@ -60,6 +60,15 @@ export type RideHistoryRecord = {
   ride_status: string;
 };
 
+export type MapEventRecord = {
+  event_id: number;
+  event_timestamp: string;
+  event_type: string;
+  street_name: string;
+  event_description: string;
+  severity: string;
+};
+
 export type ApiListResponse<T> = {
   count: number;
   data: T[];

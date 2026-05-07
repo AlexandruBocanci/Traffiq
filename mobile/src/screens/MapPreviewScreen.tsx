@@ -10,14 +10,20 @@ import EmptyState from '../components/EmptyState';
 import ErrorState from '../components/ErrorState';
 import LoadingState from '../components/LoadingState';
 import {
+  getMapEvents,
   getTopCongestedStreets,
   getTopSpeedTraffic,
 } from '../services/traffiqApi';
-import { TopCongestedStreetRecord, TrafficRecord } from '../types/api';
+import {
+  MapEventRecord,
+  TopCongestedStreetRecord,
+  TrafficRecord,
+} from '../types/api';
 
 export default function MapPreviewScreen() {
   const [topSpeedData, setTopSpeedData] = useState<TrafficRecord[]>([]);
   const [topCongestedData, setTopCongestedData] = useState<TopCongestedStreetRecord[]>([]);
+  const [mapEventsData, setMapEventsData] = useState<MapEventRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -27,13 +33,15 @@ export default function MapPreviewScreen() {
         setIsLoading(true);
         setErrorMessage('');
 
-        const [topSpeedResponse, topCongestedResponse] = await Promise.all([
+        const [topSpeedResponse, topCongestedResponse, mapEventsResponse] = await Promise.all([
           getTopSpeedTraffic(),
           getTopCongestedStreets(),
+          getMapEvents(),
         ]);
 
         setTopSpeedData(topSpeedResponse.data);
         setTopCongestedData(topCongestedResponse.data);
+        setMapEventsData(mapEventsResponse.data);
       } catch (error) {
         setErrorMessage('Failed to load map preview analytics from the backend.');
       } finally {
@@ -56,8 +64,28 @@ export default function MapPreviewScreen() {
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.title}>Map Preview</Text>
       <Text style={styles.subtitle}>
-        Traffic analytics preview powered by top-speed and top-congested backend endpoints.
+        Traffic analytics and events powered by backend serving endpoints.
       </Text>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Traffic Events</Text>
+
+        {mapEventsData.length === 0 ? (
+          <EmptyState message="No traffic events available." />
+        ) : (
+          mapEventsData.map((event) => (
+            <View key={event.event_id} style={styles.eventCard}>
+              <View style={styles.cardHeader}>
+                <Text style={styles.cardTitle}>{event.street_name}</Text>
+                <Text style={styles.eventBadge}>{event.severity}</Text>
+              </View>
+              <Text style={styles.eventType}>{event.event_type}</Text>
+              <Text style={styles.cardText}>{event.event_description}</Text>
+              <Text style={styles.metaText}>{event.event_timestamp}</Text>
+            </View>
+          ))
+        )}
+      </View>
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Fastest Traffic Segments</Text>
@@ -140,10 +168,42 @@ const styles = StyleSheet.create({
     padding: 16,
     gap: 6,
   },
+  eventCard: {
+    backgroundColor: '#1c2437',
+    borderWidth: 1,
+    borderColor: '#334155',
+    borderRadius: 16,
+    padding: 16,
+    gap: 6,
+  },
+  cardHeader: {
+    alignItems: 'flex-start',
+    flexDirection: 'row',
+    gap: 10,
+    justifyContent: 'space-between',
+  },
   cardTitle: {
+    flex: 1,
     color: '#f8fafc',
     fontSize: 17,
     fontWeight: '700',
+  },
+  eventBadge: {
+    backgroundColor: '#7f1d1d',
+    borderRadius: 999,
+    color: '#fecaca',
+    fontSize: 12,
+    fontWeight: '800',
+    overflow: 'hidden',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    textTransform: 'uppercase',
+  },
+  eventType: {
+    color: '#7dd3fc',
+    fontSize: 13,
+    fontWeight: '800',
+    textTransform: 'uppercase',
   },
   cardText: {
     color: '#cbd5e1',

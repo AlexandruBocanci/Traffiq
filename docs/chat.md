@@ -1059,6 +1059,37 @@ Notes:
 - ride cards show route name, origin, destination, distance, average speed, congestion score, estimated duration, ride status, start time, and end time
 - this replaces the placeholder History screen created during the navigation expansion task
 
+### Update 054 - Events view added to mobile Map screen
+
+Completed:
+
+- updated `mobile/src/types/api.ts`
+- added `MapEventRecord`
+- updated `mobile/src/services/traffiqApi.ts`
+- added `getMapEvents()`
+- updated `mobile/src/screens/MapPreviewScreen.tsx`
+- connected the `Map` tab to `/map/events`
+- added a `Traffic Events` section to the mobile app
+
+Validation command:
+
+```powershell
+npx.cmd tsc --noEmit
+```
+
+Backend endpoint check:
+
+```text
+/map/events 200
+```
+
+Notes:
+
+- `MapPreviewScreen` now shows real traffic events from the FastAPI backend
+- event cards show street name, severity, event type, description, and timestamp
+- this connects the v2 events layer to the mobile product experience
+- the Map tab now combines event visibility, fastest traffic segments, and congested street preview
+
 ---
 
 ## 9. Instructions For Any New Chat
