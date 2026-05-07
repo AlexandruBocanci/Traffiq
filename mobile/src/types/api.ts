@@ -46,6 +46,20 @@ export type RouteHourlyRecord = {
   estimated_duration_minutes: number | null;
 };
 
+export type RideHistoryRecord = {
+  ride_id: number;
+  started_at: string;
+  ended_at: string;
+  origin_name: string;
+  destination_name: string;
+  route_name: string;
+  distance_km: number | null;
+  avg_speed: number | null;
+  congestion_score: number | null;
+  estimated_duration_minutes: number | null;
+  ride_status: string;
+};
+
 export type ApiListResponse<T> = {
   count: number;
   data: T[];

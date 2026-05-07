@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import {
   ScrollView,
   StyleSheet,
@@ -5,47 +6,97 @@ import {
   View,
 } from 'react-native';
 
-const HISTORY_FEATURES = [
-  {
-    title: 'Previous Ride Checks',
-    description: 'Reusable ride summaries loaded from the backend history endpoint.',
-  },
-  {
-    title: 'Route Context',
-    description: 'Origin, destination, route name, duration, speed, and congestion score.',
-  },
-  {
-    title: 'Portfolio Product Feel',
-    description: 'A dedicated history area makes Traffiq feel closer to a real app.',
-  },
-];
+import EmptyState from '../components/EmptyState';
+import ErrorState from '../components/ErrorState';
+import LoadingState from '../components/LoadingState';
+import { getRidesHistory } from '../services/traffiqApi';
+import { RideHistoryRecord } from '../types/api';
 
 export default function HistoryScreen() {
+  const [rideHistoryData, setRideHistoryData] = useState<RideHistoryRecord[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  useEffect(() => {
+    async function loadRideHistory() {
+      try {
+        setIsLoading(true);
+        setErrorMessage('');
+
+        const response = await getRidesHistory();
+        setRideHistoryData(response.data);
+      } catch (error) {
+        setErrorMessage('Failed to load ride history from the backend.');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    loadRideHistory();
+  }, []);
+
+  if (isLoading) {
+    return <LoadingState message="Loading ride history..." />;
+  }
+
+  if (errorMessage) {
+    return <ErrorState title="History" message={errorMessage} />;
+  }
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.title}>History</Text>
       <Text style={styles.subtitle}>
-        Ride history will connect to `/rides/history` and show previous analyzed trips.
+        Previous analyzed rides loaded from `/rides/history`.
       </Text>
 
       <View style={styles.heroCard}>
         <Text style={styles.heroLabel}>History Layer</Text>
-        <Text style={styles.heroTitle}>Past route checks become reusable analytical records.</Text>
+        <Text style={styles.heroTitle}>
+          {rideHistoryData.length} ride history records available
+        </Text>
         <Text style={styles.heroText}>
-          This creates a clean destination for the ride history data model built in the
-          backend during v2.
+          Each record is loaded from the Silver ride history layer and served through
+          the FastAPI backend.
         </Text>
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Planned History Views</Text>
+        <Text style={styles.sectionTitle}>Recent Ride Checks</Text>
 
-        {HISTORY_FEATURES.map((feature) => (
-          <View key={feature.title} style={styles.card}>
-            <Text style={styles.cardTitle}>{feature.title}</Text>
-            <Text style={styles.cardText}>{feature.description}</Text>
-          </View>
-        ))}
+        {rideHistoryData.length === 0 ? (
+          <EmptyState message="No ride history data available." />
+        ) : (
+          rideHistoryData.map((ride) => (
+            <View key={ride.ride_id} style={styles.card}>
+              <View style={styles.cardHeader}>
+                <Text style={styles.cardTitle}>{ride.route_name}</Text>
+                <Text style={styles.statusBadge}>{ride.ride_status}</Text>
+              </View>
+              <Text style={styles.cardText}>
+                {ride.origin_name} to {ride.destination_name}
+              </Text>
+              <Text style={styles.cardText}>
+                Distance: {ride.distance_km ?? 'N/A'} km
+              </Text>
+              <Text style={styles.cardText}>
+                Avg speed: {ride.avg_speed ?? 'N/A'} km/h
+              </Text>
+              <Text style={styles.cardText}>
+                Congestion score: {ride.congestion_score ?? 'N/A'}
+              </Text>
+              <Text style={styles.cardText}>
+                Duration: {ride.estimated_duration_minutes ?? 'N/A'} min
+              </Text>
+              <Text style={styles.metaText}>
+                Started: {ride.started_at}
+              </Text>
+              <Text style={styles.metaText}>
+                Ended: {ride.ended_at}
+              </Text>
+            </View>
+          ))
+        )}
       </View>
     </ScrollView>
   );
@@ -115,14 +166,38 @@ const styles = StyleSheet.create({
     padding: 16,
     gap: 6,
   },
+  cardHeader: {
+    alignItems: 'flex-start',
+    flexDirection: 'row',
+    gap: 10,
+    justifyContent: 'space-between',
+  },
   cardTitle: {
+    flex: 1,
     color: '#f8fafc',
     fontSize: 17,
     fontWeight: '700',
+  },
+  statusBadge: {
+    backgroundColor: '#164e63',
+    borderRadius: 999,
+    color: '#cffafe',
+    fontSize: 12,
+    fontWeight: '800',
+    overflow: 'hidden',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    textTransform: 'uppercase',
   },
   cardText: {
     color: '#cbd5e1',
     fontSize: 14,
     lineHeight: 21,
+  },
+  metaText: {
+    color: '#94a3b8',
+    fontSize: 12,
+    lineHeight: 18,
+    marginTop: 2,
   },
 });

@@ -2,6 +2,7 @@ import { API_BASE_URL } from '../config/api';
 import {
   ApiListResponse,
   HealthResponse,
+  RideHistoryRecord,
   RouteHourlyRecord,
   RouteReportRecord,
   TopCongestedStreetRecord,
@@ -47,4 +48,8 @@ export async function getRoutesReport() {
 
 export async function getRoutesHourly() {
   return fetchFromApi<ApiListResponse<RouteHourlyRecord>>('/routes/hourly');
+}
+
+export async function getRidesHistory() {
+  return fetchFromApi<ApiListResponse<RideHistoryRecord>>('/rides/history');
 }

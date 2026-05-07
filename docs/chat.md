@@ -1030,6 +1030,35 @@ Notes:
 - the hourly section shows a compact snapshot from `gold.route_hourly_report`
 - this replaces the placeholder Routes screen created in the previous task
 
+### Update 053 - Ride History mobile screen connected to backend
+
+Completed:
+
+- updated `mobile/src/types/api.ts`
+- added `RideHistoryRecord`
+- updated `mobile/src/services/traffiqApi.ts`
+- added `getRidesHistory()`
+- updated `mobile/src/screens/HistoryScreen.tsx`
+- connected the `History` tab to `/rides/history`
+
+Validation command:
+
+```powershell
+npx.cmd tsc --noEmit
+```
+
+Backend endpoint check:
+
+```text
+/rides/history 200
+```
+
+Notes:
+
+- `HistoryScreen` now loads real ride history records from the FastAPI backend
+- ride cards show route name, origin, destination, distance, average speed, congestion score, estimated duration, ride status, start time, and end time
+- this replaces the placeholder History screen created during the navigation expansion task
+
 ---
 
 ## 9. Instructions For Any New Chat
