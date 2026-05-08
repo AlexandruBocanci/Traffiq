@@ -216,3 +216,7 @@ def run_traffic_weather_pipeline():
     print(result)
 
     return result
+
+
+if __name__ == "__main__":
+    run_traffic_weather_pipeline()

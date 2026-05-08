@@ -155,35 +155,55 @@ If detailed v1 task history is needed, read:
 
 ### Current task
 
-Close and commit the completed mock traffic event ingestion layer
+Add Docker support for backend services
 
 ### Current status
 
-Mock traffic event Bronze ingestion is implemented and validated locally.
+Docker support is implemented and validated locally.
 
 ### Files changed by the task
 
-- `sql/ddl/create_bronze_tables.sql`
-- `data/raw/events_raw.csv`
-- `src/extract/extract_events_csv.py`
-- `src/load/load_events_raw_to_bronze.py`
-- `tests/integration/test_load_events_raw_to_bronze.py`
+- `Dockerfile`
+- `.dockerignore`
+- `docker-compose.yml`
+- `docker/postgres/init.sql`
+- `src/pipeline/seed_demo_data.py`
+- `src/api/start_server.py`
+- `src/pipeline/run_pipeline.py`
+- `docs/LOCAL_SETUP.md`
 
 ### Goal
 
-Commit the first events ingestion step before creating the Silver events load flow.
+Make the backend services runnable through Docker for a more reproducible local and deployable-style setup.
 
 ### Validation result
 
-- `bronze.events_raw` exists in PostgreSQL
-- `events_raw.csv` contains 5 controlled demo traffic events
-- `extract_events_csv(...)` reads the events CSV
-- `load_events_raw_to_bronze(...)` inserts events into Bronze
-- integration test confirms DB row count matches inserted row count
+- Docker Desktop runs with WSL 2
+- `traffiq-db` starts as a PostgreSQL container
+- `traffiq-api` starts as a FastAPI container
+- `GET /health` returns `status: ok`
+- API container automatically runs demo data seeding before starting FastAPI
+- `docker compose exec api python -m src.pipeline.run_pipeline` runs successfully
+- `docker compose exec api python -m src.pipeline.seed_demo_data` loads the mobile demo dataset
+- containerized pipeline result:
+  - `traffic_raw_rows: 26`
+  - `traffic_silver_rows: 22`
+  - `hourly_street_metrics_rows: 22`
+  - `weather_raw_rows: 168`
+  - `weather_silver_rows: 168`
+  - `traffic_weather_enriched_rows: 154`
+  - `weather_traffic_impact_rows: 2`
+  - `records_extracted: 194`
+  - `records_loaded: 562`
+- mobile-serving Docker endpoint counts:
+  - `/routes/report`: `5`
+  - `/map/events`: `5`
+  - `/rides/history`: `5`
+  - `/reports/overview`: populated summary and sections
 
 ### Next task after commit
 
-Continue with the next v2 task from the active Notion/docs order.
+Prepare AWS-oriented deployment structure and documentation.
 
 ---
 
@@ -1203,6 +1223,61 @@ Notes:
 - `Traffic alerts` remains visible as a core product section
 - recent rides are moved to the bottom and open a bottom sheet with the last 5 rides
 - this is closer to a Waze/Uber-style app shell than a portfolio dashboard
+
+### Update 058 - Docker backend services support added
+
+Completed:
+
+- created `Dockerfile` for the FastAPI backend
+- created `.dockerignore`
+- created `docker-compose.yml`
+- created `docker/postgres/init.sql`
+- created `src/pipeline/seed_demo_data.py`
+- created `src/api/start_server.py`
+- added Docker setup instructions to `docs/LOCAL_SETUP.md`
+- added the missing `if __name__ == "__main__"` entrypoint to `src/pipeline/run_pipeline.py`
+
+Validation commands:
+
+```powershell
+docker compose up --build -d
+Invoke-RestMethod http://localhost:8000/health
+Invoke-RestMethod http://localhost:8000/routes/report
+Invoke-RestMethod http://localhost:8000/map/events
+Invoke-RestMethod http://localhost:8000/rides/history
+```
+
+Validation result:
+
+```text
+GET /health returned status=ok
+SUCCESS: Traffic-weather pipeline completed.
+traffic_raw_rows: 26
+traffic_silver_rows: 22
+hourly_street_metrics_rows: 22
+weather_raw_rows: 168
+weather_silver_rows: 168
+traffic_weather_enriched_rows: 154
+weather_traffic_impact_rows: 2
+records_extracted: 194
+records_loaded: 562
+route_summary_rows: 5
+route_hourly_rows: 29
+top_congested_rows: 4
+events_silver_rows: 5
+rides_silver_rows: 5
+```
+
+Notes:
+
+- Docker now runs PostgreSQL and FastAPI as backend services
+- the PostgreSQL container exposes host port `5433` to avoid conflict with local PostgreSQL on `5432`
+- the API container connects to PostgreSQL through Docker DNS using `DB_HOST=db`
+- database schema is initialized automatically through Docker's Postgres init mechanism
+- pipeline execution inside the container is now supported through `python -m src.pipeline.run_pipeline`
+- full mobile demo data seeding is now supported through `python -m src.pipeline.seed_demo_data`
+- the API container now runs `src.api.start_server`, which seeds demo data first and starts FastAPI after seeding succeeds
+- the next v2 task is AWS-oriented deployment structure and documentation
 
 ---
 

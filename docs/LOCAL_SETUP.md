@@ -73,6 +73,7 @@ Current core packages expected by the project:
 - uvicorn
 - requests
 - python-dotenv
+- httpx
 
 ## 5. PostgreSQL Setup
 
@@ -98,7 +99,7 @@ Create `.env` from the example file:
 
 ```powershell
 Copy-Item .env.example .env
-.
+```
 
 Expected variables:
 
@@ -122,7 +123,82 @@ From the repository root:
 uvicorn src.api.main:app --reload --host 0.0.0.0
 ```
 
-## 8. Running the Mobile App
+## 8. Running With Docker
+
+Docker is the recommended deployable-style local runtime for the backend services.
+
+It starts:
+
+- PostgreSQL in a container
+- FastAPI in a container
+- the database schema automatically on first database initialization
+
+Requirements:
+
+- Docker Desktop
+
+From the repository root, start the services:
+
+```powershell
+docker compose up --build
+```
+
+When the API container starts, it automatically seeds the full demo dataset required by the mobile app before starting FastAPI.
+
+Docker service URLs:
+
+- FastAPI: `http://localhost:8000`
+- PostgreSQL from the host PC: `localhost:5433`
+- PostgreSQL from inside Docker: `db:5432`
+
+Docker database credentials:
+
+- `DB_HOST=db`
+- `DB_PORT=5432`
+- `DB_NAME=traffiq`
+- `DB_USER=postgres`
+- `DB_PASSWORD=postgres`
+
+The containerized PostgreSQL uses port `5433` on the host to avoid conflicts with a local PostgreSQL server already using `5432`.
+
+To manually rerun only the core traffic-weather pipeline inside the API container:
+
+```powershell
+docker compose exec api python -m src.pipeline.run_pipeline
+```
+
+To manually reseed the full demo dataset required by the mobile app:
+
+```powershell
+docker compose exec api python -m src.pipeline.seed_demo_data
+```
+
+This command is normally not required after startup because the API container runs it automatically. It runs the traffic-weather pipeline and then loads the route, event, ride history, route summary, route hourly, and top congested segment demo data used by the mobile app.
+
+To test the API:
+
+```powershell
+Invoke-RestMethod http://localhost:8000/health
+Invoke-RestMethod http://localhost:8000/routes/report
+Invoke-RestMethod http://localhost:8000/map/events
+Invoke-RestMethod http://localhost:8000/rides/history
+```
+
+To stop the services:
+
+```powershell
+docker compose down
+```
+
+To stop the services and delete the Docker database volume:
+
+```powershell
+docker compose down -v
+```
+
+Use `docker compose down -v` only when you intentionally want to reset the containerized database.
+
+## 9. Running the Mobile App
 
 Go into the mobile workspace:
 
@@ -137,13 +213,13 @@ Then:
 - scan the QR code
 - make sure the phone and the PC are on the same Wi-Fi network
 
-## 9. Current Database Notes
+## 10. Current Database Notes
 
 - tutorial database `traffic_learning` is not the project database
 - the real project database is `traffiq`
 - all new project work must target `traffiq`
 
-## 10. What Will Not Sync Through Git
+## 11. What Will Not Sync Through Git
 
 Git does not sync:
 
@@ -165,7 +241,7 @@ That means a second device must always:
 5. run the SQL DDL scripts
 6. create `.env` from `.env.example` and fill in local database credentials
 
-## 11. Recommended Setup Workflow On a New Device
+## 12. Recommended Setup Workflow On a New Device
 
 1. Clone the repo
 2. Run `setup_local.ps1`
@@ -175,6 +251,23 @@ That means a second device must always:
 6. Start the API
 7. Start the mobile app
 
-## 12. Maintenance Rule
+## 13. Recommended Docker Workflow On a New Device
+
+1. Install Docker Desktop
+2. Clone the repo
+3. Run:
+
+```powershell
+docker compose up --build
+```
+
+4. Test:
+
+```powershell
+Invoke-RestMethod http://localhost:8000/health
+Invoke-RestMethod http://localhost:8000/reports/overview
+```
+
+## 14. Maintenance Rule
 
 Whenever the project changes in a way that affects setup, update this file in the same branch before merging to `main`.
