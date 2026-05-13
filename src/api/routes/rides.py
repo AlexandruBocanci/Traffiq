@@ -33,7 +33,7 @@ def get_rides_history():
         congestion_score,
         estimated_duration_minutes,
         ride_status
-      FROM silver.ride_history
+      FROM serving.vw_ride_history
       ORDER BY started_at DESC, ride_id ASC;
       """
     )

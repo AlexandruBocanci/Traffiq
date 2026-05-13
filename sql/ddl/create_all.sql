@@ -3,3 +3,4 @@
 \i sql/ddl/create_silver_tables.sql
 \i sql/ddl/create_gold_tables.sql
 \i sql/ddl/create_metadata_tables.sql
+\i sql/ddl/create_serving_views.sql

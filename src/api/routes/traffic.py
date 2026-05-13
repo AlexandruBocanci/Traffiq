@@ -24,7 +24,7 @@ def get_traffic():
                 street_name,
                 avg_speed,
                 weather_label
-            FROM silver.traffic_observations
+            FROM serving.vw_traffic_observations
             ORDER BY event_timestamp DESC, traffic_obs_id DESC
             """
         )
@@ -78,7 +78,7 @@ def get_top_speed():
                 street_name,
                 avg_speed,
                 weather_label
-            FROM silver.traffic_observations
+            FROM serving.vw_traffic_observations
             WHERE avg_speed IS NOT NULL
             ORDER BY avg_speed DESC, event_timestamp DESC, traffic_obs_id DESC
             LIMIT 5;

@@ -63,13 +63,14 @@ def get_reports_overview():
       cur,
       """
       SELECT
-        (SELECT COUNT(*) FROM gold.route_summary) AS route_count,
-        (SELECT COUNT(*) FROM gold.top_congested_segments) AS congested_segment_count,
-        (SELECT COUNT(*) FROM silver.events_observations) AS event_count,
-        (SELECT COUNT(*) FROM silver.ride_history) AS ride_count,
-        (SELECT ROUND(AVG(avg_congestion_score), 2) FROM gold.route_summary) AS avg_route_congestion_score,
-        (SELECT ROUND(AVG(avg_speed), 2) FROM gold.route_summary) AS avg_route_speed,
-        (SELECT COUNT(*) FROM gold.route_summary WHERE congestion_level = 'high') AS high_congestion_route_count
+        route_count,
+        congested_segment_count,
+        event_count,
+        ride_count,
+        avg_route_congestion_score,
+        avg_route_speed,
+        high_congestion_route_count
+      FROM serving.vw_reports_summary
       """
     )
 
@@ -89,7 +90,7 @@ def get_reports_overview():
         avg_congestion_score,
         estimated_duration_minutes,
         congestion_level
-      FROM gold.route_summary
+      FROM serving.vw_routes_report
       ORDER BY avg_congestion_score DESC, route_id ASC
       LIMIT 3;
       """
@@ -104,7 +105,7 @@ def get_reports_overview():
         observation_count,
         avg_speed,
         avg_congestion_score
-      FROM gold.top_congested_segments
+      FROM serving.vw_top_congested_segments
       ORDER BY segment_rank ASC
       LIMIT 5;
       """
@@ -114,14 +115,14 @@ def get_reports_overview():
       cur,
       """
       SELECT
-        event_obs_id,
+        event_id,
         event_timestamp,
         event_type,
         street_name,
         event_description,
         severity
-      FROM silver.events_observations
-      ORDER BY event_timestamp DESC, event_obs_id ASC
+      FROM serving.vw_map_events
+      ORDER BY event_timestamp DESC, event_id ASC
       LIMIT 5;
       """
     )
@@ -141,7 +142,7 @@ def get_reports_overview():
         congestion_score,
         estimated_duration_minutes,
         ride_status
-      FROM silver.ride_history
+      FROM serving.vw_ride_history
       ORDER BY started_at DESC, ride_id ASC
       LIMIT 5;
       """
@@ -170,7 +171,7 @@ def get_reports_overview():
       ],
       "recent_events": [
         {
-          "event_id": row["event_obs_id"],
+          "event_id": row["event_id"],
           "event_timestamp": row["event_timestamp"],
           "event_type": row["event_type"],
           "street_name": row["street_name"],

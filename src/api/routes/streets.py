@@ -22,7 +22,7 @@ def get_top_congested_streets():
                         street_name,
                         avg_speed,
                         congestion_score
-                    FROM gold.hourly_street_metrics
+                    FROM serving.vw_top_congested_streets
                     WHERE congestion_score IS NOT NULL
                     ORDER BY congestion_score DESC, metric_date DESC, hour_of_day DESC, street_name ASC
                     LIMIT 5;

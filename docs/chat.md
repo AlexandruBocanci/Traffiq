@@ -155,39 +155,50 @@ If detailed v1 task history is needed, read:
 
 ### Current task
 
-Define local vs deployable environment separation
+Create serving-layer views optimized for frontend and API usage
 
 ### Current status
 
-Environment separation documentation is implemented.
+Serving-layer SQL views are implemented and API endpoints now read through the serving layer.
 
 ### Files changed by the task
 
-- `docs/ENVIRONMENTS.md`
-- `docs/AWS_DEPLOYMENT.md`
-- `README.md`
-- `docs/LOCAL_SETUP.md`
+- `sql/ddl/create_schemas.sql`
+- `sql/ddl/create_serving_views.sql`
+- `sql/ddl/create_all.sql`
+- `docker/postgres/init.sql`
+- `src/api/routes/traffic.py`
+- `src/api/routes/streets.py`
+- `src/api/routes/weather.py`
+- `src/api/routes/routes.py`
+- `src/api/routes/map.py`
+- `src/api/routes/rides.py`
+- `src/api/routes/reports.py`
 
 ### Goal
 
-Define the difference between local classic, local Docker, and future AWS deployable runtime modes.
+Create a dedicated SQL serving layer between Gold/Silver tables and FastAPI/mobile consumption.
 
 ### Validation result
 
-- `docs/ENVIRONMENTS.md` defines the three runtime modes:
-  - `local-classic`
-  - `local-docker`
-  - `aws-deployable`
-- local classic DB config is documented as `localhost:5432`
-- local Docker DB config is documented as `db:5432` inside Docker and `localhost:5433` from Windows
-- AWS deployable DB config is documented as an RDS endpoint through environment variables
-- README links to `docs/ENVIRONMENTS.md`
-- `docs/LOCAL_SETUP.md` links to `docs/ENVIRONMENTS.md`
-- `docs/AWS_DEPLOYMENT.md` links to `docs/ENVIRONMENTS.md`
+- `serving` schema exists locally
+- serving views created successfully through `sql/ddl/create_all.sql`
+- API endpoints keep the same public response shape
+- validated endpoint tests:
+  - `tests/integration/test_routes_report_endpoint.py`
+  - `tests/integration/test_routes_hourly_endpoint.py`
+  - `tests/integration/test_map_events_endpoint.py`
+  - `tests/integration/test_rides_history_endpoint.py`
+  - `tests/integration/test_reports_overview_endpoint.py`
+- validated legacy endpoints through FastAPI `TestClient`:
+  - `/traffic`
+  - `/traffic/top-speed`
+  - `/streets/top-congested`
+  - `/weather-impact`
 
 ### Next task after commit
 
-Continue with remaining v2 final maturity tasks or create the v2 recap before starting v3.
+Optimize analytical queries used by endpoints.
 
 ---
 
@@ -1316,6 +1327,51 @@ Notes:
 - local Docker mode uses Docker services, `DB_HOST=db` inside Docker, and `localhost:5433` from Windows
 - AWS deployable mode uses a containerized API, Amazon RDS PostgreSQL, and cloud environment variables or managed secrets
 - this closes the environment separation task
+
+### Update 061 - Serving-layer views added for API consumption
+
+Completed:
+
+- added the `serving` schema to `sql/ddl/create_schemas.sql`
+- created `sql/ddl/create_serving_views.sql`
+- registered serving views in `sql/ddl/create_all.sql`
+- registered serving views in `docker/postgres/init.sql`
+- created serving views for traffic, weather impact, routes report, routes hourly, map events, ride history, reports summary, and top congested segments
+- updated FastAPI routes to read from `serving` views instead of directly from `silver` and `gold` tables where appropriate
+
+Validation commands:
+
+```powershell
+$env:PGPASSWORD=<local-db-password>; psql -U postgres -d traffiq -f sql\ddl\create_all.sql
+$env:PYTHONPATH='.'; .\.venv\Scripts\python.exe tests\integration\test_routes_report_endpoint.py
+$env:PYTHONPATH='.'; .\.venv\Scripts\python.exe tests\integration\test_routes_hourly_endpoint.py
+$env:PYTHONPATH='.'; .\.venv\Scripts\python.exe tests\integration\test_map_events_endpoint.py
+$env:PYTHONPATH='.'; .\.venv\Scripts\python.exe tests\integration\test_rides_history_endpoint.py
+$env:PYTHONPATH='.'; .\.venv\Scripts\python.exe tests\integration\test_reports_overview_endpoint.py
+```
+
+Validation result:
+
+```text
+Serving views created successfully.
+Routes report endpoint test passed.
+Routes hourly endpoint test passed.
+Map events endpoint test passed.
+Rides history endpoint test passed.
+Reports overview endpoint test passed.
+Legacy serving-backed endpoints returned 200:
+/traffic -> count 22
+/traffic/top-speed -> count 5
+/streets/top-congested -> count 5
+/weather-impact -> count 2
+```
+
+Notes:
+
+- public API URLs and response shapes were preserved
+- the serving layer now separates frontend/API consumption from the raw analytical tables
+- Docker validation was not rerun because Docker Desktop was not running, but Docker init SQL was updated so new Docker databases create the serving views automatically
+- the next v2 task is optimizing analytical queries used by endpoints
 
 ---
 

@@ -22,14 +22,14 @@ def get_map_events():
     cur.execute(
       """
       SELECT
-        event_obs_id,
+        event_id,
         event_timestamp,
         event_type,
         street_name,
         event_description,
         severity
-      FROM silver.events_observations
-      ORDER BY event_timestamp DESC, event_obs_id ASC;
+      FROM serving.vw_map_events
+      ORDER BY event_timestamp DESC, event_id ASC;
       """
     )
 

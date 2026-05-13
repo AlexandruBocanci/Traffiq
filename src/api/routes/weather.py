@@ -22,7 +22,7 @@ def get_weather_impact():
                         weather_label,
                         avg_speed,
                         avg_congestion_score
-                    FROM gold.weather_traffic_impact
+                    FROM serving.vw_weather_impact
                     WHERE avg_congestion_score IS NOT NULL
                     ORDER BY metric_date DESC, avg_congestion_score DESC, weather_label ASC;
 
