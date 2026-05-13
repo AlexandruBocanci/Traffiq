@@ -271,3 +271,16 @@ Invoke-RestMethod http://localhost:8000/reports/overview
 ## 14. Maintenance Rule
 
 Whenever the project changes in a way that affects setup, update this file in the same branch before merging to `main`.
+
+## 15. AWS Deployment Direction
+
+The AWS-oriented deployment plan is documented in:
+
+- `docs/AWS_DEPLOYMENT.md`
+
+That file explains how the current Docker backend can evolve toward:
+
+- containerized FastAPI on AWS
+- PostgreSQL on Amazon RDS
+- scheduled ETL execution
+- environment-based secrets and configuration

@@ -155,55 +155,37 @@ If detailed v1 task history is needed, read:
 
 ### Current task
 
-Add Docker support for backend services
+Prepare AWS-oriented deployment structure and documentation
 
 ### Current status
 
-Docker support is implemented and validated locally.
+AWS-oriented deployment documentation is implemented.
 
 ### Files changed by the task
 
-- `Dockerfile`
-- `.dockerignore`
-- `docker-compose.yml`
-- `docker/postgres/init.sql`
-- `src/pipeline/seed_demo_data.py`
-- `src/api/start_server.py`
-- `src/pipeline/run_pipeline.py`
+- `docs/AWS_DEPLOYMENT.md`
+- `README.md`
 - `docs/LOCAL_SETUP.md`
 
 ### Goal
 
-Make the backend services runnable through Docker for a more reproducible local and deployable-style setup.
+Define how the current Docker-based local backend can evolve toward a realistic AWS deployment.
 
 ### Validation result
 
-- Docker Desktop runs with WSL 2
-- `traffiq-db` starts as a PostgreSQL container
-- `traffiq-api` starts as a FastAPI container
-- `GET /health` returns `status: ok`
-- API container automatically runs demo data seeding before starting FastAPI
-- `docker compose exec api python -m src.pipeline.run_pipeline` runs successfully
-- `docker compose exec api python -m src.pipeline.seed_demo_data` loads the mobile demo dataset
-- containerized pipeline result:
-  - `traffic_raw_rows: 26`
-  - `traffic_silver_rows: 22`
-  - `hourly_street_metrics_rows: 22`
-  - `weather_raw_rows: 168`
-  - `weather_silver_rows: 168`
-  - `traffic_weather_enriched_rows: 154`
-  - `weather_traffic_impact_rows: 2`
-  - `records_extracted: 194`
-  - `records_loaded: 562`
-- mobile-serving Docker endpoint counts:
-  - `/routes/report`: `5`
-  - `/map/events`: `5`
-  - `/rides/history`: `5`
-  - `/reports/overview`: populated summary and sections
+- `docs/AWS_DEPLOYMENT.md` documents the target AWS architecture
+- README links to the AWS deployment document
+- `docs/LOCAL_SETUP.md` links local Docker setup to the AWS deployment direction
+- AWS service mapping is defined:
+  - FastAPI container -> App Runner or ECS Fargate
+  - PostgreSQL -> Amazon RDS PostgreSQL
+  - Docker image -> Amazon ECR
+  - scheduled pipeline -> EventBridge Scheduler plus ECS Fargate task
+  - secrets -> environment variables or AWS Secrets Manager
 
 ### Next task after commit
 
-Prepare AWS-oriented deployment structure and documentation.
+Define local vs deployable environment separation.
 
 ---
 
@@ -1278,6 +1260,33 @@ Notes:
 - full mobile demo data seeding is now supported through `python -m src.pipeline.seed_demo_data`
 - the API container now runs `src.api.start_server`, which seeds demo data first and starts FastAPI after seeding succeeds
 - the next v2 task is AWS-oriented deployment structure and documentation
+
+### Update 059 - AWS-oriented deployment documentation added
+
+Completed:
+
+- created `docs/AWS_DEPLOYMENT.md`
+- linked `docs/AWS_DEPLOYMENT.md` from `README.md`
+- linked `docs/AWS_DEPLOYMENT.md` from `docs/LOCAL_SETUP.md`
+- documented the current local and Docker architecture
+- documented the target AWS architecture
+- defined the recommended AWS service mapping
+- documented the intended scheduled ETL direction
+- documented the difference between local classic mode, local Docker mode, and AWS mode
+
+Validation:
+
+```text
+Documentation reviewed locally.
+README and LOCAL_SETUP now reference docs/AWS_DEPLOYMENT.md.
+```
+
+Notes:
+
+- this task does not deploy the project to AWS
+- it prepares the project story and structure for a future cloud deployment
+- the recommended first cloud path is App Runner or ECS for FastAPI, RDS PostgreSQL for the database, ECR for the Docker image, and EventBridge Scheduler for recurring pipeline runs
+- the next v2 task is defining local vs deployable environment separation
 
 ---
 

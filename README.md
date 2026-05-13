@@ -162,6 +162,7 @@ Project documentation lives in:
 - `docs/Traffiq_v1.md`
 - `docs/Traffiq_v2.md`
 - `docs/LOCAL_SETUP.md`
+- `docs/AWS_DEPLOYMENT.md`
 - `docs/chat.md`
 
 ## Current Status
