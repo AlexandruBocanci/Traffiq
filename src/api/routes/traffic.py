@@ -26,6 +26,7 @@ def get_traffic():
                 weather_label
             FROM serving.vw_traffic_observations
             ORDER BY event_timestamp DESC, traffic_obs_id DESC
+            LIMIT 100;
             """
         )
 

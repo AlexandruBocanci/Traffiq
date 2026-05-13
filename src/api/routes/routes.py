@@ -35,7 +35,8 @@ def get_routes_report():
         estimated_duration_minutes,
         congestion_level
       FROM serving.vw_routes_report
-      ORDER BY avg_congestion_score DESC, route_id ASC;
+      ORDER BY avg_congestion_score DESC, route_id ASC
+      LIMIT 50;
       """
     )
 
@@ -97,7 +98,8 @@ def get_routes_hourly():
         avg_congestion_score,
         estimated_duration_minutes
       FROM serving.vw_routes_hourly
-      ORDER BY route_id ASC, metric_date DESC, hour_of_day ASC;
+      ORDER BY route_id ASC, metric_date DESC, hour_of_day ASC
+      LIMIT 100;
       """
     )
 

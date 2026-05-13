@@ -155,42 +155,53 @@ If detailed v1 task history is needed, read:
 
 ### Current task
 
-Create serving-layer views optimized for frontend and API usage
+Optimize analytical queries used by endpoints
 
 ### Current status
 
-Serving-layer SQL views are implemented and API endpoints now read through the serving layer.
+Analytical endpoint queries are optimized with supporting indexes and bounded API list responses.
 
 ### Files changed by the task
 
-- `sql/ddl/create_schemas.sql`
-- `sql/ddl/create_serving_views.sql`
 - `sql/ddl/create_all.sql`
 - `docker/postgres/init.sql`
-- `src/api/routes/traffic.py`
-- `src/api/routes/streets.py`
-- `src/api/routes/weather.py`
+- `sql/ddl/create_indexes.sql`
 - `src/api/routes/routes.py`
 - `src/api/routes/map.py`
 - `src/api/routes/rides.py`
-- `src/api/routes/reports.py`
+- `src/api/routes/traffic.py`
+- `src/api/routes/weather.py`
 
 ### Goal
 
-Create a dedicated SQL serving layer between Gold/Silver tables and FastAPI/mobile consumption.
+Add database indexes and explicit API limits for endpoint queries that sort or return analytical lists.
 
 ### Validation result
 
-- `serving` schema exists locally
-- serving views created successfully through `sql/ddl/create_all.sql`
-- API endpoints keep the same public response shape
-- validated endpoint tests:
+- `sql/ddl/create_all.sql` creates indexes successfully
+- added indexes for:
+  - traffic timestamp and top-speed queries
+  - hourly street congestion queries
+  - weather impact queries
+  - route summary congestion ordering
+  - route hourly ordering
+  - map events ordering
+  - ride history ordering
+  - top congested segment ranking
+- added explicit list limits:
+  - `/traffic`: `100`
+  - `/routes/report`: `50`
+  - `/routes/hourly`: `100`
+  - `/map/events`: `50`
+  - `/rides/history`: `50`
+  - `/weather-impact`: `20`
+- validated endpoint tests still pass:
   - `tests/integration/test_routes_report_endpoint.py`
   - `tests/integration/test_routes_hourly_endpoint.py`
   - `tests/integration/test_map_events_endpoint.py`
   - `tests/integration/test_rides_history_endpoint.py`
   - `tests/integration/test_reports_overview_endpoint.py`
-- validated legacy endpoints through FastAPI `TestClient`:
+- validated legacy endpoints through FastAPI `TestClient` still return 200:
   - `/traffic`
   - `/traffic/top-speed`
   - `/streets/top-congested`
@@ -198,7 +209,7 @@ Create a dedicated SQL serving layer between Gold/Silver tables and FastAPI/mobi
 
 ### Next task after commit
 
-Optimize analytical queries used by endpoints.
+Improve API response shaping for mobile consumption.
 
 ---
 
@@ -1372,6 +1383,56 @@ Notes:
 - the serving layer now separates frontend/API consumption from the raw analytical tables
 - Docker validation was not rerun because Docker Desktop was not running, but Docker init SQL was updated so new Docker databases create the serving views automatically
 - the next v2 task is optimizing analytical queries used by endpoints
+
+### Update 062 - Analytical endpoint queries optimized
+
+Completed:
+
+- created `sql/ddl/create_indexes.sql`
+- registered `create_indexes.sql` in `sql/ddl/create_all.sql`
+- registered `create_indexes.sql` in `docker/postgres/init.sql`
+- added supporting indexes for endpoint query patterns across traffic, weather, route, event, ride, and congested segment tables
+- added explicit API response limits for list endpoints:
+  - `/traffic`: `100`
+  - `/routes/report`: `50`
+  - `/routes/hourly`: `100`
+  - `/map/events`: `50`
+  - `/rides/history`: `50`
+  - `/weather-impact`: `20`
+
+Validation commands:
+
+```powershell
+$env:PGPASSWORD=<local-db-password>; psql -U postgres -d traffiq -f sql\ddl\create_all.sql
+$env:PYTHONPATH='.'; .\.venv\Scripts\python.exe tests\integration\test_routes_report_endpoint.py
+$env:PYTHONPATH='.'; .\.venv\Scripts\python.exe tests\integration\test_routes_hourly_endpoint.py
+$env:PYTHONPATH='.'; .\.venv\Scripts\python.exe tests\integration\test_map_events_endpoint.py
+$env:PYTHONPATH='.'; .\.venv\Scripts\python.exe tests\integration\test_rides_history_endpoint.py
+$env:PYTHONPATH='.'; .\.venv\Scripts\python.exe tests\integration\test_reports_overview_endpoint.py
+```
+
+Validation result:
+
+```text
+Indexes created successfully.
+Routes report endpoint test passed.
+Routes hourly endpoint test passed.
+Map events endpoint test passed.
+Rides history endpoint test passed.
+Reports overview endpoint test passed.
+Legacy endpoints returned 200:
+/traffic -> count 22
+/traffic/top-speed -> count 5
+/streets/top-congested -> count 5
+/weather-impact -> count 2
+```
+
+Notes:
+
+- these optimizations are small at current demo scale but important for a realistic data-serving architecture
+- indexes support the `ORDER BY` and filtered query patterns used by the FastAPI endpoints
+- explicit endpoint limits prevent unbounded list responses as data volume grows
+- the next v2 task is improving API response shaping for mobile consumption
 
 ---
 

@@ -29,7 +29,8 @@ def get_map_events():
         event_description,
         severity
       FROM serving.vw_map_events
-      ORDER BY event_timestamp DESC, event_id ASC;
+      ORDER BY event_timestamp DESC, event_id ASC
+      LIMIT 50;
       """
     )
 

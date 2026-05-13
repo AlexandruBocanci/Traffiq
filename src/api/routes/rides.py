@@ -34,7 +34,8 @@ def get_rides_history():
         estimated_duration_minutes,
         ride_status
       FROM serving.vw_ride_history
-      ORDER BY started_at DESC, ride_id ASC;
+      ORDER BY started_at DESC, ride_id ASC
+      LIMIT 50;
       """
     )
 
