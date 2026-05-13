@@ -155,37 +155,39 @@ If detailed v1 task history is needed, read:
 
 ### Current task
 
-Prepare AWS-oriented deployment structure and documentation
+Define local vs deployable environment separation
 
 ### Current status
 
-AWS-oriented deployment documentation is implemented.
+Environment separation documentation is implemented.
 
 ### Files changed by the task
 
+- `docs/ENVIRONMENTS.md`
 - `docs/AWS_DEPLOYMENT.md`
 - `README.md`
 - `docs/LOCAL_SETUP.md`
 
 ### Goal
 
-Define how the current Docker-based local backend can evolve toward a realistic AWS deployment.
+Define the difference between local classic, local Docker, and future AWS deployable runtime modes.
 
 ### Validation result
 
-- `docs/AWS_DEPLOYMENT.md` documents the target AWS architecture
-- README links to the AWS deployment document
-- `docs/LOCAL_SETUP.md` links local Docker setup to the AWS deployment direction
-- AWS service mapping is defined:
-  - FastAPI container -> App Runner or ECS Fargate
-  - PostgreSQL -> Amazon RDS PostgreSQL
-  - Docker image -> Amazon ECR
-  - scheduled pipeline -> EventBridge Scheduler plus ECS Fargate task
-  - secrets -> environment variables or AWS Secrets Manager
+- `docs/ENVIRONMENTS.md` defines the three runtime modes:
+  - `local-classic`
+  - `local-docker`
+  - `aws-deployable`
+- local classic DB config is documented as `localhost:5432`
+- local Docker DB config is documented as `db:5432` inside Docker and `localhost:5433` from Windows
+- AWS deployable DB config is documented as an RDS endpoint through environment variables
+- README links to `docs/ENVIRONMENTS.md`
+- `docs/LOCAL_SETUP.md` links to `docs/ENVIRONMENTS.md`
+- `docs/AWS_DEPLOYMENT.md` links to `docs/ENVIRONMENTS.md`
 
 ### Next task after commit
 
-Define local vs deployable environment separation.
+Continue with remaining v2 final maturity tasks or create the v2 recap before starting v3.
 
 ---
 
@@ -1287,6 +1289,33 @@ Notes:
 - it prepares the project story and structure for a future cloud deployment
 - the recommended first cloud path is App Runner or ECS for FastAPI, RDS PostgreSQL for the database, ECR for the Docker image, and EventBridge Scheduler for recurring pipeline runs
 - the next v2 task is defining local vs deployable environment separation
+
+### Update 060 - Environment separation documented
+
+Completed:
+
+- created `docs/ENVIRONMENTS.md`
+- linked `docs/ENVIRONMENTS.md` from `README.md`
+- linked `docs/ENVIRONMENTS.md` from `docs/LOCAL_SETUP.md`
+- linked `docs/ENVIRONMENTS.md` from `docs/AWS_DEPLOYMENT.md`
+- documented the `local-classic` runtime mode
+- documented the `local-docker` runtime mode
+- documented the `aws-deployable` runtime mode
+- documented which database host, port, secrets strategy, and startup command belongs to each mode
+
+Validation:
+
+```text
+Documentation reviewed locally.
+README, LOCAL_SETUP, and AWS_DEPLOYMENT now reference docs/ENVIRONMENTS.md.
+```
+
+Notes:
+
+- local classic mode uses Windows `.venv`, local PostgreSQL, and `DB_HOST=localhost`
+- local Docker mode uses Docker services, `DB_HOST=db` inside Docker, and `localhost:5433` from Windows
+- AWS deployable mode uses a containerized API, Amazon RDS PostgreSQL, and cloud environment variables or managed secrets
+- this closes the environment separation task
 
 ---
 

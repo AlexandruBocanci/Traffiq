@@ -284,3 +284,11 @@ That file explains how the current Docker backend can evolve toward:
 - PostgreSQL on Amazon RDS
 - scheduled ETL execution
 - environment-based secrets and configuration
+
+## 16. Environment Separation
+
+The difference between local classic, local Docker, and future AWS deployment environments is documented in:
+
+- `docs/ENVIRONMENTS.md`
+
+Use that file when deciding which startup commands, database host, database port, and secrets strategy apply to the current runtime mode.

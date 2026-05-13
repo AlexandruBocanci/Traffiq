@@ -142,6 +142,10 @@ The project already supports environment-based configuration through `src/config
 
 ## Environment Separation
 
+Detailed environment separation is documented in:
+
+- `docs/ENVIRONMENTS.md`
+
 ### Local classic mode
 
 Used for normal development without Docker.
