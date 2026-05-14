@@ -28,6 +28,10 @@ For operational realism, I added pipeline run tracking and data quality logging 
 
 Start with the product, then move to the technical depth.
 
+The exact step-by-step demo flow is documented in:
+
+- `docs/DEMO_FLOW.md`
+
 Recommended order:
 
 1. Show the mobile Drive screen.

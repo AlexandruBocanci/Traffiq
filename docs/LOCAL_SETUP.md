@@ -336,3 +336,11 @@ The final project presentation narrative is documented in:
 - `docs/DEMO_NARRATIVE.md`
 
 That file explains how to present the project, what to show first, which commands to run in a demo, and how to explain the project's limitations honestly.
+
+## 22. Demo Flow
+
+The exact demo flow is documented in:
+
+- `docs/DEMO_FLOW.md`
+
+That file explains what to start, what to validate, what screens to show, what API responses to open, and how to sequence the technical explanation.

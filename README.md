@@ -1,46 +1,48 @@
 # Traffiq
 
-Traffiq is a backend-focused traffic intelligence portfolio project built to demonstrate a realistic Junior Data Engineer skill set.
+Traffiq is an end-to-end traffic intelligence data engineering portfolio project.
 
-It combines:
+It ingests traffic, weather, route, event, and ride data, processes them through Python ETL pipelines, stores them in PostgreSQL analytical layers, exposes the results through FastAPI, and presents them in a React Native / Expo mobile app.
 
-- ETL pipelines
-- PostgreSQL Bronze / Silver / Gold layers
-- FastAPI serving
-- a React Native mobile client connected to the backend
+The project is built to demonstrate practical Junior Data Engineer skills, not to pretend to be a production Waze clone.
 
-The project is intentionally designed as a serious portfolio piece rather than a toy CRUD app.
+## What The Project Demonstrates
 
-## What v1 Delivers
+- Python ETL pipeline structure
+- pandas-based data cleaning and transformation
+- PostgreSQL Bronze / Silver / Gold / Serving layers
+- ETL metadata and data quality logging
+- FastAPI backend serving database-backed analytics
+- React Native mobile client consuming backend data
+- Dockerized local backend runtime
+- environment-based configuration and secrets handling
+- documented AWS deployment direction
 
-Traffiq v1 proves the following:
+## Current v2 Scope
+
+Traffiq v2 includes:
 
 - traffic CSV ingestion
-- weather API ingestion
-- layered data modeling in PostgreSQL
-- transformation and enrichment logic
-- analytics-ready Gold tables
-- FastAPI endpoints backed by PostgreSQL
-- a mobile app that consumes the live local backend
-
-## v1 Product Areas
-
-The mobile app currently includes:
-
-1. Reports
-2. Weather Impact
-3. Map Preview
-4. Pipeline
-
-These screens are intentionally simplified for v1, but they are connected to the real backend and designed to reinforce the project story.
+- weather API ingestion through Open-Meteo
+- route reference ingestion
+- traffic event ingestion
+- ride history ingestion
+- traffic-weather enrichment
+- route-level analytics
+- hourly route reporting
+- top congested segment analytics
+- serving-layer views optimized for API usage
+- backend-shaped mobile response through `/mobile/drive-overview`
+- Docker support for PostgreSQL and FastAPI
+- cloud deployment documentation for AWS
 
 ## Architecture
 
 ```text
-Traffic CSV + Weather API
+Traffic CSV + Weather API + Route/Event/Ride CSVs
         |
         v
-Extract / Transform
+Python Extract / Transform / Load
         |
         v
 PostgreSQL Bronze
@@ -52,40 +54,63 @@ PostgreSQL Silver
 PostgreSQL Gold
         |
         v
+PostgreSQL Serving Views
+        |
+        v
 FastAPI
         |
         v
-React Native Mobile App
+React Native / Expo Mobile App
 ```
 
-## Core Data Layers
+Detailed architecture is documented in:
+
+- `docs/ARCHITECTURE_WALKTHROUGH.md`
+
+## Database Layers
 
 Schemas:
 
 - `bronze`
 - `silver`
 - `gold`
+- `serving`
 - `etl_meta`
 
-Key tables:
+Main purpose:
 
-- `bronze.traffic_raw`
-- `bronze.weather_raw`
-- `silver.traffic_observations`
-- `silver.weather_observations`
-- `silver.traffic_weather_enriched`
-- `gold.hourly_street_metrics`
-- `gold.weather_traffic_impact`
+- Bronze keeps raw or near-raw ingested data.
+- Silver keeps cleaned and standardized records.
+- Gold keeps business-level analytical outputs.
+- Serving exposes API-ready views.
+- ETL metadata tracks pipeline runs and data quality checks.
 
 ## API Endpoints
 
-Current v1 endpoints:
+Current backend endpoints:
 
 - `GET /health`
 - `GET /traffic`
 - `GET /traffic/top-speed`
 - `GET /streets/top-congested`
 - `GET /weather-impact`
+- `GET /routes/report`
+- `GET /routes/hourly`
+- `GET /map/events`
+- `GET /rides/history`
+- `GET /reports/overview`
+- `GET /mobile/drive-overview`
+
+## Mobile App
+
+The current mobile app is a product-style demo focused on a traffic intelligence experience.
+
+Current screens:
+
+- Drive
+- Pipeline
+
+The Drive screen is powered by the backend-shaped `/mobile/drive-overview` response.
 
 ## Tech Stack
 
@@ -96,88 +121,108 @@ Current v1 endpoints:
 - FastAPI
 - uvicorn
 - requests
+- python-dotenv
+- Docker
 - React Native
 - Expo
 - TypeScript
 
-## Local Run Flow
-
-### 1. Bootstrap dependencies
+## Quick Start With Docker
 
 From the repository root:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\setup_local.ps1
+docker compose up --build
 ```
 
-### 2. Start the API
-
-From the repository root:
+Validate the backend:
 
 ```powershell
-uvicorn src.api.main:app --reload --host 0.0.0.0
+Invoke-RestMethod http://localhost:8000/health
+Invoke-RestMethod http://localhost:8000/mobile/drive-overview
 ```
 
-### 3. Start the mobile app
+Start the mobile app:
 
 ```powershell
 cd mobile
-npm.cmd start
+npx.cmd expo start
 ```
 
-Then:
+Then open Expo Go on the phone and scan the QR code.
 
-- open Expo Go on your Android phone
-- scan the QR code
-- keep the phone and the PC on the same Wi-Fi network
+## Local Classic Setup
 
-## Why This Project Is Strong For A Data Engineering Portfolio
+For local development without Docker:
 
-Traffiq is not positioned as a frontend-first app. The core value is in:
+```powershell
+powershell -ExecutionPolicy Bypass -File .\setup_local.ps1
+Copy-Item .env.example .env
+psql -U postgres -d traffiq -f sql/ddl/create_all.sql
+uvicorn src.api.main:app --reload --host 0.0.0.0
+```
 
-- ingestion
-- transformation
-- SQL modeling
-- layered warehouse thinking
-- API serving of analytics-ready data
+Full setup instructions are documented in:
 
-That makes it relevant for Junior Data Engineer roles where recruiters want to see:
+- `docs/LOCAL_SETUP.md`
 
-- real SQL usage
-- practical ETL thinking
-- backend data delivery
-- project structure and discipline
+## Demo Flow
 
-## Important v1 Notes
+The recommended demo flow is documented in:
 
-- weather enrichment in v1 uses a simplified join approach by `hour_of_day`
-- this was an intentional v1 tradeoff because the traffic CSV history and live weather API data are not from the same real-world time window
-- this simplification is accepted in v1 and documented explicitly
+- `docs/DEMO_FLOW.md`
 
-## Documentation
+The recruiter-facing explanation is documented in:
 
-Project documentation lives in:
+- `docs/DEMO_NARRATIVE.md`
+
+## Documentation Index
+
+Start here:
+
+- `docs/ARCHITECTURE_WALKTHROUGH.md`
+- `docs/DEMO_FLOW.md`
+- `docs/DEMO_NARRATIVE.md`
+- `docs/LOCAL_SETUP.md`
+
+Project planning:
 
 - `docs/Traffiq_plan.md`
 - `docs/Traffiq_v1.md`
 - `docs/Traffiq_v2.md`
-- `docs/LOCAL_SETUP.md`
+
+Deployment and operations:
+
 - `docs/AWS_DEPLOYMENT.md`
+- `docs/CLOUD_WORKFLOW.md`
 - `docs/ENVIRONMENTS.md`
 - `docs/SCHEDULER_STRATEGY.md`
-- `docs/CLOUD_WORKFLOW.md`
 - `docs/SECRETS_AND_CONFIG.md`
-- `docs/ARCHITECTURE_WALKTHROUGH.md`
-- `docs/DEMO_NARRATIVE.md`
+
+Continuity:
+
 - `docs/chat.md`
+- `docs/chat_v1_archive.md`
 
-## Current Status
+## Portfolio Positioning
 
-Traffiq v1 is functionally complete in local development:
+Correct positioning:
 
-- pipeline validated locally
-- PostgreSQL validated locally
-- FastAPI validated locally
-- mobile app validated locally
+```text
+Traffiq is a data engineering project that powers a traffic intelligence mobile interface.
+```
 
-The next phase is Traffiq v2.
+Do not position it as:
+
+```text
+A production real-time navigation app.
+```
+
+Current limitations are intentional and documented:
+
+- traffic data is not real-time yet
+- route and event sources are controlled demo datasets
+- the app is not a full navigation engine
+- AWS deployment is documented but not executed yet
+
+The strength of the project is the end-to-end data system: ingestion, transformation, SQL modeling, API serving, mobile consumption, observability, Docker, and cloud readiness.

@@ -155,32 +155,33 @@ If detailed v1 task history is needed, read:
 
 ### Current task
 
-Create final recruiter/demo narrative for Traffiq
+Finalize repository presentation, docs, and demo flow
 
 ### Current status
 
-Final recruiter/demo narrative is implemented.
+Repository presentation and demo flow are implemented.
 
 ### Files changed by the task
 
-- `docs/DEMO_NARRATIVE.md`
+- `docs/DEMO_FLOW.md`
 - `README.md`
-- `docs/ARCHITECTURE_WALKTHROUGH.md`
+- `docs/DEMO_NARRATIVE.md`
 - `docs/LOCAL_SETUP.md`
 - `docs/chat.md`
 
 ### Goal
 
-Create a practical recruiter/demo narrative for explaining Traffiq clearly and honestly.
+Finalize the repository entry point and create a clear demo flow for presenting Traffiq.
 
 ### Validation result
 
-- `docs/DEMO_NARRATIVE.md` includes a 30-second pitch, 2-minute technical pitch, demo order, demo commands, strong points, limitations, and correct framing for CSV/mock data, Docker, AWS, Bronze/Silver/Gold, and observability
-- README, ARCHITECTURE_WALKTHROUGH, and LOCAL_SETUP link to the demo narrative
+- `README.md` now presents the current v2 project instead of describing only v1
+- `docs/DEMO_FLOW.md` documents the exact demo startup, validation, and presentation order
+- README, DEMO_NARRATIVE, and LOCAL_SETUP link to the demo flow
 
 ### Next task after commit
 
-Finalize repository presentation, docs, and demo flow.
+Close Traffiq v2 and prepare v3 backlog.
 ---
 
 ## 8. Latest Update
@@ -1577,6 +1578,31 @@ Notes:
 - no application code was changed in this task
 - this document is the main script for presenting Traffiq to recruiters or interviewers
 - the next v2 task is finalizing repository presentation, docs, and demo flow
+
+### Update 069 - Repository presentation and demo flow finalized
+
+Completed:
+
+- rewrote `README.md` as the current v2 repository entry point
+- created `docs/DEMO_FLOW.md`
+- linked the demo flow from `docs/DEMO_NARRATIVE.md`
+- linked the demo flow from `docs/LOCAL_SETUP.md`
+- updated `docs/chat.md`
+- documented the short and long demo paths
+- documented exact Docker, API, mobile, and PostgreSQL validation commands for demos
+
+Validation:
+
+```text
+Documentation reviewed locally.
+README, DEMO_NARRATIVE, and LOCAL_SETUP now reference docs/DEMO_FLOW.md.
+```
+
+Notes:
+
+- no application code was changed in this task
+- README now reflects Traffiq v2 instead of being centered on v1
+- the next task is closing Traffiq v2 and preparing the v3 backlog
 ---
 
 ## 9. Instructions For Any New Chat
