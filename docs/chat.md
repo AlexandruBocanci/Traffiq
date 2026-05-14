@@ -155,42 +155,35 @@ If detailed v1 task history is needed, read:
 
 ### Current task
 
-Improve API response shaping for mobile consumption
+Add scheduler strategy for recurring pipeline runs
 
 ### Current status
 
-Mobile API response shaping is implemented through a dedicated drive overview endpoint.
+Scheduler strategy documentation is implemented.
 
 ### Files changed by the task
 
-- `src/api/routes/mobile.py`
-- `src/api/main.py`
-- `mobile/src/services/traffiqApi.ts`
-- `mobile/src/types/api.ts`
-- `mobile/src/screens/DriveScreen.tsx`
-- `tests/integration/test_mobile_drive_overview_endpoint.py`
+- `docs/SCHEDULER_STRATEGY.md`
+- `README.md`
+- `docs/AWS_DEPLOYMENT.md`
+- `docs/ENVIRONMENTS.md`
+- `docs/LOCAL_SETUP.md`
 
 ### Goal
 
-Reduce mobile frontend data orchestration by serving the Drive screen through one backend-shaped API response.
+Define how Traffiq pipeline runs should move from manual execution toward local and cloud scheduled execution.
 
 ### Validation result
 
-- added `GET /mobile/drive-overview`
-- endpoint returns:
-  - `routes`
-  - `events`
-  - `rides`
-  - `congested`
-  - `weather`
-- `DriveScreen` now calls one API function: `getDriveOverview()`
-- mobile no longer makes 5 parallel requests for the Drive screen
-- `tests/integration/test_mobile_drive_overview_endpoint.py` passed
-- `npx.cmd tsc --noEmit` passed
+- `docs/SCHEDULER_STRATEGY.md` defines local classic scheduling through Windows Task Scheduler
+- Docker scheduling commands are documented for `run_pipeline` and `seed_demo_data`
+- AWS scheduling direction is documented as EventBridge Scheduler triggering an ECS Fargate task
+- scheduler responsibilities and failure handling expectations are documented
+- README, AWS_DEPLOYMENT, ENVIRONMENTS, and LOCAL_SETUP link to the scheduler strategy document
 
 ### Next task after commit
 
-Add scheduler strategy for recurring pipeline runs.
+Finalize deployable cloud workflow.
 ---
 
 ## 8. Latest Update
@@ -1447,6 +1440,33 @@ Notes:
 - the Drive screen now receives routes, events, rides, congested segments, and weather impact in one response
 - this is closer to a production mobile API pattern because the backend shapes data for the client
 - the next v2 task is scheduler strategy for recurring pipeline runs
+### Update 064 - Scheduler strategy documented
+
+Completed:
+
+- created `docs/SCHEDULER_STRATEGY.md`
+- linked scheduler strategy from `README.md`
+- linked scheduler strategy from `docs/AWS_DEPLOYMENT.md`
+- linked scheduler strategy from `docs/ENVIRONMENTS.md`
+- linked scheduler strategy from `docs/LOCAL_SETUP.md`
+- documented local classic scheduling with Windows Task Scheduler
+- documented Docker-based manual pipeline execution
+- documented AWS scheduling direction with EventBridge Scheduler and ECS Fargate
+- documented scheduler responsibilities, failure handling, and production separation between API startup and ETL jobs
+
+Validation:
+
+```text
+Documentation reviewed locally.
+README, AWS_DEPLOYMENT, ENVIRONMENTS, and LOCAL_SETUP now reference docs/SCHEDULER_STRATEGY.md.
+```
+
+Notes:
+
+- no real scheduler was created in this task
+- the project now has a clear path from manual ETL execution toward scheduled ETL execution
+- the recommended AWS model is EventBridge Scheduler -> ECS Fargate task -> Amazon RDS PostgreSQL
+- the next v2 task is finalizing the deployable cloud workflow
 ---
 
 ## 9. Instructions For Any New Chat
@@ -1461,4 +1481,5 @@ Before suggesting or changing anything:
 6. Follow Notion order if the user provides it explicitly
 
 Do not assume hidden context.
+
 

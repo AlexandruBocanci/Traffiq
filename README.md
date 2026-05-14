@@ -164,6 +164,7 @@ Project documentation lives in:
 - `docs/LOCAL_SETUP.md`
 - `docs/AWS_DEPLOYMENT.md`
 - `docs/ENVIRONMENTS.md`
+- `docs/SCHEDULER_STRATEGY.md`
 - `docs/chat.md`
 
 ## Current Status

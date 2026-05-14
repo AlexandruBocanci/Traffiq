@@ -292,3 +292,11 @@ The difference between local classic, local Docker, and future AWS deployment en
 - `docs/ENVIRONMENTS.md`
 
 Use that file when deciding which startup commands, database host, database port, and secrets strategy apply to the current runtime mode.
+
+## 17. Scheduler Strategy
+
+The recommended local, Docker, and AWS scheduling strategy is documented in:
+
+- `docs/SCHEDULER_STRATEGY.md`
+
+That file explains how pipeline runs can move from manual execution toward Windows Task Scheduler locally and EventBridge Scheduler plus ECS Fargate in AWS.

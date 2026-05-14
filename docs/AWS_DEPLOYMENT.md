@@ -111,6 +111,10 @@ App Runner or ECS service
 
 The ETL pipeline should eventually run as a scheduled job instead of running manually.
 
+Detailed scheduling strategy is documented in:
+
+- `docs/SCHEDULER_STRATEGY.md`
+
 Recommended future options:
 
 - EventBridge Scheduler triggering an ECS Fargate task

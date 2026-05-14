@@ -184,6 +184,10 @@ Recommended future direction:
 EventBridge Scheduler -> ECS Fargate task -> Amazon RDS PostgreSQL
 ```
 
+Detailed scheduling strategy is documented in:
+
+- `docs/SCHEDULER_STRATEGY.md`
+
 The pipeline should not depend on a developer manually running local commands.
 
 ### Demo data behavior
