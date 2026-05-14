@@ -77,3 +77,11 @@ export type ApiListResponse<T> = {
 export type HealthResponse = {
   status: string;
 };
+
+export type DriveOverviewResponse = {
+  routes: RouteReportRecord[];
+  events: MapEventRecord[];
+  rides: RideHistoryRecord[];
+  congested: TopCongestedStreetRecord[];
+  weather: WeatherImpactRecord[];
+};

@@ -12,13 +12,7 @@ import {
 import EmptyState from '../components/EmptyState';
 import ErrorState from '../components/ErrorState';
 import LoadingState from '../components/LoadingState';
-import {
-  getMapEvents,
-  getRidesHistory,
-  getRoutesReport,
-  getTopCongestedStreets,
-  getWeatherImpact,
-} from '../services/traffiqApi';
+import { getDriveOverview } from '../services/traffiqApi';
 import { colors, radius, shadows, spacing } from '../theme/theme';
 import {
   MapEventRecord,
@@ -79,27 +73,9 @@ export default function DriveScreen({ onOpenPipeline }: DriveScreenProps) {
         setIsLoading(true);
         setErrorMessage('');
 
-        const [
-          routesResponse,
-          eventsResponse,
-          ridesResponse,
-          congestedResponse,
-          weatherResponse,
-        ] = await Promise.all([
-          getRoutesReport(),
-          getMapEvents(),
-          getRidesHistory(),
-          getTopCongestedStreets(),
-          getWeatherImpact(),
-        ]);
+        const driveOverview = await getDriveOverview();
 
-        setData({
-          routes: routesResponse.data,
-          events: eventsResponse.data,
-          rides: ridesResponse.data,
-          congested: congestedResponse.data,
-          weather: weatherResponse.data,
-        });
+        setData(driveOverview);
       } catch (error) {
         setErrorMessage('Could not connect to the Traffiq backend from the mobile app.');
       } finally {
@@ -904,3 +880,4 @@ const styles = StyleSheet.create({
     textTransform: 'capitalize',
   },
 });
+

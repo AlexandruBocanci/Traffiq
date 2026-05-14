@@ -155,62 +155,42 @@ If detailed v1 task history is needed, read:
 
 ### Current task
 
-Optimize analytical queries used by endpoints
+Improve API response shaping for mobile consumption
 
 ### Current status
 
-Analytical endpoint queries are optimized with supporting indexes and bounded API list responses.
+Mobile API response shaping is implemented through a dedicated drive overview endpoint.
 
 ### Files changed by the task
 
-- `sql/ddl/create_all.sql`
-- `docker/postgres/init.sql`
-- `sql/ddl/create_indexes.sql`
-- `src/api/routes/routes.py`
-- `src/api/routes/map.py`
-- `src/api/routes/rides.py`
-- `src/api/routes/traffic.py`
-- `src/api/routes/weather.py`
+- `src/api/routes/mobile.py`
+- `src/api/main.py`
+- `mobile/src/services/traffiqApi.ts`
+- `mobile/src/types/api.ts`
+- `mobile/src/screens/DriveScreen.tsx`
+- `tests/integration/test_mobile_drive_overview_endpoint.py`
 
 ### Goal
 
-Add database indexes and explicit API limits for endpoint queries that sort or return analytical lists.
+Reduce mobile frontend data orchestration by serving the Drive screen through one backend-shaped API response.
 
 ### Validation result
 
-- `sql/ddl/create_all.sql` creates indexes successfully
-- added indexes for:
-  - traffic timestamp and top-speed queries
-  - hourly street congestion queries
-  - weather impact queries
-  - route summary congestion ordering
-  - route hourly ordering
-  - map events ordering
-  - ride history ordering
-  - top congested segment ranking
-- added explicit list limits:
-  - `/traffic`: `100`
-  - `/routes/report`: `50`
-  - `/routes/hourly`: `100`
-  - `/map/events`: `50`
-  - `/rides/history`: `50`
-  - `/weather-impact`: `20`
-- validated endpoint tests still pass:
-  - `tests/integration/test_routes_report_endpoint.py`
-  - `tests/integration/test_routes_hourly_endpoint.py`
-  - `tests/integration/test_map_events_endpoint.py`
-  - `tests/integration/test_rides_history_endpoint.py`
-  - `tests/integration/test_reports_overview_endpoint.py`
-- validated legacy endpoints through FastAPI `TestClient` still return 200:
-  - `/traffic`
-  - `/traffic/top-speed`
-  - `/streets/top-congested`
-  - `/weather-impact`
+- added `GET /mobile/drive-overview`
+- endpoint returns:
+  - `routes`
+  - `events`
+  - `rides`
+  - `congested`
+  - `weather`
+- `DriveScreen` now calls one API function: `getDriveOverview()`
+- mobile no longer makes 5 parallel requests for the Drive screen
+- `tests/integration/test_mobile_drive_overview_endpoint.py` passed
+- `npx.cmd tsc --noEmit` passed
 
 ### Next task after commit
 
-Improve API response shaping for mobile consumption.
-
+Add scheduler strategy for recurring pipeline runs.
 ---
 
 ## 8. Latest Update
@@ -1434,6 +1414,39 @@ Notes:
 - explicit endpoint limits prevent unbounded list responses as data volume grows
 - the next v2 task is improving API response shaping for mobile consumption
 
+### Update 063 - Mobile drive overview API response added
+
+Completed:
+
+- created `src/api/routes/mobile.py`
+- added `GET /mobile/drive-overview`
+- registered the mobile router in `src/api/main.py`
+- added `DriveOverviewResponse` in `mobile/src/types/api.ts`
+- added `getDriveOverview()` in `mobile/src/services/traffiqApi.ts`
+- updated `DriveScreen` to load one backend-shaped response instead of five separate endpoint responses
+- created `tests/integration/test_mobile_drive_overview_endpoint.py`
+
+Validation commands:
+
+```powershell
+$env:PYTHONPATH='.'; .\.venv\Scripts\python.exe tests\integration\test_mobile_drive_overview_endpoint.py
+cd mobile
+npx.cmd tsc --noEmit
+```
+
+Validation result:
+
+```text
+SUCCESS: Mobile drive overview endpoint test passed.
+TypeScript check passed.
+```
+
+Notes:
+
+- this keeps the existing mobile UI behavior but simplifies the data contract
+- the Drive screen now receives routes, events, rides, congested segments, and weather impact in one response
+- this is closer to a production mobile API pattern because the backend shapes data for the client
+- the next v2 task is scheduler strategy for recurring pipeline runs
 ---
 
 ## 9. Instructions For Any New Chat
@@ -1448,3 +1461,4 @@ Before suggesting or changing anything:
 6. Follow Notion order if the user provides it explicitly
 
 Do not assume hidden context.
+

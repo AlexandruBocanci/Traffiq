@@ -1,6 +1,7 @@
 import { API_BASE_URL } from '../config/api';
 import {
   ApiListResponse,
+  DriveOverviewResponse,
   HealthResponse,
   MapEventRecord,
   RideHistoryRecord,
@@ -57,4 +58,8 @@ export async function getRidesHistory() {
 
 export async function getMapEvents() {
   return fetchFromApi<ApiListResponse<MapEventRecord>>('/map/events');
+}
+
+export async function getDriveOverview() {
+  return fetchFromApi<DriveOverviewResponse>('/mobile/drive-overview');
 }
