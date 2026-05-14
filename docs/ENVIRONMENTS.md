@@ -148,6 +148,10 @@ The practical deployment workflow for this environment is documented in:
 
 - `docs/CLOUD_WORKFLOW.md`
 
+Secrets and config handling is documented in:
+
+- `docs/SECRETS_AND_CONFIG.md`
+
 ### Backend service options
 
 Recommended first option:
@@ -254,4 +258,5 @@ npx.cmd expo start
 - `docs/LOCAL_SETUP.md` explains how to run the project locally.
 - `docs/AWS_DEPLOYMENT.md` explains the AWS target architecture.
 - `docs/CLOUD_WORKFLOW.md` explains the deployable cloud workflow step by step.
+- `docs/SECRETS_AND_CONFIG.md` explains how local, Docker, and AWS config values should be handled.
 - this file explains how the environments differ and why they should stay separated.

@@ -10,6 +10,10 @@ The practical deployment sequence is documented separately in:
 
 - `docs/CLOUD_WORKFLOW.md`
 
+Secrets and environment configuration strategy is documented in:
+
+- `docs/SECRETS_AND_CONFIG.md`
+
 ## Current Local Architecture
 
 ```text
@@ -147,6 +151,10 @@ Cloud deployment should use one of:
 - AWS Secrets Manager for stronger secret handling
 
 The project already supports environment-based configuration through `src/config/settings.py`.
+
+Detailed rules for local `.env`, Docker environment variables, AWS environment variables, and AWS Secrets Manager are documented in:
+
+- `docs/SECRETS_AND_CONFIG.md`
 
 ## Environment Separation
 

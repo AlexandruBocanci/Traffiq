@@ -1,0 +1,232 @@
+# Secrets And Config Strategy
+
+## Purpose
+
+This document defines how Traffiq handles configuration and secrets across local development, Docker, and future AWS deployment.
+
+The goal is simple:
+
+```text
+code stays portable
+secrets stay out of Git
+each environment injects its own values
+```
+
+## What Counts As Configuration
+
+Configuration is any value that changes by environment but is not necessarily secret.
+
+Examples:
+
+- database host
+- database name
+- database port
+- public API base URL for the mobile app
+- runtime mode
+
+## What Counts As A Secret
+
+Secrets are values that must not be committed to Git.
+
+Examples:
+
+- database passwords
+- AWS access keys
+- API keys
+- service tokens
+- production connection strings
+- private certificates
+
+## Current Backend Configuration
+
+The backend database configuration is centralized in:
+
+- `src/config/settings.py`
+
+The required variables are:
+
+```text
+DB_HOST
+DB_NAME
+DB_USER
+DB_PASSWORD
+DB_PORT
+```
+
+`settings.py` loads local values through:
+
+```python
+load_dotenv()
+```
+
+Then it builds:
+
+```python
+DB_CONFIG
+```
+
+If a required variable is missing, the backend now fails early with a clear error instead of failing later during database connection.
+
+## Local Classic Strategy
+
+Local Windows development uses:
+
+- `.env` for real local values
+- `.env.example` as the committed template
+- `python-dotenv` to load values into Python
+
+`.env` must contain real local values:
+
+```text
+DB_HOST=localhost
+DB_NAME=traffiq
+DB_USER=postgres
+DB_PASSWORD=<local-postgres-password>
+DB_PORT=5432
+```
+
+`.env` is ignored by Git.
+
+`.env.example` is committed because it contains only placeholder values.
+
+## Local Docker Strategy
+
+Docker uses service-level environment variables in:
+
+- `docker-compose.yml`
+
+Current local Docker values:
+
+```text
+DB_HOST=db
+DB_NAME=traffiq
+DB_USER=postgres
+DB_PASSWORD=postgres
+DB_PORT=5432
+```
+
+These values are acceptable for local Docker only because the database exists inside the local Docker network.
+
+Do not reuse the Docker demo password for AWS.
+
+## AWS Strategy
+
+AWS should not use `.env`.
+
+AWS should inject values through one of:
+
+- App Runner environment variables for a simple first deployment
+- AWS Secrets Manager for stronger production-style secret handling
+
+Recommended first portfolio deployment:
+
+```text
+App Runner environment variables for non-secret config
+AWS Secrets Manager or App Runner secret references for DB_PASSWORD
+```
+
+Expected AWS values:
+
+```text
+DB_HOST=<rds-endpoint>
+DB_NAME=traffiq
+DB_USER=<rds-user>
+DB_PASSWORD=<managed-secret>
+DB_PORT=5432
+```
+
+## Mobile API URL Strategy
+
+The mobile app API base URL is configuration, not a secret.
+
+Current file:
+
+- `mobile/src/config/api.ts`
+
+Current behavior:
+
+- web uses `http://localhost:8000`
+- Expo on phone derives the PC host from the Expo script URL
+- fallback uses a local LAN IP
+
+Future cloud behavior:
+
+```text
+local mobile build -> local PC or Docker API URL
+cloud/demo mobile build -> public App Runner API URL
+```
+
+The public API URL can be committed if it is truly public. API keys, private tokens, and database credentials must not be committed.
+
+## Git Rules
+
+These files must never be committed:
+
+```text
+.env
+.env.*
+```
+
+Exception:
+
+```text
+.env.example
+```
+
+The current `.gitignore` enforces this rule.
+
+Do not commit:
+
+- real database passwords
+- AWS access keys
+- RDS connection strings containing passwords
+- third-party API keys
+- generated private keys
+- local machine-specific secrets
+
+## Rotation Rule
+
+If a secret is accidentally committed:
+
+1. consider it leaked
+2. rotate the secret immediately
+3. remove it from the repository history if necessary
+4. update `.env.example` only with placeholders
+
+Deleting the value from the latest commit is not enough if the secret exists in Git history.
+
+## Validation Commands
+
+Validate that required backend config can be loaded:
+
+```powershell
+$env:PYTHONPATH='.'; .\.venv\Scripts\python.exe -c "from src.config.settings import DB_CONFIG; print(DB_CONFIG['host'], DB_CONFIG['dbname'], DB_CONFIG['port'])"
+```
+
+Validate Docker runtime config:
+
+```powershell
+docker compose config
+```
+
+Validate ignored local secrets:
+
+```powershell
+git status --short
+```
+
+Expected result:
+
+```text
+.env does not appear in git status.
+```
+
+## Recruiter Explanation
+
+The concise explanation is:
+
+```text
+Traffiq does not hardcode database credentials in Python code. Local development uses a Git-ignored .env file, Docker injects local service variables through docker-compose.yml, and the AWS deployment direction uses App Runner environment variables or AWS Secrets Manager for RDS credentials.
+```
+
+This shows the project follows the same configuration pattern used in real backend and data engineering systems.

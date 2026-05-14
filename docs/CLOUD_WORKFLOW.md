@@ -112,6 +112,10 @@ DB_PASSWORD=<rds-password>
 
 In AWS, these values should come from App Runner environment variables or AWS Secrets Manager. They should not be written into Git.
 
+The full secrets and config strategy is documented in:
+
+- `docs/SECRETS_AND_CONFIG.md`
+
 ### 6. Initialize The Database Schema
 
 Run the DDL against RDS:

@@ -166,6 +166,7 @@ Project documentation lives in:
 - `docs/ENVIRONMENTS.md`
 - `docs/SCHEDULER_STRATEGY.md`
 - `docs/CLOUD_WORKFLOW.md`
+- `docs/SECRETS_AND_CONFIG.md`
 - `docs/chat.md`
 
 ## Current Status

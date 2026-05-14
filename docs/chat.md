@@ -155,34 +155,36 @@ If detailed v1 task history is needed, read:
 
 ### Current task
 
-Finalize deployable cloud workflow
+Finalize secrets and config handling strategy
 
 ### Current status
 
-Deployable cloud workflow documentation is implemented.
+Secrets and config handling strategy is implemented.
 
 ### Files changed by the task
 
-- `docs/CLOUD_WORKFLOW.md`
+- `docs/SECRETS_AND_CONFIG.md`
+- `src/config/settings.py`
 - `README.md`
 - `docs/AWS_DEPLOYMENT.md`
+- `docs/CLOUD_WORKFLOW.md`
 - `docs/ENVIRONMENTS.md`
 - `docs/LOCAL_SETUP.md`
 - `docs/chat.md`
 
 ### Goal
 
-Define the practical deployment workflow that moves Traffiq from local Docker services toward a realistic AWS setup.
+Define how Traffiq handles config and secrets across local development, Docker, and future AWS deployment.
 
 ### Validation result
 
-- `docs/CLOUD_WORKFLOW.md` documents local Docker validation, Docker image build, ECR push, RDS setup, DDL initialization, App Runner deployment, pipeline execution, scheduled ETL direction, mobile API URL configuration, and cloud validation checks
-- README, AWS_DEPLOYMENT, ENVIRONMENTS, and LOCAL_SETUP link to the cloud workflow document
-- the document clearly separates local demo seeding from production API startup
+- `settings.py` now fails early if required DB environment variables are missing
+- `docs/SECRETS_AND_CONFIG.md` documents local `.env`, `.env.example`, Docker environment variables, AWS environment variables, AWS Secrets Manager, mobile API URL config, Git rules, and secret rotation expectations
+- README, AWS_DEPLOYMENT, CLOUD_WORKFLOW, ENVIRONMENTS, and LOCAL_SETUP link to the secrets and config strategy document
 
 ### Next task after commit
 
-Finalize secrets and config handling strategy.
+Create final architecture diagram and technical walkthrough.
 ---
 
 ## 8. Latest Update
@@ -1493,6 +1495,35 @@ Notes:
 - this task creates the practical cloud runbook for the future deployable version
 - the recommended first deployment path is ECR -> App Runner -> RDS PostgreSQL, with EventBridge plus ECS Fargate added later for scheduled ETL
 - the next v2 task is finalizing the secrets and config handling strategy
+
+### Update 066 - Secrets and config strategy finalized
+
+Completed:
+
+- created `docs/SECRETS_AND_CONFIG.md`
+- updated `src/config/settings.py` to validate required DB environment variables explicitly
+- linked the secrets and config strategy from `README.md`
+- linked the secrets and config strategy from `docs/AWS_DEPLOYMENT.md`
+- linked the secrets and config strategy from `docs/CLOUD_WORKFLOW.md`
+- linked the secrets and config strategy from `docs/ENVIRONMENTS.md`
+- linked the secrets and config strategy from `docs/LOCAL_SETUP.md`
+- updated `docs/chat.md`
+
+Validation:
+
+```text
+Backend config import validated locally.
+Documentation reviewed locally.
+README, AWS_DEPLOYMENT, CLOUD_WORKFLOW, ENVIRONMENTS, and LOCAL_SETUP now reference docs/SECRETS_AND_CONFIG.md.
+```
+
+Notes:
+
+- `.env` remains ignored by Git
+- `.env.example` remains the safe committed template
+- Docker demo credentials are documented as local-only values
+- AWS deployment should use App Runner environment variables or AWS Secrets Manager
+- the next v2 task is creating the final architecture diagram and technical walkthrough
 ---
 
 ## 9. Instructions For Any New Chat

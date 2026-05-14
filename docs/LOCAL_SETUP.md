@@ -115,6 +115,10 @@ Recommended values for local setup:
 - `DB_PORT=5432`
 - `DB_NAME=traffiq`
 
+The full secrets and config strategy is documented in:
+
+- `docs/SECRETS_AND_CONFIG.md`
+
 ## 7. Running the Backend API
 
 From the repository root:
@@ -308,3 +312,11 @@ The practical cloud workflow is documented in:
 - `docs/CLOUD_WORKFLOW.md`
 
 That file explains how the current Docker backend can move toward ECR, App Runner, RDS PostgreSQL, and scheduled ETL execution.
+
+## 19. Secrets And Config Strategy
+
+The local, Docker, and AWS secrets strategy is documented in:
+
+- `docs/SECRETS_AND_CONFIG.md`
+
+That file explains what belongs in `.env`, what belongs in Docker environment variables, what belongs in AWS environment variables or Secrets Manager, and what must never be committed to Git.
