@@ -155,36 +155,32 @@ If detailed v1 task history is needed, read:
 
 ### Current task
 
-Finalize secrets and config handling strategy
+Create final architecture diagram and technical walkthrough
 
 ### Current status
 
-Secrets and config handling strategy is implemented.
+Final architecture walkthrough documentation is implemented.
 
 ### Files changed by the task
 
-- `docs/SECRETS_AND_CONFIG.md`
-- `src/config/settings.py`
+- `docs/ARCHITECTURE_WALKTHROUGH.md`
 - `README.md`
-- `docs/AWS_DEPLOYMENT.md`
 - `docs/CLOUD_WORKFLOW.md`
-- `docs/ENVIRONMENTS.md`
 - `docs/LOCAL_SETUP.md`
 - `docs/chat.md`
 
 ### Goal
 
-Define how Traffiq handles config and secrets across local development, Docker, and future AWS deployment.
+Create a final architecture document that explains Traffiq's end-to-end system design.
 
 ### Validation result
 
-- `settings.py` now fails early if required DB environment variables are missing
-- `docs/SECRETS_AND_CONFIG.md` documents local `.env`, `.env.example`, Docker environment variables, AWS environment variables, AWS Secrets Manager, mobile API URL config, Git rules, and secret rotation expectations
-- README, AWS_DEPLOYMENT, CLOUD_WORKFLOW, ENVIRONMENTS, and LOCAL_SETUP link to the secrets and config strategy document
+- `docs/ARCHITECTURE_WALKTHROUGH.md` includes high-level architecture, runtime architecture, data flow walkthrough, pipeline orchestration, API architecture, mobile architecture, Docker architecture, AWS direction, and final technical summary
+- README, CLOUD_WORKFLOW, and LOCAL_SETUP link to the final architecture walkthrough
 
 ### Next task after commit
 
-Create final architecture diagram and technical walkthrough.
+Create final recruiter/demo narrative for Traffiq.
 ---
 
 ## 8. Latest Update
@@ -1524,6 +1520,34 @@ Notes:
 - Docker demo credentials are documented as local-only values
 - AWS deployment should use App Runner environment variables or AWS Secrets Manager
 - the next v2 task is creating the final architecture diagram and technical walkthrough
+
+### Update 067 - Final architecture walkthrough created
+
+Completed:
+
+- created `docs/ARCHITECTURE_WALKTHROUGH.md`
+- added a Mermaid high-level architecture diagram
+- added a Mermaid local Docker runtime diagram
+- documented the full data flow from sources to Extract, Transform, Load, Bronze, Silver, Gold, Serving, FastAPI, and mobile app
+- documented pipeline orchestration through `run_pipeline.py` and `seed_demo_data.py`
+- documented API, mobile, Docker, and AWS architecture direction
+- linked the architecture walkthrough from `README.md`
+- linked the architecture walkthrough from `docs/CLOUD_WORKFLOW.md`
+- linked the architecture walkthrough from `docs/LOCAL_SETUP.md`
+- updated `docs/chat.md`
+
+Validation:
+
+```text
+Documentation reviewed locally.
+README, CLOUD_WORKFLOW, and LOCAL_SETUP now reference docs/ARCHITECTURE_WALKTHROUGH.md.
+```
+
+Notes:
+
+- no application code was changed in this task
+- this document is the main technical walkthrough for explaining the project architecture
+- the next v2 task is creating the final recruiter/demo narrative for Traffiq
 ---
 
 ## 9. Instructions For Any New Chat

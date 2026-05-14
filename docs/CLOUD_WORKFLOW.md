@@ -116,6 +116,10 @@ The full secrets and config strategy is documented in:
 
 - `docs/SECRETS_AND_CONFIG.md`
 
+The final architecture walkthrough is documented in:
+
+- `docs/ARCHITECTURE_WALKTHROUGH.md`
+
 ### 6. Initialize The Database Schema
 
 Run the DDL against RDS:

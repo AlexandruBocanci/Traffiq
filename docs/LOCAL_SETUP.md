@@ -320,3 +320,11 @@ The local, Docker, and AWS secrets strategy is documented in:
 - `docs/SECRETS_AND_CONFIG.md`
 
 That file explains what belongs in `.env`, what belongs in Docker environment variables, what belongs in AWS environment variables or Secrets Manager, and what must never be committed to Git.
+
+## 20. Architecture Walkthrough
+
+The final v2 architecture walkthrough is documented in:
+
+- `docs/ARCHITECTURE_WALKTHROUGH.md`
+
+That file explains the full data flow from sources to ETL, PostgreSQL layers, FastAPI, mobile app, Docker, and AWS direction.
