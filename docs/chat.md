@@ -155,32 +155,32 @@ If detailed v1 task history is needed, read:
 
 ### Current task
 
-Create final architecture diagram and technical walkthrough
+Create final recruiter/demo narrative for Traffiq
 
 ### Current status
 
-Final architecture walkthrough documentation is implemented.
+Final recruiter/demo narrative is implemented.
 
 ### Files changed by the task
 
-- `docs/ARCHITECTURE_WALKTHROUGH.md`
+- `docs/DEMO_NARRATIVE.md`
 - `README.md`
-- `docs/CLOUD_WORKFLOW.md`
+- `docs/ARCHITECTURE_WALKTHROUGH.md`
 - `docs/LOCAL_SETUP.md`
 - `docs/chat.md`
 
 ### Goal
 
-Create a final architecture document that explains Traffiq's end-to-end system design.
+Create a practical recruiter/demo narrative for explaining Traffiq clearly and honestly.
 
 ### Validation result
 
-- `docs/ARCHITECTURE_WALKTHROUGH.md` includes high-level architecture, runtime architecture, data flow walkthrough, pipeline orchestration, API architecture, mobile architecture, Docker architecture, AWS direction, and final technical summary
-- README, CLOUD_WORKFLOW, and LOCAL_SETUP link to the final architecture walkthrough
+- `docs/DEMO_NARRATIVE.md` includes a 30-second pitch, 2-minute technical pitch, demo order, demo commands, strong points, limitations, and correct framing for CSV/mock data, Docker, AWS, Bronze/Silver/Gold, and observability
+- README, ARCHITECTURE_WALKTHROUGH, and LOCAL_SETUP link to the demo narrative
 
 ### Next task after commit
 
-Create final recruiter/demo narrative for Traffiq.
+Finalize repository presentation, docs, and demo flow.
 ---
 
 ## 8. Latest Update
@@ -1548,6 +1548,35 @@ Notes:
 - no application code was changed in this task
 - this document is the main technical walkthrough for explaining the project architecture
 - the next v2 task is creating the final recruiter/demo narrative for Traffiq
+
+### Update 068 - Recruiter and demo narrative created
+
+Completed:
+
+- created `docs/DEMO_NARRATIVE.md`
+- added a 30-second project pitch
+- added a 2-minute technical pitch
+- added recommended demo order
+- added demo startup and validation commands
+- documented how to explain the mobile app, CSV/mock data, weather API, Bronze/Silver/Gold/Serving layers, pipeline observability, Docker, and AWS
+- documented project strengths and honest limitations
+- linked the demo narrative from `README.md`
+- linked the demo narrative from `docs/ARCHITECTURE_WALKTHROUGH.md`
+- linked the demo narrative from `docs/LOCAL_SETUP.md`
+- updated `docs/chat.md`
+
+Validation:
+
+```text
+Documentation reviewed locally.
+README, ARCHITECTURE_WALKTHROUGH, and LOCAL_SETUP now reference docs/DEMO_NARRATIVE.md.
+```
+
+Notes:
+
+- no application code was changed in this task
+- this document is the main script for presenting Traffiq to recruiters or interviewers
+- the next v2 task is finalizing repository presentation, docs, and demo flow
 ---
 
 ## 9. Instructions For Any New Chat

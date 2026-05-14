@@ -328,3 +328,11 @@ The final v2 architecture walkthrough is documented in:
 - `docs/ARCHITECTURE_WALKTHROUGH.md`
 
 That file explains the full data flow from sources to ETL, PostgreSQL layers, FastAPI, mobile app, Docker, and AWS direction.
+
+## 21. Recruiter And Demo Narrative
+
+The final project presentation narrative is documented in:
+
+- `docs/DEMO_NARRATIVE.md`
+
+That file explains how to present the project, what to show first, which commands to run in a demo, and how to explain the project's limitations honestly.

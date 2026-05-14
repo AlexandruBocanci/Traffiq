@@ -372,3 +372,7 @@ The concise explanation is:
 ```text
 Traffiq is an end-to-end traffic intelligence data product. It ingests traffic, weather, route, event, and ride data through Python ETL modules, models them in PostgreSQL using Bronze/Silver/Gold/Serving layers, exposes mobile-ready analytics through FastAPI, and presents the result in a React Native app. The project runs locally through Docker and has a documented path toward AWS using ECR, App Runner, RDS, EventBridge, and ECS Fargate.
 ```
+
+The recruiter/demo narrative is documented in:
+
+- `docs/DEMO_NARRATIVE.md`

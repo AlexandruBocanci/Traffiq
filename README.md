@@ -168,6 +168,7 @@ Project documentation lives in:
 - `docs/CLOUD_WORKFLOW.md`
 - `docs/SECRETS_AND_CONFIG.md`
 - `docs/ARCHITECTURE_WALKTHROUGH.md`
+- `docs/DEMO_NARRATIVE.md`
 - `docs/chat.md`
 
 ## Current Status
