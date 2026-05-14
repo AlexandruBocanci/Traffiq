@@ -155,35 +155,34 @@ If detailed v1 task history is needed, read:
 
 ### Current task
 
-Add scheduler strategy for recurring pipeline runs
+Finalize deployable cloud workflow
 
 ### Current status
 
-Scheduler strategy documentation is implemented.
+Deployable cloud workflow documentation is implemented.
 
 ### Files changed by the task
 
-- `docs/SCHEDULER_STRATEGY.md`
+- `docs/CLOUD_WORKFLOW.md`
 - `README.md`
 - `docs/AWS_DEPLOYMENT.md`
 - `docs/ENVIRONMENTS.md`
 - `docs/LOCAL_SETUP.md`
+- `docs/chat.md`
 
 ### Goal
 
-Define how Traffiq pipeline runs should move from manual execution toward local and cloud scheduled execution.
+Define the practical deployment workflow that moves Traffiq from local Docker services toward a realistic AWS setup.
 
 ### Validation result
 
-- `docs/SCHEDULER_STRATEGY.md` defines local classic scheduling through Windows Task Scheduler
-- Docker scheduling commands are documented for `run_pipeline` and `seed_demo_data`
-- AWS scheduling direction is documented as EventBridge Scheduler triggering an ECS Fargate task
-- scheduler responsibilities and failure handling expectations are documented
-- README, AWS_DEPLOYMENT, ENVIRONMENTS, and LOCAL_SETUP link to the scheduler strategy document
+- `docs/CLOUD_WORKFLOW.md` documents local Docker validation, Docker image build, ECR push, RDS setup, DDL initialization, App Runner deployment, pipeline execution, scheduled ETL direction, mobile API URL configuration, and cloud validation checks
+- README, AWS_DEPLOYMENT, ENVIRONMENTS, and LOCAL_SETUP link to the cloud workflow document
+- the document clearly separates local demo seeding from production API startup
 
 ### Next task after commit
 
-Finalize deployable cloud workflow.
+Finalize secrets and config handling strategy.
 ---
 
 ## 8. Latest Update
@@ -1467,6 +1466,33 @@ Notes:
 - the project now has a clear path from manual ETL execution toward scheduled ETL execution
 - the recommended AWS model is EventBridge Scheduler -> ECS Fargate task -> Amazon RDS PostgreSQL
 - the next v2 task is finalizing the deployable cloud workflow
+
+### Update 065 - Deployable cloud workflow finalized
+
+Completed:
+
+- created `docs/CLOUD_WORKFLOW.md`
+- linked the cloud workflow from `README.md`
+- linked the cloud workflow from `docs/AWS_DEPLOYMENT.md`
+- linked the cloud workflow from `docs/ENVIRONMENTS.md`
+- linked the cloud workflow from `docs/LOCAL_SETUP.md`
+- updated `docs/chat.md`
+- documented the deployment path from local Docker validation to AWS ECR, App Runner, RDS PostgreSQL, and scheduled ETL
+- documented the production separation between API startup, database schema initialization, pipeline execution, and optional demo seeding
+
+Validation:
+
+```text
+Documentation reviewed locally.
+README, AWS_DEPLOYMENT, ENVIRONMENTS, and LOCAL_SETUP now reference docs/CLOUD_WORKFLOW.md.
+```
+
+Notes:
+
+- no real AWS deployment was performed in this task
+- this task creates the practical cloud runbook for the future deployable version
+- the recommended first deployment path is ECR -> App Runner -> RDS PostgreSQL, with EventBridge plus ECS Fargate added later for scheduled ETL
+- the next v2 task is finalizing the secrets and config handling strategy
 ---
 
 ## 9. Instructions For Any New Chat

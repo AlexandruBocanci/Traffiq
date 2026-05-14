@@ -1,0 +1,254 @@
+# Deployable Cloud Workflow
+
+## Purpose
+
+This document defines the practical cloud deployment workflow for Traffiq.
+
+It does not mean the project is already deployed to AWS. It explains the exact sequence that turns the current Docker-based local backend into a deployable AWS setup.
+
+The goal is to make the project understandable as a real data engineering system:
+
+```text
+containerized API
+managed PostgreSQL database
+scheduled ETL job
+mobile client calling a public API URL
+```
+
+## Recommended First Cloud Version
+
+For the first real AWS deployment, use:
+
+- Amazon ECR for the Docker image
+- AWS App Runner for the FastAPI backend
+- Amazon RDS PostgreSQL for the database
+- EventBridge Scheduler plus ECS Fargate for scheduled ETL later
+
+This is the simplest professional path because App Runner can run the API container without managing servers, while RDS keeps PostgreSQL as a managed database.
+
+## Deployment Flow
+
+### 1. Validate Locally With Docker
+
+Before cloud deployment, the Docker setup must work locally.
+
+From the repository root:
+
+```powershell
+docker compose up --build -d
+```
+
+Validate the API:
+
+```powershell
+Invoke-RestMethod http://localhost:8000/health
+Invoke-RestMethod http://localhost:8000/mobile/drive-overview
+```
+
+Expected result:
+
+```text
+API returns status ok.
+Mobile drive overview returns route, event, ride, congestion, and weather data.
+```
+
+### 2. Build The Backend Image
+
+Build the API Docker image locally:
+
+```powershell
+docker build -t traffiq-api .
+```
+
+This image contains the FastAPI backend and the Python pipeline code.
+
+### 3. Create An ECR Repository
+
+Create a container registry in AWS:
+
+```powershell
+aws ecr create-repository --repository-name traffiq-api
+```
+
+ECR stores the Docker image so AWS services can run it.
+
+### 4. Push The Image To ECR
+
+Authenticate Docker to ECR:
+
+```powershell
+aws ecr get-login-password --region <aws-region> | docker login --username AWS --password-stdin <aws-account-id>.dkr.ecr.<aws-region>.amazonaws.com
+```
+
+Tag the image:
+
+```powershell
+docker tag traffiq-api:latest <aws-account-id>.dkr.ecr.<aws-region>.amazonaws.com/traffiq-api:latest
+```
+
+Push the image:
+
+```powershell
+docker push <aws-account-id>.dkr.ecr.<aws-region>.amazonaws.com/traffiq-api:latest
+```
+
+### 5. Create The RDS PostgreSQL Database
+
+Create an Amazon RDS PostgreSQL database named:
+
+```text
+traffiq
+```
+
+Required database environment values:
+
+```text
+DB_HOST=<rds-endpoint>
+DB_PORT=5432
+DB_NAME=traffiq
+DB_USER=<rds-user>
+DB_PASSWORD=<rds-password>
+```
+
+In AWS, these values should come from App Runner environment variables or AWS Secrets Manager. They should not be written into Git.
+
+### 6. Initialize The Database Schema
+
+Run the DDL against RDS:
+
+```powershell
+psql -h <rds-endpoint> -U <rds-user> -d traffiq -f sql/ddl/create_all.sql
+```
+
+This creates:
+
+- Bronze tables
+- Silver tables
+- Gold tables
+- Serving views
+- ETL metadata tables
+- endpoint-supporting indexes
+
+### 7. Deploy The FastAPI Service
+
+Deploy the pushed ECR image with AWS App Runner.
+
+Recommended API command for a real cloud service:
+
+```text
+uvicorn src.api.main:app --host 0.0.0.0 --port 8000
+```
+
+Important:
+
+The local Docker demo currently uses:
+
+```text
+python -m src.api.start_server
+```
+
+That command seeds demo data before API startup. It is useful locally, but a real cloud API should not reload demo data every time the API container restarts.
+
+For cloud, keep these separate:
+
+```text
+API startup
+DDL / migration
+pipeline execution
+optional demo seed
+```
+
+### 8. Run The Pipeline Against RDS
+
+After the API and RDS database are configured, run the pipeline once against the cloud database.
+
+The pipeline command is:
+
+```powershell
+python -m src.pipeline.run_pipeline
+```
+
+For a demo environment that needs the full mobile dataset:
+
+```powershell
+python -m src.pipeline.seed_demo_data
+```
+
+The important part is that the runtime environment must point to the RDS database through:
+
+```text
+DB_HOST=<rds-endpoint>
+```
+
+### 9. Add Scheduled ETL Later
+
+The production-style scheduler target is:
+
+```text
+EventBridge Scheduler -> ECS Fargate task -> python -m src.pipeline.run_pipeline -> RDS PostgreSQL
+```
+
+The scheduler should run the ETL job separately from the API service.
+
+The scheduling strategy is documented in:
+
+- `docs/SCHEDULER_STRATEGY.md`
+
+### 10. Configure The Mobile App
+
+For local development, the mobile app calls the PC backend IP.
+
+For cloud deployment, the mobile app should call the public App Runner URL:
+
+```text
+https://<app-runner-service-url>
+```
+
+The future production improvement is to move the mobile API base URL into an environment-specific config instead of editing it manually.
+
+### 11. Validate The Cloud Setup
+
+After deployment, validate these endpoints:
+
+```powershell
+Invoke-RestMethod https://<public-api-url>/health
+Invoke-RestMethod https://<public-api-url>/mobile/drive-overview
+Invoke-RestMethod https://<public-api-url>/reports/overview
+```
+
+Expected result:
+
+- `/health` returns `ok`
+- `/mobile/drive-overview` returns backend-shaped mobile data
+- `/reports/overview` returns analytical report data
+
+Validate pipeline metadata directly in PostgreSQL:
+
+```powershell
+psql -h <rds-endpoint> -U <rds-user> -d traffiq -c "SELECT run_id, pipeline_name, status, records_extracted, records_loaded FROM etl_meta.pipeline_runs ORDER BY run_id DESC LIMIT 5;"
+```
+
+Expected result:
+
+- recent pipeline runs are visible
+- successful runs have `status = success`
+- record counters are populated
+
+## Common Failure Points
+
+- RDS security group does not allow access from the API service
+- `DB_HOST` still points to `localhost` instead of the RDS endpoint
+- database schema was not initialized before API validation
+- App Runner environment variables are missing
+- API startup uses local demo seeding when it should use normal FastAPI startup
+- mobile app still points to a local LAN IP instead of the public API URL
+
+## Final Cloud Story
+
+The professional explanation is:
+
+```text
+Traffiq is built locally with Docker, FastAPI, PostgreSQL, and Expo, but the deployment path is cloud-ready. The backend image can be pushed to ECR, served through App Runner, connected to RDS PostgreSQL, and refreshed by a scheduled ETL job through EventBridge and ECS Fargate. The mobile app then consumes the public API URL instead of a local machine.
+```
+
+This shows that the project is not only a local demo. It has a realistic path toward a deployable data product.

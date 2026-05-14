@@ -300,3 +300,11 @@ The recommended local, Docker, and AWS scheduling strategy is documented in:
 - `docs/SCHEDULER_STRATEGY.md`
 
 That file explains how pipeline runs can move from manual execution toward Windows Task Scheduler locally and EventBridge Scheduler plus ECS Fargate in AWS.
+
+## 18. Deployable Cloud Workflow
+
+The practical cloud workflow is documented in:
+
+- `docs/CLOUD_WORKFLOW.md`
+
+That file explains how the current Docker backend can move toward ECR, App Runner, RDS PostgreSQL, and scheduled ETL execution.

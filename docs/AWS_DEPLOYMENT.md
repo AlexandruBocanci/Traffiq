@@ -6,6 +6,10 @@ This document defines the intended AWS deployment direction for Traffiq.
 
 It is not a production runbook yet. Its goal is to show how the current local and Docker-based project can evolve into a realistic cloud deployment.
 
+The practical deployment sequence is documented separately in:
+
+- `docs/CLOUD_WORKFLOW.md`
+
 ## Current Local Architecture
 
 ```text
@@ -216,6 +220,10 @@ Future implementation:
 - configure production environment variables
 - run DDL against RDS
 - run the pipeline against RDS
+
+The detailed workflow for this phase is documented in:
+
+- `docs/CLOUD_WORKFLOW.md`
 
 ### Phase 4 - Scheduled ETL
 

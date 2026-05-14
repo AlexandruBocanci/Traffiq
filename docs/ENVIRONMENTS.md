@@ -144,6 +144,10 @@ Mobile app calls a public backend URL
 Secrets come from AWS environment variables or managed secrets
 ```
 
+The practical deployment workflow for this environment is documented in:
+
+- `docs/CLOUD_WORKFLOW.md`
+
 ### Backend service options
 
 Recommended first option:
@@ -249,4 +253,5 @@ npx.cmd expo start
 
 - `docs/LOCAL_SETUP.md` explains how to run the project locally.
 - `docs/AWS_DEPLOYMENT.md` explains the AWS target architecture.
+- `docs/CLOUD_WORKFLOW.md` explains the deployable cloud workflow step by step.
 - this file explains how the environments differ and why they should stay separated.
