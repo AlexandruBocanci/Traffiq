@@ -344,3 +344,13 @@ The exact demo flow is documented in:
 - `docs/DEMO_FLOW.md`
 
 That file explains what to start, what to validate, what screens to show, what API responses to open, and how to sequence the technical explanation.
+
+## 23. v2 Recap And v3 Backlog
+
+The final v2 recap is documented in:
+
+- `docs/Traffiq_v2_recap.md`
+
+The recommended v3 backlog is documented in:
+
+- `docs/Traffiq_v3_backlog.md`

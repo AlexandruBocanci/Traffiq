@@ -20,6 +20,8 @@ The project is built to demonstrate practical Junior Data Engineer skills, not t
 
 ## Current v2 Scope
 
+Traffiq v2 is closed.
+
 Traffiq v2 includes:
 
 - traffic CSV ingestion
@@ -190,6 +192,8 @@ Project planning:
 - `docs/Traffiq_plan.md`
 - `docs/Traffiq_v1.md`
 - `docs/Traffiq_v2.md`
+- `docs/Traffiq_v2_recap.md`
+- `docs/Traffiq_v3_backlog.md`
 
 Deployment and operations:
 

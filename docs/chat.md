@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This is the active continuity file for Traffiq v2.
+This is the active continuity file for the Traffiq v2 closeout and v3 handoff.
 
 It should stay short and operational.
 
@@ -40,8 +40,11 @@ Use this file to understand:
 - `Traffiq v1` is closed
 - v1 was merged into `main`
 - Current branch: `feature/traffiq-v2`
-- Current implementation phase: `Traffiq v2`
+- Current implementation phase: `Traffiq v2 closed`
+- Next planning phase: `Traffiq v3`
 - Primary v2 planning source: `docs/Traffiq_v2.md`
+- Final v2 recap: `docs/Traffiq_v2_recap.md`
+- Recommended v3 backlog: `docs/Traffiq_v3_backlog.md`
 - If the user explicitly provides task order from Notion, that order overrides the default order from docs
 
 ---
@@ -57,12 +60,22 @@ Delivered locally:
   - `bronze`
   - `silver`
   - `gold`
+  - `serving`
   - `etl_meta`
 - DDL versioned in repo
 - traffic CSV pipeline
 - weather API pipeline
 - traffic-weather enrichment flow
 - Gold weather impact flow
+- route reference load flow
+- route summary Gold flow
+- route hourly Gold flow
+- events Bronze/Silver flow
+- ride history Bronze/Silver flow
+- top congested segments Gold flow
+- serving views for API consumption
+- ETL metadata logging
+- data quality check logging
 
 ### 3.2. Backend API
 
@@ -73,6 +86,12 @@ Delivered endpoints:
 - `GET /traffic/top-speed`
 - `GET /streets/top-congested`
 - `GET /weather-impact`
+- `GET /routes/report`
+- `GET /routes/hourly`
+- `GET /map/events`
+- `GET /rides/history`
+- `GET /reports/overview`
+- `GET /mobile/drive-overview`
 
 Main backend files:
 
@@ -84,14 +103,14 @@ Main backend files:
 
 Delivered mobile state:
 
-- Expo / React Native app connected to the backend
+- Expo / React Native product-style app connected to the backend
 - screens:
-  - `Reports`
-  - `Weather Impact`
-  - `Map Preview`
+  - `Drive`
   - `Pipeline`
 - shared mobile API layer
 - standardized loading / empty / error states
+- backend-shaped Drive response through `/mobile/drive-overview`
+- premium dark product UI direction
 
 Main mobile files:
 
@@ -99,12 +118,17 @@ Main mobile files:
 - `mobile/src/navigation/AppNavigator.tsx`
 - `mobile/src/services/traffiqApi.ts`
 - `mobile/src/types/api.ts`
+- `mobile/src/screens/DriveScreen.tsx`
+- `mobile/src/screens/PipelineScreen.tsx`
+- `mobile/src/theme/theme.ts`
 
 ### 3.4. Validation status
 
 Validated locally:
 
 - pipeline -> PostgreSQL -> FastAPI -> mobile app
+- Docker backend flow
+- mobile Drive screen consuming FastAPI data
 
 ---
 
@@ -127,6 +151,8 @@ Any new chat must read these first:
 - `docs/Traffiq_plan.md`
 - `docs/Traffiq_v1.md`
 - `docs/Traffiq_v2.md`
+- `docs/Traffiq_v2_recap.md`
+- `docs/Traffiq_v3_backlog.md`
 - `docs/LOCAL_SETUP.md`
 - `docs/chat.md`
 
@@ -155,33 +181,35 @@ If detailed v1 task history is needed, read:
 
 ### Current task
 
-Finalize repository presentation, docs, and demo flow
+Close Traffiq v2 and prepare v3 backlog
 
 ### Current status
 
-Repository presentation and demo flow are implemented.
+Traffiq v2 is closed and the v3 backlog is prepared.
 
 ### Files changed by the task
 
-- `docs/DEMO_FLOW.md`
+- `docs/Traffiq_v2.md`
+- `docs/Traffiq_v2_recap.md`
+- `docs/Traffiq_v3_backlog.md`
 - `README.md`
-- `docs/DEMO_NARRATIVE.md`
 - `docs/LOCAL_SETUP.md`
 - `docs/chat.md`
 
 ### Goal
 
-Finalize the repository entry point and create a clear demo flow for presenting Traffiq.
+Close v2 formally, summarize what was delivered, and define the recommended v3 backlog.
 
 ### Validation result
 
-- `README.md` now presents the current v2 project instead of describing only v1
-- `docs/DEMO_FLOW.md` documents the exact demo startup, validation, and presentation order
-- README, DEMO_NARRATIVE, and LOCAL_SETUP link to the demo flow
+- `docs/Traffiq_v2.md` marks the v2 task plan as complete
+- `docs/Traffiq_v2_recap.md` summarizes the final v2 delivery
+- `docs/Traffiq_v3_backlog.md` defines the recommended next work
+- README and LOCAL_SETUP link to the v2 recap and v3 backlog
 
 ### Next task after commit
 
-Close Traffiq v2 and prepare v3 backlog.
+Traffiq v2 is closed. Next step is a full v2 explanation/review session or starting v3 only after the user decides.
 ---
 
 ## 8. Latest Update
@@ -1603,6 +1631,31 @@ Notes:
 - no application code was changed in this task
 - README now reflects Traffiq v2 instead of being centered on v1
 - the next task is closing Traffiq v2 and preparing the v3 backlog
+
+### Update 070 - Traffiq v2 closed and v3 backlog prepared
+
+Completed:
+
+- marked the v2 commit plan as completed in `docs/Traffiq_v2.md`
+- created `docs/Traffiq_v2_recap.md`
+- created `docs/Traffiq_v3_backlog.md`
+- updated `README.md`
+- updated `docs/LOCAL_SETUP.md`
+- updated `docs/chat.md`
+- documented final v2 status, delivered capabilities, known limitations, and recommended v3 direction
+
+Validation:
+
+```text
+Documentation reviewed locally.
+README and LOCAL_SETUP now reference docs/Traffiq_v2_recap.md and docs/Traffiq_v3_backlog.md.
+```
+
+Notes:
+
+- no application code was changed in this task
+- Traffiq v2 is now formally closed in documentation
+- v3 should start only after reviewing and understanding the final v2 system
 ---
 
 ## 9. Instructions For Any New Chat

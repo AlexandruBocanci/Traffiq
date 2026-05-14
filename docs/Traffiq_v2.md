@@ -1,5 +1,17 @@
 # Traffiq v2
 
+## Status
+
+Traffiq v2 is closed.
+
+Final recap:
+
+- `docs/Traffiq_v2_recap.md`
+
+Next backlog:
+
+- `docs/Traffiq_v3_backlog.md`
+
 ## 1. Goal
 
 Traffiq v2 extends v1 toward a more complete and product-like version of the project.
@@ -136,58 +148,58 @@ v2 is successful if:
 
 ### Configuration and Structure
 
-- [ ] Move configuration from hardcoded settings to `.env`
-- [ ] Add `.env.example` and local environment documentation update
-- [ ] Refactor backend project structure for cleaner API and pipeline organization
+- [x] Move configuration from hardcoded settings to `.env`
+- [x] Add `.env.example` and local environment documentation update
+- [x] Refactor backend project structure for cleaner API and pipeline organization
 
 ### Pipeline Orchestration and Monitoring
 
-- [ ] Create pipeline runner for end-to-end traffic and weather execution
-- [ ] Add ETL metadata logging for pipeline runs
-- [ ] Add basic data quality checks logging
-- [ ] Improve test structure with stronger DB and pipeline integration coverage
+- [x] Create pipeline runner for end-to-end traffic and weather execution
+- [x] Add ETL metadata logging for pipeline runs
+- [x] Add basic data quality checks logging
+- [x] Improve test structure with stronger DB and pipeline integration coverage
 
 ### Route Intelligence
 
-- [ ] Create route reference data model and load flow
-- [ ] Create route-level Gold summary module and validation
-- [ ] Create route hourly reporting module and validation
-- [ ] Create routes report API endpoint
-- [ ] Create routes hourly API endpoint
+- [x] Create route reference data model and load flow
+- [x] Create route-level Gold summary module and validation
+- [x] Create route hourly reporting module and validation
+- [x] Create routes report API endpoint
+- [x] Create routes hourly API endpoint
 
 ### Events and History
 
-- [ ] Create mock or initial traffic event ingestion layer
-- [ ] Create event load flow into Bronze and Silver
-- [ ] Create map events API endpoint
-- [ ] Create simplified ride history data model and load flow
-- [ ] Create ride history API endpoint
+- [x] Create mock or initial traffic event ingestion layer
+- [x] Create event load flow into Bronze and Silver
+- [x] Create map events API endpoint
+- [x] Create simplified ride history data model and load flow
+- [x] Create ride history API endpoint
 
 ### Advanced Analytics
 
-- [ ] Create top congested segments Gold module and validation
-- [ ] Create richer route summary metrics for reports
-- [ ] Create serving-ready analytical outputs for app consumption
+- [x] Create top congested segments Gold module and validation
+- [x] Create richer route summary metrics for reports
+- [x] Create serving-ready analytical outputs for app consumption
 
 ### Mobile App Expansion
 
-- [ ] Expand mobile app navigation for route-focused experience
-- [ ] Create Route Report screen connected to new route endpoints
-- [ ] Create Ride History screen connected to history endpoint
-- [ ] Add Events view to mobile app
-- [ ] Improve app UI for stronger product realism
+- [x] Expand mobile app navigation for route-focused experience
+- [x] Create Route Report screen connected to new route endpoints
+- [x] Create Ride History screen connected to history endpoint
+- [x] Add Events view to mobile app
+- [x] Improve app UI for stronger product realism
 
 ### Deployment and Final Maturity
 
-- [ ] Add Docker support for backend services
-- [ ] Prepare AWS-oriented deployment structure and documentation
-- [ ] Define local vs deployable environment separation
-- [ ] Create serving-layer views optimized for frontend and API usage
-- [ ] Optimize analytical queries used by endpoints
-- [ ] Improve API response shaping for mobile consumption
-- [ ] Add scheduler strategy for recurring pipeline runs
-- [ ] Finalize deployable cloud workflow
-- [ ] Finalize secrets and config handling strategy
-- [ ] Create final architecture diagram and technical walkthrough
-- [ ] Create final recruiter/demo narrative for Traffiq
-- [ ] Finalize repository presentation, docs, and demo flow
+- [x] Add Docker support for backend services
+- [x] Prepare AWS-oriented deployment structure and documentation
+- [x] Define local vs deployable environment separation
+- [x] Create serving-layer views optimized for frontend and API usage
+- [x] Optimize analytical queries used by endpoints
+- [x] Improve API response shaping for mobile consumption
+- [x] Add scheduler strategy for recurring pipeline runs
+- [x] Finalize deployable cloud workflow
+- [x] Finalize secrets and config handling strategy
+- [x] Create final architecture diagram and technical walkthrough
+- [x] Create final recruiter/demo narrative for Traffiq
+- [x] Finalize repository presentation, docs, and demo flow
