@@ -20,6 +20,10 @@ The current v3 Amazon RDS PostgreSQL instance is documented in:
 
 - `docs/AWS_RDS_POSTGRESQL.md`
 
+The applied RDS schema is documented in:
+
+- `docs/AWS_RDS_SCHEMA.md`
+
 Secrets and environment configuration strategy is documented in:
 
 - `docs/SECRETS_AND_CONFIG.md`

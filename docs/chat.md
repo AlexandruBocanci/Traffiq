@@ -51,6 +51,7 @@ Use this file to understand:
 - Navigation flow document: `docs/Traffiq_v3_navigation_flow.md`
 - AWS cost guardrails document: `docs/AWS_COST_GUARDRAILS.md`
 - AWS RDS PostgreSQL document: `docs/AWS_RDS_POSTGRESQL.md`
+- AWS RDS schema document: `docs/AWS_RDS_SCHEMA.md`
 - If the user explicitly provides task order from Notion, that order overrides the default order from docs
 
 ---
@@ -170,6 +171,7 @@ Any new chat must read these first:
 - `docs/Traffiq_v3_navigation_flow.md`
 - `docs/AWS_COST_GUARDRAILS.md`
 - `docs/AWS_RDS_POSTGRESQL.md`
+- `docs/AWS_RDS_SCHEMA.md`
 - `docs/LOCAL_SETUP.md`
 - `docs/chat.md`
 
@@ -198,11 +200,11 @@ If detailed v1 task history is needed, read:
 
 ### Current task
 
-Create AWS RDS PostgreSQL database
+Apply database schema to RDS
 
 ### Current status
 
-Task 5 is completed. Amazon RDS PostgreSQL was created for Traffiq v3 and documented with non-secret connection details.
+Task 6 is completed. The Traffiq database schema was applied successfully to Amazon RDS PostgreSQL.
 
 ### Files changed by the task
 
@@ -211,6 +213,7 @@ Task 5 is completed. Amazon RDS PostgreSQL was created for Traffiq v3 and docume
 - `docs/Traffiq_v3_navigation_flow.md`
 - `docs/AWS_COST_GUARDRAILS.md`
 - `docs/AWS_RDS_POSTGRESQL.md`
+- `docs/AWS_RDS_SCHEMA.md`
 - `docs/Traffiq_v3_execution_plan.md`
 - `README.md`
 - `docs/LOCAL_SETUP.md`
@@ -222,22 +225,29 @@ Task 5 is completed. Amazon RDS PostgreSQL was created for Traffiq v3 and docume
 
 ### Goal
 
-Create the cloud PostgreSQL database that future backend and pipeline tasks will use.
+Create the Bronze, Silver, Gold, Serving, and ETL metadata database structure on RDS.
 
 ### Validation result
 
-- RDS PostgreSQL instance `traffiq-db` exists in `eu-central-1`
-- database name is `traffiq`
-- instance class is `db.t4g.micro`
-- endpoint and non-secret configuration are documented
-- security group allows PostgreSQL only from the project owner IP with `/32`
-- local TCP connectivity to port `5432` succeeded
-- Python database connection through project config succeeded
-- README, LOCAL_SETUP, AWS_DEPLOYMENT, CLOUD_WORKFLOW, ENVIRONMENTS, SECRETS_AND_CONFIG, and the v3 plan reference the RDS document
+- `sql/ddl/create_all.sql` ran successfully against RDS
+- schemas exist on RDS:
+  - `bronze`
+  - `silver`
+  - `gold`
+  - `serving`
+  - `etl_meta`
+- object counts were validated:
+  - bronze: 4
+  - silver: 6
+  - gold: 5
+  - serving: 9
+  - etl_meta: 2
+- endpoint-supporting indexes were validated
+- README, LOCAL_SETUP, AWS_DEPLOYMENT, CLOUD_WORKFLOW, and the v3 plan reference the schema document
 
 ### Next task after commit
 
-Do not move forward until the user confirms. Next task is `Task 6. Apply database schema to RDS`.
+Do not move forward until the user confirms. Next task is `Task 7. Push backend Docker image to Amazon ECR`.
 ---
 
 ## 8. Latest Update
@@ -1886,6 +1896,49 @@ Notes:
 - schema creation belongs to Task 6
 - this closes Task 5 from the v3 Notion plan
 - the next task is `Task 6. Apply database schema to RDS`
+
+### Update 076 - RDS database schema applied
+
+Completed:
+
+- applied `sql/ddl/create_all.sql` against Amazon RDS PostgreSQL
+- created project schemas on RDS:
+  - `bronze`
+  - `silver`
+  - `gold`
+  - `serving`
+  - `etl_meta`
+- created Bronze raw ingestion tables
+- created Silver cleaned analytical tables
+- created Gold business-level analytical tables
+- created Serving API-ready views
+- created ETL metadata tables
+- created endpoint-supporting indexes
+- created `docs/AWS_RDS_SCHEMA.md`
+- linked the schema document from README, LOCAL_SETUP, AWS_DEPLOYMENT, CLOUD_WORKFLOW, and the v3 execution plan
+- updated `docs/chat.md` for v3 execution continuity
+
+Validation:
+
+```text
+DDL execution completed successfully.
+Schemas validated: bronze, etl_meta, gold, serving, silver.
+Object counts:
+bronze   | 4
+etl_meta | 2
+gold     | 5
+serving  | 9
+silver   | 6
+Endpoint-supporting indexes validated in silver and gold.
+```
+
+Notes:
+
+- no RDS password was committed or printed
+- RDS now has schema objects but not application data
+- pipeline loading into RDS belongs to a later v3 task
+- this closes Task 6 from the v3 Notion plan
+- the next task is `Task 7. Push backend Docker image to Amazon ECR`
 ---
 
 ## 9. Instructions For Any New Chat

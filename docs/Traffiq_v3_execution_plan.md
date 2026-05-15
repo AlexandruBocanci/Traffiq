@@ -176,6 +176,10 @@ Goal:
 
 - create all project schemas and tables in cloud PostgreSQL
 
+Schema application document:
+
+- `docs/AWS_RDS_SCHEMA.md`
+
 Deliverables:
 
 - Bronze tables
@@ -188,6 +192,8 @@ Deliverables:
 Definition of done:
 
 - `sql/ddl/create_all.sql` runs successfully against RDS
+- Bronze, Silver, Gold, Serving, and ETL metadata schemas exist on RDS
+- endpoint-supporting indexes exist on RDS
 
 ### Task 7. Push backend Docker image to Amazon ECR
 

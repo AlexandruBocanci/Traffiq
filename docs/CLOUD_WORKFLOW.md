@@ -36,6 +36,10 @@ The current RDS PostgreSQL database created for v3 is documented in:
 
 - `docs/AWS_RDS_POSTGRESQL.md`
 
+The RDS schema application is documented in:
+
+- `docs/AWS_RDS_SCHEMA.md`
+
 ## Deployment Flow
 
 ### 1. Validate Locally With Docker
