@@ -296,6 +296,10 @@ The RDS schema application is documented in:
 
 - `docs/AWS_RDS_SCHEMA.md`
 
+The backend image pushed to Amazon ECR is documented in:
+
+- `docs/AWS_ECR_BACKEND_IMAGE.md`
+
 That file explains how the current Docker backend can evolve toward:
 
 - containerized FastAPI on AWS

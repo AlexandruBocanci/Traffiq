@@ -201,6 +201,7 @@ Deployment and operations:
 - `docs/AWS_COST_GUARDRAILS.md`
 - `docs/AWS_RDS_POSTGRESQL.md`
 - `docs/AWS_RDS_SCHEMA.md`
+- `docs/AWS_ECR_BACKEND_IMAGE.md`
 - `docs/CLOUD_WORKFLOW.md`
 - `docs/ENVIRONMENTS.md`
 - `docs/SCHEDULER_STRATEGY.md`

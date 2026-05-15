@@ -201,6 +201,10 @@ Goal:
 
 - prepare the FastAPI backend image for AWS deployment
 
+ECR image document:
+
+- `docs/AWS_ECR_BACKEND_IMAGE.md`
+
 Deliverables:
 
 - ECR repository
@@ -210,6 +214,8 @@ Deliverables:
 Definition of done:
 
 - image exists in ECR
+- image tag `latest` is available in repository `traffiq-api`
+- image digest is documented
 
 ### Task 8. Deploy FastAPI backend to AWS App Runner
 

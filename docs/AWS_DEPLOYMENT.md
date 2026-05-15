@@ -24,6 +24,10 @@ The applied RDS schema is documented in:
 
 - `docs/AWS_RDS_SCHEMA.md`
 
+The backend Docker image pushed to Amazon ECR is documented in:
+
+- `docs/AWS_ECR_BACKEND_IMAGE.md`
+
 Secrets and environment configuration strategy is documented in:
 
 - `docs/SECRETS_AND_CONFIG.md`

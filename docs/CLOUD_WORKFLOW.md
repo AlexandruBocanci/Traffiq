@@ -40,6 +40,10 @@ The RDS schema application is documented in:
 
 - `docs/AWS_RDS_SCHEMA.md`
 
+The backend image pushed to Amazon ECR is documented in:
+
+- `docs/AWS_ECR_BACKEND_IMAGE.md`
+
 ## Deployment Flow
 
 ### 1. Validate Locally With Docker
