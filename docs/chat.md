@@ -48,6 +48,7 @@ Use this file to understand:
 - Primary v3 execution plan: `docs/Traffiq_v3_execution_plan.md`
 - Final v3 scope document: `docs/Traffiq_v3_scope.md`
 - Guest/auth flow document: `docs/Traffiq_v3_guest_auth_flow.md`
+- Navigation flow document: `docs/Traffiq_v3_navigation_flow.md`
 - If the user explicitly provides task order from Notion, that order overrides the default order from docs
 
 ---
@@ -164,6 +165,7 @@ Any new chat must read these first:
 - `docs/Traffiq_v3_execution_plan.md`
 - `docs/Traffiq_v3_scope.md`
 - `docs/Traffiq_v3_guest_auth_flow.md`
+- `docs/Traffiq_v3_navigation_flow.md`
 - `docs/LOCAL_SETUP.md`
 - `docs/chat.md`
 
@@ -192,34 +194,36 @@ If detailed v1 task history is needed, read:
 
 ### Current task
 
-Define guest vs authenticated user flow
+Define final app navigation flow
 
 ### Current status
 
-Task 2 is completed. Guest users can use public traffic features, while personal features require authentication.
+Task 3 is completed. The final v3 navigation structure is documented.
 
 ### Files changed by the task
 
 - `docs/Traffiq_v3_scope.md`
 - `docs/Traffiq_v3_guest_auth_flow.md`
+- `docs/Traffiq_v3_navigation_flow.md`
 - `docs/Traffiq_v3_execution_plan.md`
 - `docs/chat.md`
 
 ### Goal
 
-Define the access model before Cognito implementation so public traffic features stay available without login and personal features are protected later.
+Define the final app navigation model before implementation so v3 has a coherent product structure.
 
 ### Validation result
 
-- `docs/Traffiq_v3_guest_auth_flow.md` exists
-- every main screen is classified as guest or authenticated
-- guest fallback behavior is documented for personal features
-- public and protected backend endpoint categories are documented
-- `docs/Traffiq_v3_execution_plan.md` references the flow document
+- `docs/Traffiq_v3_navigation_flow.md` exists
+- Map / Drive is documented as the default app entry screen
+- final user-facing screens are Map, Reports, History, and Account
+- Pipeline is documented as admin/demo-only, not a normal user tab
+- guest and authenticated navigation states are documented
+- `docs/Traffiq_v3_execution_plan.md` references the navigation document
 
 ### Next task after commit
 
-Do not move forward until the user confirms. Next task is `Task 3. Define final app navigation flow`.
+Do not move forward until the user confirms. Next task is `Task 4. Create AWS cost guardrails`.
 ---
 
 ## 8. Latest Update
@@ -1737,6 +1741,44 @@ Notes:
 - no application code was changed in this task
 - this closes Task 2 from the v3 Notion plan
 - the next task is `Task 3. Define final app navigation flow`
+
+### Update 073 - Final v3 app navigation flow defined
+
+Completed:
+
+- created `docs/Traffiq_v3_navigation_flow.md`
+- defined Map / Drive as the default app entry screen
+- defined final normal user-facing screens:
+  - Map / Drive
+  - Reports
+  - History
+  - Account
+- documented that Admin / Pipeline Status is not a normal user tab
+- documented recommended bottom navigation labels:
+  - Map
+  - Reports
+  - History
+  - Account
+- documented guest, authenticated, and admin/demo navigation states
+- documented future implementation direction for React Native navigation
+- linked the navigation document from `docs/Traffiq_v3_execution_plan.md`
+- updated `docs/chat.md` for v3 execution continuity
+
+Validation:
+
+```text
+Documentation reviewed locally.
+Map / Drive is the default app entry.
+Pipeline is no longer treated as a normal user tab.
+Guest and authenticated navigation states are documented.
+Future mobile navigation implementation direction is clear.
+```
+
+Notes:
+
+- no application code was changed in this task
+- this closes Task 3 from the v3 Notion plan
+- the next task is `Task 4. Create AWS cost guardrails`
 ---
 
 ## 9. Instructions For Any New Chat

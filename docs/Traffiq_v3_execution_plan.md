@@ -100,6 +100,10 @@ Goal:
 
 - make the app feel like a coherent product
 
+Navigation document:
+
+- `docs/Traffiq_v3_navigation_flow.md`
+
 Final screens:
 
 - Map / Drive
@@ -112,6 +116,8 @@ Definition of done:
 
 - navigation structure is documented
 - Pipeline is no longer treated as a normal user tab
+- Map / Drive is documented as the default app entry screen
+- guest and authenticated navigation states are documented
 
 ---
 
