@@ -10,6 +10,12 @@ The practical deployment sequence is documented separately in:
 
 - `docs/CLOUD_WORKFLOW.md`
 
+AWS cost guardrails are documented separately in:
+
+- `docs/AWS_COST_GUARDRAILS.md`
+
+Configure the AWS Budget alert from that document before creating RDS, App Runner, ECR, or Cognito resources.
+
 Secrets and environment configuration strategy is documented in:
 
 - `docs/SECRETS_AND_CONFIG.md`

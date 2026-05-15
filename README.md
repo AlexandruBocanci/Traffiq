@@ -198,6 +198,7 @@ Project planning:
 Deployment and operations:
 
 - `docs/AWS_DEPLOYMENT.md`
+- `docs/AWS_COST_GUARDRAILS.md`
 - `docs/CLOUD_WORKFLOW.md`
 - `docs/ENVIRONMENTS.md`
 - `docs/SCHEDULER_STRATEGY.md`

@@ -49,6 +49,7 @@ Use this file to understand:
 - Final v3 scope document: `docs/Traffiq_v3_scope.md`
 - Guest/auth flow document: `docs/Traffiq_v3_guest_auth_flow.md`
 - Navigation flow document: `docs/Traffiq_v3_navigation_flow.md`
+- AWS cost guardrails document: `docs/AWS_COST_GUARDRAILS.md`
 - If the user explicitly provides task order from Notion, that order overrides the default order from docs
 
 ---
@@ -166,6 +167,7 @@ Any new chat must read these first:
 - `docs/Traffiq_v3_scope.md`
 - `docs/Traffiq_v3_guest_auth_flow.md`
 - `docs/Traffiq_v3_navigation_flow.md`
+- `docs/AWS_COST_GUARDRAILS.md`
 - `docs/LOCAL_SETUP.md`
 - `docs/chat.md`
 
@@ -194,36 +196,41 @@ If detailed v1 task history is needed, read:
 
 ### Current task
 
-Define final app navigation flow
+Create AWS cost guardrails
 
 ### Current status
 
-Task 3 is completed. The final v3 navigation structure is documented.
+Task 4 is completed in the repository documentation. AWS cost guardrails are defined before cloud resources are created.
 
 ### Files changed by the task
 
 - `docs/Traffiq_v3_scope.md`
 - `docs/Traffiq_v3_guest_auth_flow.md`
 - `docs/Traffiq_v3_navigation_flow.md`
+- `docs/AWS_COST_GUARDRAILS.md`
 - `docs/Traffiq_v3_execution_plan.md`
+- `README.md`
+- `docs/LOCAL_SETUP.md`
+- `docs/AWS_DEPLOYMENT.md`
+- `docs/CLOUD_WORKFLOW.md`
 - `docs/chat.md`
 
 ### Goal
 
-Define the final app navigation model before implementation so v3 has a coherent product structure.
+Prevent unexpected AWS costs before creating cloud resources for Traffiq v3.
 
 ### Validation result
 
-- `docs/Traffiq_v3_navigation_flow.md` exists
-- Map / Drive is documented as the default app entry screen
-- final user-facing screens are Map, Reports, History, and Account
-- Pipeline is documented as admin/demo-only, not a normal user tab
-- guest and authenticated navigation states are documented
-- `docs/Traffiq_v3_execution_plan.md` references the navigation document
+- `docs/AWS_COST_GUARDRAILS.md` exists
+- monthly target cost and maximum demo cost are documented
+- required AWS Budget alert configuration is documented
+- allowed and disallowed AWS services are documented
+- App Runner pause and RDS stop commands are documented
+- README, LOCAL_SETUP, AWS_DEPLOYMENT, CLOUD_WORKFLOW, and the v3 plan reference the guardrails document
 
 ### Next task after commit
 
-Do not move forward until the user confirms. Next task is `Task 4. Create AWS cost guardrails`.
+Do not move forward until the user confirms. Next task is `Task 5. Create AWS RDS PostgreSQL database`.
 ---
 
 ## 8. Latest Update
@@ -1779,6 +1786,52 @@ Notes:
 - no application code was changed in this task
 - this closes Task 3 from the v3 Notion plan
 - the next task is `Task 4. Create AWS cost guardrails`
+
+### Update 074 - AWS cost guardrails documented
+
+Completed:
+
+- created `docs/AWS_COST_GUARDRAILS.md`
+- documented the v3 target monthly cost: `0-10 EUR`
+- documented the maximum accepted demo/development cost: around `20 EUR`
+- documented the required AWS Budget alert before creating cloud resources
+- documented allowed AWS services:
+  - AWS App Runner
+  - Amazon RDS PostgreSQL
+  - Amazon ECR
+  - Amazon Cognito
+  - AWS Budgets
+  - Amazon CloudWatch
+- documented disallowed expensive services:
+  - NAT Gateway
+  - Kubernetes / Amazon EKS
+  - Application Load Balancer
+  - Multi-AZ RDS
+  - always-on EC2
+- documented App Runner pause/resume commands
+- documented RDS stop/start commands
+- documented stop and delete resource checklists
+- linked the guardrails document from README, LOCAL_SETUP, AWS_DEPLOYMENT, CLOUD_WORKFLOW, and the v3 execution plan
+- updated `docs/chat.md` for v3 execution continuity
+
+Validation:
+
+```text
+Documentation reviewed locally.
+Cost target and maximum demo cost are documented.
+AWS Budget alert configuration is documented.
+Allowed and disallowed services are documented.
+Stop-resource checklist is documented.
+Cloud workflow now references cost guardrails before resource creation.
+```
+
+Notes:
+
+- no application code was changed in this task
+- no AWS resources were created from the local machine
+- the actual AWS Budget alert must be configured in the AWS account before Task 5 creates RDS
+- this closes Task 4 from the v3 Notion plan as repository guardrails
+- the next task is `Task 5. Create AWS RDS PostgreSQL database`
 ---
 
 ## 9. Instructions For Any New Chat

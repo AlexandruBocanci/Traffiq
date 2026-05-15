@@ -26,6 +26,12 @@ For the first real AWS deployment, use:
 
 This is the simplest professional path because App Runner can run the API container without managing servers, while RDS keeps PostgreSQL as a managed database.
 
+Before creating any AWS resources, apply the project cost guardrails:
+
+- `docs/AWS_COST_GUARDRAILS.md`
+
+The budget alert and stop-resource checklist in that document are mandatory for the v3 cloud work.
+
 ## Deployment Flow
 
 ### 1. Validate Locally With Docker

@@ -129,6 +129,10 @@ Goal:
 
 - prevent unexpected AWS costs
 
+Cost guardrails document:
+
+- `docs/AWS_COST_GUARDRAILS.md`
+
 Deliverables:
 
 - AWS Budget alert
@@ -139,6 +143,8 @@ Definition of done:
 
 - budget alert is configured
 - project docs explain how to stop cloud resources
+- allowed and disallowed AWS services are documented
+- cost target and maximum accepted demo cost are documented
 
 ### Task 5. Create AWS RDS PostgreSQL database
 

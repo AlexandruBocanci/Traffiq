@@ -282,6 +282,12 @@ The AWS-oriented deployment plan is documented in:
 
 - `docs/AWS_DEPLOYMENT.md`
 
+AWS cost guardrails are documented in:
+
+- `docs/AWS_COST_GUARDRAILS.md`
+
+Before creating cloud resources for Traffiq v3, configure the AWS Budget alert described in that file.
+
 That file explains how the current Docker backend can evolve toward:
 
 - containerized FastAPI on AWS
