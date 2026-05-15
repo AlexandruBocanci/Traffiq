@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This is the active continuity file for the Traffiq v2 closeout and v3 handoff.
+This is the active continuity file for Traffiq v3 execution.
 
 It should stay short and operational.
 
@@ -39,12 +39,14 @@ Use this file to understand:
 
 - `Traffiq v1` is closed
 - v1 was merged into `main`
-- Current branch: `feature/traffiq-v2`
-- Current implementation phase: `Traffiq v2 closed`
-- Next planning phase: `Traffiq v3`
+- Current branch: `feature/traffiq-v3`
+- Current implementation phase: `Traffiq v3`
+- Current v3 focus: Suceava-only product scope, cloud deployment, guest/public flow, auth for personal features, real map and routing
 - Primary v2 planning source: `docs/Traffiq_v2.md`
 - Final v2 recap: `docs/Traffiq_v2_recap.md`
 - Recommended v3 backlog: `docs/Traffiq_v3_backlog.md`
+- Primary v3 execution plan: `docs/Traffiq_v3_execution_plan.md`
+- Final v3 scope document: `docs/Traffiq_v3_scope.md`
 - If the user explicitly provides task order from Notion, that order overrides the default order from docs
 
 ---
@@ -142,6 +144,12 @@ Validated locally:
 - the current mobile app is an analytical product preview
 - it is not a real navigation engine and does not need to pretend to be one in v1
 
+- Traffiq v3 is Suceava-city-only
+- v3 public features must work for guest users
+- login is required only for personal features
+- v3 must use AWS, but with low-cost infrastructure
+- do not promise Waze-like real-time traffic, multi-city support, user-generated reports, or push notifications
+
 ---
 
 ## 5. Key Files To Read First
@@ -152,7 +160,8 @@ Any new chat must read these first:
 - `docs/Traffiq_v1.md`
 - `docs/Traffiq_v2.md`
 - `docs/Traffiq_v2_recap.md`
-- `docs/Traffiq_v3_backlog.md`
+- `docs/Traffiq_v3_execution_plan.md`
+- `docs/Traffiq_v3_scope.md`
 - `docs/LOCAL_SETUP.md`
 - `docs/chat.md`
 
@@ -181,35 +190,33 @@ If detailed v1 task history is needed, read:
 
 ### Current task
 
-Close Traffiq v2 and prepare v3 backlog
+Define final Suceava-only product scope
 
 ### Current status
 
-Traffiq v2 is closed and the v3 backlog is prepared.
+Task 1 is completed. Traffiq v3 is officially scoped as a Suceava-only traffic intelligence proof-of-concept.
 
 ### Files changed by the task
 
-- `docs/Traffiq_v2.md`
-- `docs/Traffiq_v2_recap.md`
-- `docs/Traffiq_v3_backlog.md`
-- `README.md`
-- `docs/LOCAL_SETUP.md`
+- `docs/Traffiq_v3_scope.md`
+- `docs/Traffiq_v3_execution_plan.md`
 - `docs/chat.md`
 
 ### Goal
 
-Close v2 formally, summarize what was delivered, and define the recommended v3 backlog.
+Lock the v3 product scope to Suceava city and prevent the project from expanding into unrealistic real-time or multi-city features.
 
 ### Validation result
 
-- `docs/Traffiq_v2.md` marks the v2 task plan as complete
-- `docs/Traffiq_v2_recap.md` summarizes the final v2 delivery
-- `docs/Traffiq_v3_backlog.md` defines the recommended next work
-- README and LOCAL_SETUP link to the v2 recap and v3 backlog
+- `docs/Traffiq_v3_scope.md` exists
+- the scope clearly says Suceava city only
+- guest and authenticated features are separated
+- Waze-like real-time traffic and multi-city support are explicitly excluded
+- `docs/Traffiq_v3_execution_plan.md` references the scope document
 
 ### Next task after commit
 
-Traffiq v2 is closed. Next step is a full v2 explanation/review session or starting v3 only after the user decides.
+Do not move forward until the user confirms. Next task is `Task 2. Define guest vs authenticated user flow`.
 ---
 
 ## 8. Latest Update
@@ -1656,6 +1663,41 @@ Notes:
 - no application code was changed in this task
 - Traffiq v2 is now formally closed in documentation
 - v3 should start only after reviewing and understanding the final v2 system
+
+### Update 071 - Final Suceava-only v3 scope defined
+
+Completed:
+
+- created `docs/Traffiq_v3_scope.md`
+- defined Traffiq v3 as a Suceava-only traffic intelligence proof-of-concept
+- documented included v3 features
+- documented guest-accessible public features
+- documented authenticated personal features
+- documented explicit non-goals:
+  - no Waze-like real-time traffic
+  - no multi-city support
+  - no user-generated reports
+  - no push notifications
+  - no enterprise-grade infrastructure
+- documented accepted limitations and AWS cost boundaries
+- linked the scope document from `docs/Traffiq_v3_execution_plan.md`
+- updated `docs/chat.md` for v3 execution continuity
+
+Validation:
+
+```text
+Documentation reviewed locally.
+Scope document exists.
+Suceava-only scope is explicit.
+Guest and authenticated features are separated.
+Real-time Waze-like traffic and multi-city support are explicitly excluded.
+```
+
+Notes:
+
+- no application code was changed in this task
+- this closes Task 1 from the v3 Notion plan
+- the next task is `Task 2. Define guest vs authenticated user flow`
 ---
 
 ## 9. Instructions For Any New Chat
