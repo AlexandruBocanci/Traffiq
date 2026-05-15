@@ -32,6 +32,10 @@ Before creating any AWS resources, apply the project cost guardrails:
 
 The budget alert and stop-resource checklist in that document are mandatory for the v3 cloud work.
 
+The current RDS PostgreSQL database created for v3 is documented in:
+
+- `docs/AWS_RDS_POSTGRESQL.md`
+
 ## Deployment Flow
 
 ### 1. Validate Locally With Docker

@@ -288,6 +288,10 @@ AWS cost guardrails are documented in:
 
 Before creating cloud resources for Traffiq v3, configure the AWS Budget alert described in that file.
 
+The current Traffiq v3 RDS PostgreSQL instance is documented in:
+
+- `docs/AWS_RDS_POSTGRESQL.md`
+
 That file explains how the current Docker backend can evolve toward:
 
 - containerized FastAPI on AWS

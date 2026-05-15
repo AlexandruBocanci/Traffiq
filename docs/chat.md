@@ -50,6 +50,7 @@ Use this file to understand:
 - Guest/auth flow document: `docs/Traffiq_v3_guest_auth_flow.md`
 - Navigation flow document: `docs/Traffiq_v3_navigation_flow.md`
 - AWS cost guardrails document: `docs/AWS_COST_GUARDRAILS.md`
+- AWS RDS PostgreSQL document: `docs/AWS_RDS_POSTGRESQL.md`
 - If the user explicitly provides task order from Notion, that order overrides the default order from docs
 
 ---
@@ -168,6 +169,7 @@ Any new chat must read these first:
 - `docs/Traffiq_v3_guest_auth_flow.md`
 - `docs/Traffiq_v3_navigation_flow.md`
 - `docs/AWS_COST_GUARDRAILS.md`
+- `docs/AWS_RDS_POSTGRESQL.md`
 - `docs/LOCAL_SETUP.md`
 - `docs/chat.md`
 
@@ -196,11 +198,11 @@ If detailed v1 task history is needed, read:
 
 ### Current task
 
-Create AWS cost guardrails
+Create AWS RDS PostgreSQL database
 
 ### Current status
 
-Task 4 is completed in the repository documentation. AWS cost guardrails are defined before cloud resources are created.
+Task 5 is completed. Amazon RDS PostgreSQL was created for Traffiq v3 and documented with non-secret connection details.
 
 ### Files changed by the task
 
@@ -208,29 +210,34 @@ Task 4 is completed in the repository documentation. AWS cost guardrails are def
 - `docs/Traffiq_v3_guest_auth_flow.md`
 - `docs/Traffiq_v3_navigation_flow.md`
 - `docs/AWS_COST_GUARDRAILS.md`
+- `docs/AWS_RDS_POSTGRESQL.md`
 - `docs/Traffiq_v3_execution_plan.md`
 - `README.md`
 - `docs/LOCAL_SETUP.md`
 - `docs/AWS_DEPLOYMENT.md`
 - `docs/CLOUD_WORKFLOW.md`
+- `docs/ENVIRONMENTS.md`
+- `docs/SECRETS_AND_CONFIG.md`
 - `docs/chat.md`
 
 ### Goal
 
-Prevent unexpected AWS costs before creating cloud resources for Traffiq v3.
+Create the cloud PostgreSQL database that future backend and pipeline tasks will use.
 
 ### Validation result
 
-- `docs/AWS_COST_GUARDRAILS.md` exists
-- monthly target cost and maximum demo cost are documented
-- required AWS Budget alert configuration is documented
-- allowed and disallowed AWS services are documented
-- App Runner pause and RDS stop commands are documented
-- README, LOCAL_SETUP, AWS_DEPLOYMENT, CLOUD_WORKFLOW, and the v3 plan reference the guardrails document
+- RDS PostgreSQL instance `traffiq-db` exists in `eu-central-1`
+- database name is `traffiq`
+- instance class is `db.t4g.micro`
+- endpoint and non-secret configuration are documented
+- security group allows PostgreSQL only from the project owner IP with `/32`
+- local TCP connectivity to port `5432` succeeded
+- Python database connection through project config succeeded
+- README, LOCAL_SETUP, AWS_DEPLOYMENT, CLOUD_WORKFLOW, ENVIRONMENTS, SECRETS_AND_CONFIG, and the v3 plan reference the RDS document
 
 ### Next task after commit
 
-Do not move forward until the user confirms. Next task is `Task 5. Create AWS RDS PostgreSQL database`.
+Do not move forward until the user confirms. Next task is `Task 6. Apply database schema to RDS`.
 ---
 
 ## 8. Latest Update
@@ -1832,6 +1839,53 @@ Notes:
 - the actual AWS Budget alert must be configured in the AWS account before Task 5 creates RDS
 - this closes Task 4 from the v3 Notion plan as repository guardrails
 - the next task is `Task 5. Create AWS RDS PostgreSQL database`
+
+### Update 075 - AWS RDS PostgreSQL database created
+
+Completed:
+
+- created Amazon RDS PostgreSQL instance for Traffiq v3
+- selected region `eu-central-1`
+- selected PostgreSQL, not Aurora
+- created DB instance identifier `traffiq-db`
+- created database name `traffiq`
+- configured master username `traffiq_admin`
+- selected Single-AZ deployment
+- selected `db.t4g.micro`
+- configured 20 GiB storage
+- disabled storage autoscaling
+- configured public access for local validation
+- configured security group access from the project owner IP with `/32`
+- disabled Performance Insights
+- disabled Enhanced Monitoring
+- disabled CloudWatch log exports
+- disabled backup replication
+- kept backup retention at 1 day
+- created `docs/AWS_RDS_POSTGRESQL.md`
+- documented non-secret RDS connection values
+- linked the RDS document from README, LOCAL_SETUP, AWS_DEPLOYMENT, CLOUD_WORKFLOW, ENVIRONMENTS, SECRETS_AND_CONFIG, and the v3 execution plan
+- updated `docs/chat.md` for v3 execution continuity
+
+Validation:
+
+```text
+RDS status: Available
+Endpoint: traffiq-db.cni4ck0o40p5.eu-central-1.rds.amazonaws.com
+Port: 5432
+Security group source: project owner IP /32
+TcpTestSucceeded: True
+psql client available locally
+Python DB config points to RDS
+RDS connection test passed
+```
+
+Notes:
+
+- no RDS password was committed or sent in chat
+- no database schema was applied yet
+- schema creation belongs to Task 6
+- this closes Task 5 from the v3 Notion plan
+- the next task is `Task 6. Apply database schema to RDS`
 ---
 
 ## 9. Instructions For Any New Chat

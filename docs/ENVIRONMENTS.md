@@ -177,12 +177,16 @@ Amazon RDS PostgreSQL
 Expected cloud environment variables:
 
 ```text
-DB_HOST=<rds-endpoint>
+DB_HOST=traffiq-db.cni4ck0o40p5.eu-central-1.rds.amazonaws.com
 DB_NAME=traffiq
-DB_USER=<aws-db-user>
+DB_USER=traffiq_admin
 DB_PASSWORD=<aws-managed-secret-or-env-value>
 DB_PORT=5432
 ```
+
+Current RDS details are documented in:
+
+- `docs/AWS_RDS_POSTGRESQL.md`
 
 ### Pipeline execution
 

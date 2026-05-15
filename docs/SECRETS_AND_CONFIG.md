@@ -128,12 +128,16 @@ AWS Secrets Manager or App Runner secret references for DB_PASSWORD
 Expected AWS values:
 
 ```text
-DB_HOST=<rds-endpoint>
+DB_HOST=traffiq-db.cni4ck0o40p5.eu-central-1.rds.amazonaws.com
 DB_NAME=traffiq
-DB_USER=<rds-user>
+DB_USER=traffiq_admin
 DB_PASSWORD=<managed-secret>
 DB_PORT=5432
 ```
+
+Current non-secret RDS details are documented in:
+
+- `docs/AWS_RDS_POSTGRESQL.md`
 
 ## Mobile API URL Strategy
 

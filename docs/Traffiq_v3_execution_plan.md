@@ -152,6 +152,10 @@ Goal:
 
 - move the project database from local/Docker-only PostgreSQL to AWS RDS
 
+RDS document:
+
+- `docs/AWS_RDS_POSTGRESQL.md`
+
 Deliverables:
 
 - RDS PostgreSQL instance
@@ -163,6 +167,8 @@ Definition of done:
 
 - schema can be created on RDS
 - local or deployed backend can connect to RDS
+- RDS endpoint and non-secret configuration are documented
+- security group allows PostgreSQL only from the project owner IP
 
 ### Task 6. Apply database schema to RDS
 

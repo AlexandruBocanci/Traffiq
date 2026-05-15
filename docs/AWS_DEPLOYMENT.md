@@ -16,6 +16,10 @@ AWS cost guardrails are documented separately in:
 
 Configure the AWS Budget alert from that document before creating RDS, App Runner, ECR, or Cognito resources.
 
+The current v3 Amazon RDS PostgreSQL instance is documented in:
+
+- `docs/AWS_RDS_POSTGRESQL.md`
+
 Secrets and environment configuration strategy is documented in:
 
 - `docs/SECRETS_AND_CONFIG.md`
