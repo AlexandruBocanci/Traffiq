@@ -47,6 +47,7 @@ Use this file to understand:
 - Recommended v3 backlog: `docs/Traffiq_v3_backlog.md`
 - Primary v3 execution plan: `docs/Traffiq_v3_execution_plan.md`
 - Final v3 scope document: `docs/Traffiq_v3_scope.md`
+- Guest/auth flow document: `docs/Traffiq_v3_guest_auth_flow.md`
 - If the user explicitly provides task order from Notion, that order overrides the default order from docs
 
 ---
@@ -162,6 +163,7 @@ Any new chat must read these first:
 - `docs/Traffiq_v2_recap.md`
 - `docs/Traffiq_v3_execution_plan.md`
 - `docs/Traffiq_v3_scope.md`
+- `docs/Traffiq_v3_guest_auth_flow.md`
 - `docs/LOCAL_SETUP.md`
 - `docs/chat.md`
 
@@ -190,33 +192,34 @@ If detailed v1 task history is needed, read:
 
 ### Current task
 
-Define final Suceava-only product scope
+Define guest vs authenticated user flow
 
 ### Current status
 
-Task 1 is completed. Traffiq v3 is officially scoped as a Suceava-only traffic intelligence proof-of-concept.
+Task 2 is completed. Guest users can use public traffic features, while personal features require authentication.
 
 ### Files changed by the task
 
 - `docs/Traffiq_v3_scope.md`
+- `docs/Traffiq_v3_guest_auth_flow.md`
 - `docs/Traffiq_v3_execution_plan.md`
 - `docs/chat.md`
 
 ### Goal
 
-Lock the v3 product scope to Suceava city and prevent the project from expanding into unrealistic real-time or multi-city features.
+Define the access model before Cognito implementation so public traffic features stay available without login and personal features are protected later.
 
 ### Validation result
 
-- `docs/Traffiq_v3_scope.md` exists
-- the scope clearly says Suceava city only
-- guest and authenticated features are separated
-- Waze-like real-time traffic and multi-city support are explicitly excluded
-- `docs/Traffiq_v3_execution_plan.md` references the scope document
+- `docs/Traffiq_v3_guest_auth_flow.md` exists
+- every main screen is classified as guest or authenticated
+- guest fallback behavior is documented for personal features
+- public and protected backend endpoint categories are documented
+- `docs/Traffiq_v3_execution_plan.md` references the flow document
 
 ### Next task after commit
 
-Do not move forward until the user confirms. Next task is `Task 2. Define guest vs authenticated user flow`.
+Do not move forward until the user confirms. Next task is `Task 3. Define final app navigation flow`.
 ---
 
 ## 8. Latest Update
@@ -1698,6 +1701,42 @@ Notes:
 - no application code was changed in this task
 - this closes Task 1 from the v3 Notion plan
 - the next task is `Task 2. Define guest vs authenticated user flow`
+
+### Update 072 - Guest vs authenticated user flow defined
+
+Completed:
+
+- created `docs/Traffiq_v3_guest_auth_flow.md`
+- defined the v3 access rule:
+  - public traffic intelligence works without login
+  - personal user data requires login
+- classified main screens:
+  - Map / Drive: guest and authenticated
+  - Reports: guest and authenticated
+  - History: login prompt for guests, personal ride history for authenticated users
+  - Account: login/register prompt for guests, account and preferences for authenticated users
+  - Admin / Pipeline Status: hidden or restricted, not a normal user tab
+- documented guest fallback UI for personal features
+- documented public backend endpoint categories
+- documented protected backend endpoint categories for future Cognito work
+- linked the flow document from `docs/Traffiq_v3_execution_plan.md`
+- updated `docs/chat.md` for v3 execution continuity
+
+Validation:
+
+```text
+Documentation reviewed locally.
+Guest and authenticated access rules are explicit.
+Every main screen is classified.
+Protected feature fallback behavior is documented.
+Public and protected backend endpoint categories are documented.
+```
+
+Notes:
+
+- no application code was changed in this task
+- this closes Task 2 from the v3 Notion plan
+- the next task is `Task 3. Define final app navigation flow`
 ---
 
 ## 9. Instructions For Any New Chat

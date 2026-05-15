@@ -67,6 +67,10 @@ Goal:
 - allow public traffic features without login
 - require login for personal features
 
+Flow document:
+
+- `docs/Traffiq_v3_guest_auth_flow.md`
+
 Guest features:
 
 - Map / Drive
@@ -87,6 +91,8 @@ Definition of done:
 
 - every screen is classified as public or authenticated
 - protected features have clear fallback UI for guest users
+- public endpoints remain accessible without authentication
+- protected endpoint categories are documented before Cognito implementation
 
 ### Task 3. Define final app navigation flow
 
