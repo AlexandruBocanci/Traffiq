@@ -198,6 +198,25 @@ The empty result is expected at this stage because RDS has schema objects but no
 
 Data loading into RDS belongs to a later v3 task.
 
+Protected auth validation endpoint:
+
+```powershell
+Invoke-RestMethod -Uri 'https://eguwdq6puz.eu-central-1.awsapprunner.com/auth/me'
+```
+
+Validated result without token:
+
+```text
+401
+```
+
+Validated result with a real Cognito access token:
+
+```text
+authenticated: True
+token_use: access
+```
+
 ## What This Enables
 
 The Traffiq backend is now reachable through a public AWS URL.

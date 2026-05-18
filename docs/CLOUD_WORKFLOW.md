@@ -60,6 +60,10 @@ The mobile Cognito authentication implementation is documented in:
 
 - `docs/MOBILE_COGNITO_AUTH.md`
 
+The backend Cognito JWT validation implementation is documented in:
+
+- `docs/BACKEND_COGNITO_JWT_VALIDATION.md`
+
 ## Deployment Flow
 
 ### 1. Validate Locally With Docker
@@ -319,6 +323,26 @@ The mobile app stores Cognito tokens with Expo Secure Store.
 
 This makes the mobile app aware of authentication state, but it does not protect backend endpoints yet.
 
+### 14. Add Backend JWT Validation
+
+FastAPI validates Cognito access tokens through:
+
+```text
+GET /auth/me
+```
+
+The backend verifies:
+
+- token signature
+- issuer
+- token expiry
+- token type `access`
+- Cognito app client ID
+
+Because App Runner uses a VPC Connector for RDS and Traffiq avoids NAT Gateway for cost control, the public Cognito JWKS keys are bundled in the backend image.
+
+This keeps JWT validation working in AWS without adding expensive networking.
+
 ## Common Failure Points
 
 - RDS security group does not allow access from the API service
@@ -330,13 +354,14 @@ This makes the mobile app aware of authentication state, but it does not protect
 - Cognito app client ID is missing from the mobile auth configuration
 - protected endpoints are expected before backend JWT validation exists
 - Expo deep link scheme does not match the Cognito callback URL
+- App Runner cannot fetch Cognito JWKS at runtime without outbound internet
 
 ## Final Cloud Story
 
 The professional explanation is:
 
 ```text
-Traffiq is built locally with Docker, FastAPI, PostgreSQL, and Expo, and v3 moves the runtime toward AWS. The backend image is stored in ECR, served through App Runner, connected to RDS PostgreSQL, and integrated with Cognito for mobile authentication. The mobile app consumes the public API URL instead of a local machine, while scheduled ETL and backend JWT protection remain later cloud steps.
+Traffiq is built locally with Docker, FastAPI, PostgreSQL, and Expo, and v3 moves the runtime toward AWS. The backend image is stored in ECR, served through App Runner, connected to RDS PostgreSQL, and integrated with Cognito for mobile authentication and backend JWT validation. The mobile app consumes the public API URL instead of a local machine, while scheduled ETL and personal endpoint protection remain later cloud steps.
 ```
 
 This shows that the project is not only a local demo. It has a realistic path toward a deployable data product.

@@ -44,6 +44,10 @@ The mobile Cognito authentication implementation is documented in:
 
 - `docs/MOBILE_COGNITO_AUTH.md`
 
+The backend Cognito JWT validation implementation is documented in:
+
+- `docs/BACKEND_COGNITO_JWT_VALIDATION.md`
+
 Secrets and environment configuration strategy is documented in:
 
 - `docs/SECRETS_AND_CONFIG.md`
@@ -272,6 +276,7 @@ Current v3 status:
 - the mobile app defaults to the App Runner API URL
 - Cognito User Pool exists for future auth integration
 - mobile auth screens connect to Cognito
+- FastAPI validates Cognito access tokens on `/auth/me`
 
 The detailed workflow for this phase is documented in:
 
@@ -296,7 +301,7 @@ Before real deployment, the project should still add:
 - proper logging strategy
 - deployment-specific environment documentation
 - a seed strategy that is separate from normal API startup
-- FastAPI Cognito JWT validation
+- personal endpoint protection
 
 The current automatic Docker seeding is useful for local demos, but a production API should not reseed demo data every time it starts.
 

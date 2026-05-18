@@ -74,6 +74,7 @@ Current core packages expected by the project:
 - requests
 - python-dotenv
 - httpx
+- PyJWT[crypto]
 
 Current Expo auth-related package:
 
@@ -319,6 +320,10 @@ The Cognito user pool for v3 authentication is documented in:
 The mobile Cognito authentication screens are documented in:
 
 - `docs/MOBILE_COGNITO_AUTH.md`
+
+The backend Cognito JWT validation implementation is documented in:
+
+- `docs/BACKEND_COGNITO_JWT_VALIDATION.md`
 
 That file explains how the current Docker backend can evolve toward:
 

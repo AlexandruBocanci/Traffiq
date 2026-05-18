@@ -30,3 +30,14 @@ DB_CONFIG = {
     "password": _get_required_env("DB_PASSWORD"),
     "port": _get_int_env("DB_PORT", "5432"),
 }
+
+COGNITO_REGION = os.getenv("COGNITO_REGION", "eu-central-1")
+COGNITO_USER_POOL_ID = os.getenv("COGNITO_USER_POOL_ID", "eu-central-1_QLCNGVSM1")
+COGNITO_APP_CLIENT_ID = os.getenv(
+    "COGNITO_APP_CLIENT_ID",
+    "6vp5r1edjn8phjhfm2jk1f4dcp",
+)
+COGNITO_ISSUER = (
+    f"https://cognito-idp.{COGNITO_REGION}.amazonaws.com/{COGNITO_USER_POOL_ID}"
+)
+COGNITO_JWKS_URL = f"{COGNITO_ISSUER}/.well-known/jwks.json"

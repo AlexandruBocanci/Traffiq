@@ -31,7 +31,7 @@ Pushed image:
 Digest:
 
 ```text
-sha256:854dc4499e317f5f2de36cafdb05657453fd7343786f57db858adaa348c477be
+sha256:40a83ec75996351f8df59be63db916f18345ec8b943fa89cd04d7e1f60e61824
 ```
 
 Image status:
@@ -43,7 +43,7 @@ ACTIVE
 Approximate pushed image size:
 
 ```text
-104,814,088 bytes
+110,455,239 bytes
 ```
 
 ## Commands Used

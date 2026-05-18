@@ -198,6 +198,10 @@ The mobile Cognito authentication implementation is documented in:
 
 - `docs/MOBILE_COGNITO_AUTH.md`
 
+The backend Cognito JWT validation implementation is documented in:
+
+- `docs/BACKEND_COGNITO_JWT_VALIDATION.md`
+
 Mobile token storage uses:
 
 ```text
@@ -205,6 +209,8 @@ expo-secure-store
 ```
 
 Cognito tokens must not be logged or committed. They are runtime credentials for the signed-in user.
+
+Cognito JWKS keys are public verification keys and are not secrets.
 
 ## Git Rules
 

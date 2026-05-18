@@ -321,6 +321,10 @@ Goal:
 
 - allow FastAPI to protect personal endpoints
 
+Backend auth document:
+
+- `docs/BACKEND_COGNITO_JWT_VALIDATION.md`
+
 Deliverables:
 
 - Cognito JWT validation utility
@@ -331,6 +335,7 @@ Definition of done:
 
 - public endpoints work without token
 - protected endpoints reject missing/invalid token
+- protected endpoint accepts a real Cognito access token
 
 ### Task 13. Protect personal features only
 

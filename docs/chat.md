@@ -2147,6 +2147,52 @@ Notes:
 - npm audit --force was not used because it would introduce a breaking Expo version change
 - this closes Task 11 from the v3 Notion plan
 - the next task is `Task 12. Add backend JWT validation`
+
+### Update 082 - Backend Cognito JWT validation added
+
+Completed:
+
+- added `PyJWT[crypto]` backend dependency
+- added Cognito backend configuration to `src/config/settings.py`
+- documented Cognito config values in `.env.example`
+- added Cognito access token validation utility in `src/api/auth.py`
+- added bundled public Cognito JWKS keys in `src/api/cognito_jwks.json`
+- added protected endpoint `GET /auth/me`
+- registered auth router in FastAPI
+- added auth endpoint integration test
+- rebuilt backend Docker image
+- pushed updated image to ECR
+- redeployed App Runner
+- created `docs/BACKEND_COGNITO_JWT_VALIDATION.md`
+- linked the backend JWT document from README, LOCAL_SETUP, AWS_DEPLOYMENT, CLOUD_WORKFLOW, SECRETS_AND_CONFIG, and the v3 execution plan
+- updated `docs/chat.md` for v3 execution continuity
+
+Validation:
+
+```text
+Local compileall src/api src/config -> passed
+Local /health without token -> 200
+Local /auth/me without token -> 401
+Local /auth/me with invalid token -> 401
+Local /auth/me with real Cognito access token -> 200
+Public App Runner /health -> 200
+Public App Runner /auth/me without token -> 401
+Public App Runner /auth/me with real Cognito access token -> 200
+Cognito users after temporary test cleanup -> 0
+ECR latest digest: sha256:40a83ec75996351f8df59be63db916f18345ec8b943fa89cd04d7e1f60e61824
+App Runner status after redeploy: RUNNING
+```
+
+Notes:
+
+- public endpoints still work without authentication
+- `/auth/me` is the first protected backend validation endpoint
+- personal endpoints are not protected yet
+- App Runner uses bundled public Cognito JWKS keys to avoid NAT Gateway cost
+- JWKS keys are public verification keys, not secrets
+- if Cognito rotates signing keys, `src/api/cognito_jwks.json` must be refreshed
+- this closes Task 12 from the v3 Notion plan
+- the next task is `Task 13. Protect personal features only`
 ---
 
 ## 9. Instructions For Any New Chat
