@@ -300,6 +300,10 @@ The backend image pushed to Amazon ECR is documented in:
 
 - `docs/AWS_ECR_BACKEND_IMAGE.md`
 
+The FastAPI backend deployed to AWS App Runner is documented in:
+
+- `docs/AWS_APP_RUNNER_BACKEND.md`
+
 That file explains how the current Docker backend can evolve toward:
 
 - containerized FastAPI on AWS

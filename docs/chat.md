@@ -53,6 +53,7 @@ Use this file to understand:
 - AWS RDS PostgreSQL document: `docs/AWS_RDS_POSTGRESQL.md`
 - AWS RDS schema document: `docs/AWS_RDS_SCHEMA.md`
 - AWS ECR backend image document: `docs/AWS_ECR_BACKEND_IMAGE.md`
+- AWS App Runner backend document: `docs/AWS_APP_RUNNER_BACKEND.md`
 - If the user explicitly provides task order from Notion, that order overrides the default order from docs
 
 ---
@@ -174,6 +175,7 @@ Any new chat must read these first:
 - `docs/AWS_RDS_POSTGRESQL.md`
 - `docs/AWS_RDS_SCHEMA.md`
 - `docs/AWS_ECR_BACKEND_IMAGE.md`
+- `docs/AWS_APP_RUNNER_BACKEND.md`
 - `docs/LOCAL_SETUP.md`
 - `docs/chat.md`
 
@@ -202,11 +204,11 @@ If detailed v1 task history is needed, read:
 
 ### Current task
 
-Push backend Docker image to Amazon ECR
+Deploy FastAPI backend to AWS App Runner
 
 ### Current status
 
-Task 7 is completed. The FastAPI backend Docker image was pushed to Amazon ECR.
+Task 8 is completed. FastAPI is deployed to AWS App Runner and available through a public URL.
 
 ### Files changed by the task
 
@@ -217,6 +219,7 @@ Task 7 is completed. The FastAPI backend Docker image was pushed to Amazon ECR.
 - `docs/AWS_RDS_POSTGRESQL.md`
 - `docs/AWS_RDS_SCHEMA.md`
 - `docs/AWS_ECR_BACKEND_IMAGE.md`
+- `docs/AWS_APP_RUNNER_BACKEND.md`
 - `docs/Traffiq_v3_execution_plan.md`
 - `README.md`
 - `docs/LOCAL_SETUP.md`
@@ -228,22 +231,23 @@ Task 7 is completed. The FastAPI backend Docker image was pushed to Amazon ECR.
 
 ### Goal
 
-Build the FastAPI backend Docker image and push it to Amazon ECR so App Runner can deploy it later.
+Deploy the FastAPI backend from ECR to AWS App Runner and connect it to RDS through controlled network access.
 
 ### Validation result
 
-- ECR repository `traffiq-api` exists in `eu-central-1`
-- Docker login to ECR succeeded
-- local Docker image `traffiq-api:latest` built successfully
-- image was tagged as `896080425393.dkr.ecr.eu-central-1.amazonaws.com/traffiq-api:latest`
-- Docker push to ECR succeeded
-- ECR image `latest` is active
-- image digest is documented
-- README, LOCAL_SETUP, AWS_DEPLOYMENT, CLOUD_WORKFLOW, and the v3 plan reference the ECR document
+- App Runner service `traffiq-api` exists in `eu-central-1`
+- public URL is `https://eguwdq6puz.eu-central-1.awsapprunner.com`
+- service status is `RUNNING`
+- `/health` returns `status: ok`
+- `/mobile/drive-overview` returns a valid empty response from RDS-backed API
+- App Runner uses ECR image `traffiq-api:latest`
+- App Runner uses VPC Connector for RDS access
+- RDS allows PostgreSQL from App Runner security group, not from `0.0.0.0/0`
+- README, LOCAL_SETUP, AWS_DEPLOYMENT, CLOUD_WORKFLOW, and the v3 plan reference the App Runner document
 
 ### Next task after commit
 
-Do not move forward until the user confirms. Next task is `Task 8. Deploy FastAPI backend to AWS App Runner`.
+Do not move forward until the user confirms. Next task is `Task 9. Configure mobile app to use cloud API URL`.
 ---
 
 ## 8. Latest Update
@@ -1976,6 +1980,52 @@ Notes:
 - the App Runner runtime command should avoid automatic demo seeding
 - this closes Task 7 from the v3 Notion plan
 - the next task is `Task 8. Deploy FastAPI backend to AWS App Runner`
+
+### Update 078 - FastAPI backend deployed to AWS App Runner
+
+Completed:
+
+- enabled App Runner access for the AWS account
+- created IAM role `AppRunnerECRAccessRole`
+- attached ECR access policy for App Runner
+- created security group `traffiq-apprunner-sg`
+- allowed RDS PostgreSQL access from the App Runner security group
+- created VPC Connector `traffiq-apprunner-vpc-connector`
+- created App Runner service `traffiq-api`
+- deployed ECR image:
+  - `896080425393.dkr.ecr.eu-central-1.amazonaws.com/traffiq-api:latest`
+- configured App Runner port `8000`
+- configured cloud startup command:
+  - `uvicorn src.api.main:app --host 0.0.0.0 --port 8000`
+- configured RDS environment variables in App Runner
+- rotated RDS password after it appeared in local CLI output
+- updated App Runner with the rotated password without printing secrets
+- validated public `/health`
+- validated public `/mobile/drive-overview`
+- created `docs/AWS_APP_RUNNER_BACKEND.md`
+- linked the App Runner document from README, LOCAL_SETUP, AWS_DEPLOYMENT, CLOUD_WORKFLOW, and the v3 execution plan
+- updated `docs/chat.md` for v3 execution continuity
+
+Validation:
+
+```text
+App Runner service: traffiq-api
+Status: RUNNING
+Public URL: https://eguwdq6puz.eu-central-1.awsapprunner.com
+GET /health -> status: ok
+GET /mobile/drive-overview -> valid empty response
+RDS security group allows PostgreSQL from App Runner security group.
+RDS is not opened to 0.0.0.0/0.
+```
+
+Notes:
+
+- no AWS secrets were committed
+- RDS password was rotated after local CLI output exposure
+- `/mobile/drive-overview` is empty because RDS has schema but no loaded data yet
+- cloud data loading belongs to a later v3 task
+- this closes Task 8 from the v3 Notion plan
+- the next task is `Task 9. Configure mobile app to use cloud API URL`
 ---
 
 ## 9. Instructions For Any New Chat

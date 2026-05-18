@@ -28,6 +28,10 @@ The backend Docker image pushed to Amazon ECR is documented in:
 
 - `docs/AWS_ECR_BACKEND_IMAGE.md`
 
+The deployed AWS App Runner backend service is documented in:
+
+- `docs/AWS_APP_RUNNER_BACKEND.md`
+
 Secrets and environment configuration strategy is documented in:
 
 - `docs/SECRETS_AND_CONFIG.md`

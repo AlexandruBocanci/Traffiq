@@ -223,6 +223,10 @@ Goal:
 
 - make the backend available through a public URL
 
+App Runner document:
+
+- `docs/AWS_APP_RUNNER_BACKEND.md`
+
 Deliverables:
 
 - App Runner service
@@ -234,6 +238,8 @@ Definition of done:
 
 - `GET /health` works through the public URL
 - `GET /mobile/drive-overview` works through the public URL
+- App Runner can reach RDS through controlled security group access
+- the public API URL is documented
 
 ### Task 9. Configure mobile app to use cloud API URL
 

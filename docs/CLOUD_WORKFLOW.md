@@ -44,6 +44,10 @@ The backend image pushed to Amazon ECR is documented in:
 
 - `docs/AWS_ECR_BACKEND_IMAGE.md`
 
+The App Runner backend deployment is documented in:
+
+- `docs/AWS_APP_RUNNER_BACKEND.md`
+
 ## Deployment Flow
 
 ### 1. Validate Locally With Docker
