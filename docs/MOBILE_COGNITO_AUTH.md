@@ -126,6 +126,12 @@ This task does not:
 
 Those belong to later v3 tasks.
 
+Task 13 update:
+
+```text
+History now prompts guests to sign in and calls /rides/history with the Cognito access token for authenticated users.
+```
+
 ## Validation
 
 TypeScript validation:

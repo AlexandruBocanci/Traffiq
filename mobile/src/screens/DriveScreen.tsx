@@ -24,6 +24,7 @@ import {
 
 type DriveScreenProps = {
   onOpenAccount: () => void;
+  onOpenHistory: () => void;
   onOpenPipeline: () => void;
 };
 
@@ -55,7 +56,11 @@ function getSeverityColor(severity: string) {
   return colors.accent;
 }
 
-export default function DriveScreen({ onOpenAccount, onOpenPipeline }: DriveScreenProps) {
+export default function DriveScreen({
+  onOpenAccount,
+  onOpenHistory,
+  onOpenPipeline,
+}: DriveScreenProps) {
   const [data, setData] = useState<DriveState>({
     routes: [],
     events: [],
@@ -117,6 +122,14 @@ export default function DriveScreen({ onOpenAccount, onOpenPipeline }: DriveScre
               style={styles.accountButton}
             >
               <Text style={styles.accountButtonText}>A</Text>
+            </Pressable>
+
+            <Pressable
+              accessibilityLabel="Open ride history"
+              onPress={onOpenHistory}
+              style={styles.secondaryButton}
+            >
+              <Text style={styles.secondaryButtonText}>H</Text>
             </Pressable>
 
             <Pressable
@@ -266,18 +279,18 @@ export default function DriveScreen({ onOpenAccount, onOpenPipeline }: DriveScre
         </View>
 
         <Pressable
-          onPress={() => setIsRideSheetVisible(true)}
+          onPress={onOpenHistory}
           style={styles.recentRideCard}
         >
           <View>
             <Text style={styles.recentRideLabel}>Recent ride</Text>
-            <Text style={styles.recentRideTitle}>{recentRide?.route_name ?? 'No ride history'}</Text>
+            <Text style={styles.recentRideTitle}>{recentRide?.route_name ?? 'Ride history'}</Text>
             <Text style={styles.recentRideText}>
               {recentRide
                 ? `${formatValue(recentRide.estimated_duration_minutes, ' min')} · ${formatValue(
                     recentRide.congestion_score
                   )} traffic`
-                : 'Tap to view last rides'}
+                : 'Sign in to view personal rides'}
             </Text>
           </View>
           <Text style={styles.recentRideArrow}>›</Text>
@@ -400,6 +413,21 @@ const styles = StyleSheet.create({
   },
   accountButtonText: {
     color: colors.primaryText,
+    fontSize: 16,
+    fontWeight: '900',
+  },
+  secondaryButton: {
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: 999,
+    borderWidth: 1,
+    height: 46,
+    justifyContent: 'center',
+    width: 46,
+  },
+  secondaryButtonText: {
+    color: colors.text,
     fontSize: 16,
     fontWeight: '900',
   },

@@ -48,6 +48,10 @@ The backend Cognito JWT validation implementation is documented in:
 
 - `docs/BACKEND_COGNITO_JWT_VALIDATION.md`
 
+The personal feature protection rule is documented in:
+
+- `docs/PERSONAL_FEATURE_PROTECTION.md`
+
 Secrets and environment configuration strategy is documented in:
 
 - `docs/SECRETS_AND_CONFIG.md`
@@ -277,6 +281,7 @@ Current v3 status:
 - Cognito User Pool exists for future auth integration
 - mobile auth screens connect to Cognito
 - FastAPI validates Cognito access tokens on `/auth/me`
+- `/rides/history` is protected while public endpoints remain available
 
 The detailed workflow for this phase is documented in:
 
@@ -301,7 +306,7 @@ Before real deployment, the project should still add:
 - proper logging strategy
 - deployment-specific environment documentation
 - a seed strategy that is separate from normal API startup
-- personal endpoint protection
+- per-user database modeling for personal features
 
 The current automatic Docker seeding is useful for local demos, but a production API should not reseed demo data every time it starts.
 

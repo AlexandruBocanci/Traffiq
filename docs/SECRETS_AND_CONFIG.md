@@ -202,6 +202,10 @@ The backend Cognito JWT validation implementation is documented in:
 
 - `docs/BACKEND_COGNITO_JWT_VALIDATION.md`
 
+The personal feature protection rule is documented in:
+
+- `docs/PERSONAL_FEATURE_PROTECTION.md`
+
 Mobile token storage uses:
 
 ```text

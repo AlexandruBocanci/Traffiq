@@ -1,6 +1,8 @@
 from fastapi import APIRouter
+from fastapi import Depends
 from fastapi import HTTPException
 
+from src.api.auth import require_current_user
 from src.utils.db_utils import get_db_connection
 
 
@@ -8,7 +10,7 @@ router = APIRouter()
 
 
 @router.get("/rides/history")
-def get_rides_history():
+def get_rides_history(current_user: dict = Depends(require_current_user)):
   conn = None
   cur = None
 

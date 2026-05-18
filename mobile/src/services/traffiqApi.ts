@@ -12,8 +12,20 @@ import {
   WeatherImpactRecord,
 } from '../types/api';
 
-async function fetchFromApi<T>(path: string): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${path}`);
+type FetchOptions = {
+  accessToken?: string;
+};
+
+async function fetchFromApi<T>(path: string, options: FetchOptions = {}): Promise<T> {
+  const headers: Record<string, string> = {};
+
+  if (options.accessToken) {
+    headers.Authorization = `Bearer ${options.accessToken}`;
+  }
+
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    headers,
+  });
 
   if (!response.ok) {
     throw new Error(`API request failed with status ${response.status}`);
@@ -52,8 +64,10 @@ export async function getRoutesHourly() {
   return fetchFromApi<ApiListResponse<RouteHourlyRecord>>('/routes/hourly');
 }
 
-export async function getRidesHistory() {
-  return fetchFromApi<ApiListResponse<RideHistoryRecord>>('/rides/history');
+export async function getRidesHistory(accessToken: string) {
+  return fetchFromApi<ApiListResponse<RideHistoryRecord>>('/rides/history', {
+    accessToken,
+  });
 }
 
 export async function getMapEvents() {

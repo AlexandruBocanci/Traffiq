@@ -217,6 +217,31 @@ authenticated: True
 token_use: access
 ```
 
+Protected ride history endpoint:
+
+```powershell
+Invoke-RestMethod -Uri 'https://eguwdq6puz.eu-central-1.awsapprunner.com/rides/history'
+```
+
+Validated result without token:
+
+```text
+401
+```
+
+Validated result with a real Cognito access token:
+
+```text
+200
+```
+
+Public mobile overview remains accessible without token and does not expose ride history:
+
+```text
+GET /mobile/drive-overview -> 200
+rides: []
+```
+
 ## What This Enables
 
 The Traffiq backend is now reachable through a public AWS URL.

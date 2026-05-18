@@ -1,5 +1,6 @@
 from fastapi.testclient import TestClient
 
+from src.api.auth import require_current_user
 from src.api.main import app
 from src.extract.extract_rides_history_csv import extract_rides_history_csv
 from src.load.load_ride_history_to_silver import load_ride_history_to_silver
@@ -9,6 +10,16 @@ from src.utils.db_utils import get_db_connection
 
 
 client = TestClient(app)
+
+
+def get_test_user():
+  return {
+    "sub": "test-user-sub",
+    "username": "test-user",
+    "client_id": "test-client",
+    "scope": "",
+    "token_use": "access",
+  }
 
 
 def seed_ride_history_data():
@@ -66,7 +77,12 @@ def test_rides_history_endpoint():
     print("FAILED: seeded_rows should be greater than 0.")
     return 0
 
-  response = client.get("/rides/history")
+  app.dependency_overrides[require_current_user] = get_test_user
+
+  try:
+    response = client.get("/rides/history")
+  finally:
+    app.dependency_overrides = {}
 
   if response.status_code != 200:
     print("FAILED: /rides/history should return status code 200.")
@@ -153,4 +169,18 @@ def test_rides_history_endpoint():
   return 1
 
 
+def test_rides_history_requires_auth():
+  response = client.get("/rides/history")
+
+  if response.status_code != 401:
+    print("FAILED: /rides/history should reject guests.")
+    print(response.status_code)
+    print(response.text)
+    return 0
+
+  print("SUCCESS: /rides/history rejects guests.")
+  return 1
+
+
+print(test_rides_history_requires_auth())
 print(test_rides_history_endpoint())

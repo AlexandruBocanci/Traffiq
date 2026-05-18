@@ -207,6 +207,7 @@ Deployment and operations:
 - `docs/AWS_COGNITO_USER_POOL.md`
 - `docs/MOBILE_COGNITO_AUTH.md`
 - `docs/BACKEND_COGNITO_JWT_VALIDATION.md`
+- `docs/PERSONAL_FEATURE_PROTECTION.md`
 - `docs/CLOUD_WORKFLOW.md`
 - `docs/ENVIRONMENTS.md`
 - `docs/SCHEDULER_STRATEGY.md`

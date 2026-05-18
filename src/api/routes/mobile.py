@@ -113,27 +113,6 @@ def get_mobile_drive_overview():
             """,
         )
 
-        ride_rows = fetch_all_dicts(
-            cur,
-            """
-            SELECT
-                ride_id,
-                started_at,
-                ended_at,
-                origin_name,
-                destination_name,
-                route_name,
-                distance_km,
-                avg_speed,
-                congestion_score,
-                estimated_duration_minutes,
-                ride_status
-            FROM serving.vw_ride_history
-            ORDER BY started_at DESC, ride_id ASC
-            LIMIT 5;
-            """,
-        )
-
         congested_rows = fetch_all_dicts(
             cur,
             """
@@ -166,7 +145,7 @@ def get_mobile_drive_overview():
         return {
             "routes": [format_route(row) for row in route_rows],
             "events": [format_event(row) for row in event_rows],
-            "rides": [format_ride(row) for row in ride_rows],
+            "rides": [],
             "congested": [
                 {
                     "metric_date": row["metric_date"],

@@ -325,6 +325,10 @@ The backend Cognito JWT validation implementation is documented in:
 
 - `docs/BACKEND_COGNITO_JWT_VALIDATION.md`
 
+The personal feature protection rule is documented in:
+
+- `docs/PERSONAL_FEATURE_PROTECTION.md`
+
 That file explains how the current Docker backend can evolve toward:
 
 - containerized FastAPI on AWS

@@ -344,6 +344,10 @@ Goal:
 - keep public features accessible to guests
 - require login for personal data
 
+Personal feature protection document:
+
+- `docs/PERSONAL_FEATURE_PROTECTION.md`
+
 Protected features:
 
 - saved routes
@@ -354,6 +358,8 @@ Definition of done:
 
 - guest users can still use Map and Reports
 - personal screens prompt for login
+- `/rides/history` rejects missing or invalid tokens
+- public mobile overview does not expose ride history
 
 ---
 

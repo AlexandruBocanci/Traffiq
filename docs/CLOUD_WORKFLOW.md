@@ -64,6 +64,10 @@ The backend Cognito JWT validation implementation is documented in:
 
 - `docs/BACKEND_COGNITO_JWT_VALIDATION.md`
 
+The personal feature protection rule is documented in:
+
+- `docs/PERSONAL_FEATURE_PROTECTION.md`
+
 ## Deployment Flow
 
 ### 1. Validate Locally With Docker
@@ -343,6 +347,25 @@ Because App Runner uses a VPC Connector for RDS and Traffiq avoids NAT Gateway f
 
 This keeps JWT validation working in AWS without adding expensive networking.
 
+### 15. Protect Personal Features Only
+
+Protect personal endpoints with Cognito while keeping public endpoints open.
+
+Current protected endpoint:
+
+```text
+GET /rides/history
+```
+
+Current public endpoint behavior:
+
+```text
+GET /mobile/drive-overview -> public
+GET /mobile/drive-overview rides -> []
+```
+
+The mobile app shows a login prompt for History when the user is a guest.
+
 ## Common Failure Points
 
 - RDS security group does not allow access from the API service
@@ -355,13 +378,14 @@ This keeps JWT validation working in AWS without adding expensive networking.
 - protected endpoints are expected before backend JWT validation exists
 - Expo deep link scheme does not match the Cognito callback URL
 - App Runner cannot fetch Cognito JWKS at runtime without outbound internet
+- public mobile overview accidentally exposing personal ride history
 
 ## Final Cloud Story
 
 The professional explanation is:
 
 ```text
-Traffiq is built locally with Docker, FastAPI, PostgreSQL, and Expo, and v3 moves the runtime toward AWS. The backend image is stored in ECR, served through App Runner, connected to RDS PostgreSQL, and integrated with Cognito for mobile authentication and backend JWT validation. The mobile app consumes the public API URL instead of a local machine, while scheduled ETL and personal endpoint protection remain later cloud steps.
+Traffiq is built locally with Docker, FastAPI, PostgreSQL, and Expo, and v3 moves the runtime toward AWS. The backend image is stored in ECR, served through App Runner, connected to RDS PostgreSQL, and integrated with Cognito for mobile authentication and backend JWT validation. Public traffic endpoints remain open, while ride history is protected as a personal feature. Scheduled ETL and full per-user data modeling remain later cloud steps.
 ```
 
 This shows that the project is not only a local demo. It has a realistic path toward a deployable data product.

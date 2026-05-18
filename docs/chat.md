@@ -2193,6 +2193,56 @@ Notes:
 - if Cognito rotates signing keys, `src/api/cognito_jwks.json` must be refreshed
 - this closes Task 12 from the v3 Notion plan
 - the next task is `Task 13. Protect personal features only`
+
+### Update 083 - Personal features protected only
+
+Completed:
+
+- protected `GET /rides/history` with Cognito JWT validation
+- kept public endpoints available without token
+- removed ride history data from public `GET /mobile/drive-overview`
+- added mobile `HistoryScreen`
+- added guest login prompt for History
+- added authenticated History API call with Cognito access token
+- added History navigation from Drive
+- updated ride history integration test for guest rejection and authenticated dependency override
+- rebuilt backend Docker image
+- pushed updated image to ECR
+- redeployed App Runner
+- created `docs/PERSONAL_FEATURE_PROTECTION.md`
+- linked the personal feature protection document from README, LOCAL_SETUP, AWS_DEPLOYMENT, CLOUD_WORKFLOW, SECRETS_AND_CONFIG, and the v3 execution plan
+- updated `docs/chat.md` for v3 execution continuity
+
+Validation:
+
+```text
+npx.cmd tsc --noEmit -> passed
+compileall src/api -> passed
+Local /health without token -> 200
+Local /auth/me without token -> 401
+Local /auth/me invalid token -> 401
+Local /rides/history without token -> 401
+Local /rides/history with real Cognito access token -> 200
+Local /mobile/drive-overview without token -> 200
+Local /mobile/drive-overview rides -> []
+Public App Runner /mobile/drive-overview without token -> 200
+Public App Runner /mobile/drive-overview rides -> []
+Public App Runner /rides/history without token -> 401
+Public App Runner /rides/history with real Cognito access token -> 200
+Cognito users after temporary test cleanup -> 0
+ECR latest digest: sha256:f31573ce977923a247fcb00d68f2ab726466da15d211aaac06c8f0cc4ff51018
+App Runner status after redeploy: RUNNING
+```
+
+Notes:
+
+- public traffic features remain guest-accessible
+- ride history is now treated as personal
+- `/rides/history` is protected, but the database model is still the existing demo ride dataset
+- per-user ride filtering belongs to Task 24
+- saved routes and preferences are not implemented yet
+- this closes Task 13 from the v3 Notion plan
+- the next task is `Task 14. Add real map component`
 ---
 
 ## 9. Instructions For Any New Chat
