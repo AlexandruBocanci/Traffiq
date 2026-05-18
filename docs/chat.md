@@ -54,6 +54,7 @@ Use this file to understand:
 - AWS RDS schema document: `docs/AWS_RDS_SCHEMA.md`
 - AWS ECR backend image document: `docs/AWS_ECR_BACKEND_IMAGE.md`
 - AWS App Runner backend document: `docs/AWS_APP_RUNNER_BACKEND.md`
+- Mobile cloud API config document: `docs/MOBILE_CLOUD_API_CONFIG.md`
 - If the user explicitly provides task order from Notion, that order overrides the default order from docs
 
 ---
@@ -176,6 +177,7 @@ Any new chat must read these first:
 - `docs/AWS_RDS_SCHEMA.md`
 - `docs/AWS_ECR_BACKEND_IMAGE.md`
 - `docs/AWS_APP_RUNNER_BACKEND.md`
+- `docs/MOBILE_CLOUD_API_CONFIG.md`
 - `docs/LOCAL_SETUP.md`
 - `docs/chat.md`
 
@@ -204,11 +206,11 @@ If detailed v1 task history is needed, read:
 
 ### Current task
 
-Deploy FastAPI backend to AWS App Runner
+Configure mobile app to use cloud API URL
 
 ### Current status
 
-Task 8 is completed. FastAPI is deployed to AWS App Runner and available through a public URL.
+Task 9 is completed. The mobile app now uses the AWS App Runner public API URL by default.
 
 ### Files changed by the task
 
@@ -220,6 +222,7 @@ Task 8 is completed. FastAPI is deployed to AWS App Runner and available through
 - `docs/AWS_RDS_SCHEMA.md`
 - `docs/AWS_ECR_BACKEND_IMAGE.md`
 - `docs/AWS_APP_RUNNER_BACKEND.md`
+- `docs/MOBILE_CLOUD_API_CONFIG.md`
 - `docs/Traffiq_v3_execution_plan.md`
 - `README.md`
 - `docs/LOCAL_SETUP.md`
@@ -228,26 +231,24 @@ Task 8 is completed. FastAPI is deployed to AWS App Runner and available through
 - `docs/ENVIRONMENTS.md`
 - `docs/SECRETS_AND_CONFIG.md`
 - `docs/chat.md`
+- `mobile/src/config/api.ts`
 
 ### Goal
 
-Deploy the FastAPI backend from ECR to AWS App Runner and connect it to RDS through controlled network access.
+Remove the mobile app dependency on localhost and make it call the AWS App Runner backend by default.
 
 ### Validation result
 
-- App Runner service `traffiq-api` exists in `eu-central-1`
-- public URL is `https://eguwdq6puz.eu-central-1.awsapprunner.com`
-- service status is `RUNNING`
-- `/health` returns `status: ok`
-- `/mobile/drive-overview` returns a valid empty response from RDS-backed API
-- App Runner uses ECR image `traffiq-api:latest`
-- App Runner uses VPC Connector for RDS access
-- RDS allows PostgreSQL from App Runner security group, not from `0.0.0.0/0`
-- README, LOCAL_SETUP, AWS_DEPLOYMENT, CLOUD_WORKFLOW, and the v3 plan reference the App Runner document
+- mobile API config defaults to `https://eguwdq6puz.eu-central-1.awsapprunner.com`
+- local override remains available through `EXPO_PUBLIC_TRAFFIQ_API_BASE_URL`
+- TypeScript check passed
+- cloud `/health` returns `status: ok`
+- cloud `/mobile/drive-overview` returns a valid empty response
+- README, LOCAL_SETUP, CLOUD_WORKFLOW, SECRETS_AND_CONFIG, and the v3 plan reference the mobile cloud API document
 
 ### Next task after commit
 
-Do not move forward until the user confirms. Next task is `Task 9. Configure mobile app to use cloud API URL`.
+Do not move forward until the user confirms. Next task is `Task 10. Create Cognito User Pool`.
 ---
 
 ## 8. Latest Update
@@ -2026,6 +2027,37 @@ Notes:
 - cloud data loading belongs to a later v3 task
 - this closes Task 8 from the v3 Notion plan
 - the next task is `Task 9. Configure mobile app to use cloud API URL`
+
+### Update 079 - Mobile app configured for cloud API URL
+
+Completed:
+
+- updated `mobile/src/config/api.ts`
+- set the default mobile API base URL to:
+  - `https://eguwdq6puz.eu-central-1.awsapprunner.com`
+- removed the default dependency on Expo LAN/localhost backend discovery
+- added support for local override through:
+  - `EXPO_PUBLIC_TRAFFIQ_API_BASE_URL`
+- created `docs/MOBILE_CLOUD_API_CONFIG.md`
+- documented local development override commands
+- linked the mobile cloud API document from README, LOCAL_SETUP, CLOUD_WORKFLOW, SECRETS_AND_CONFIG, and the v3 execution plan
+- updated `docs/chat.md` for v3 execution continuity
+
+Validation:
+
+```text
+npx.cmd tsc --noEmit -> passed
+GET https://eguwdq6puz.eu-central-1.awsapprunner.com/health -> status: ok
+GET https://eguwdq6puz.eu-central-1.awsapprunner.com/mobile/drive-overview -> valid empty response
+```
+
+Notes:
+
+- the mobile app can now call the cloud backend without local FastAPI running on the PC
+- response lists are currently empty because RDS has schema but no loaded data
+- cloud data loading belongs to a later v3 task
+- this closes Task 9 from the v3 Notion plan
+- the next task is `Task 10. Create Cognito User Pool`
 ---
 
 ## 9. Instructions For Any New Chat

@@ -247,6 +247,10 @@ Goal:
 
 - remove dependency on localhost for mobile demo usage
 
+Mobile cloud API document:
+
+- `docs/MOBILE_CLOUD_API_CONFIG.md`
+
 Deliverables:
 
 - mobile API config supports public backend URL
@@ -255,6 +259,8 @@ Deliverables:
 Definition of done:
 
 - phone can open the app and load backend data without the backend running on the PC
+- mobile API config defaults to the App Runner public URL
+- local development override remains available
 
 ---
 

@@ -48,6 +48,10 @@ The App Runner backend deployment is documented in:
 
 - `docs/AWS_APP_RUNNER_BACKEND.md`
 
+The mobile app cloud API configuration is documented in:
+
+- `docs/MOBILE_CLOUD_API_CONFIG.md`
+
 ## Deployment Flow
 
 ### 1. Validate Locally With Docker

@@ -304,6 +304,10 @@ The FastAPI backend deployed to AWS App Runner is documented in:
 
 - `docs/AWS_APP_RUNNER_BACKEND.md`
 
+The mobile cloud API configuration is documented in:
+
+- `docs/MOBILE_CLOUD_API_CONFIG.md`
+
 That file explains how the current Docker backend can evolve toward:
 
 - containerized FastAPI on AWS

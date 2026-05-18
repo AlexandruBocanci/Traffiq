@@ -1,18 +1,23 @@
-import { NativeModules, Platform } from 'react-native';
+const CLOUD_API_BASE_URL = 'https://eguwdq6puz.eu-central-1.awsapprunner.com';
 
-function getDevelopmentApiBaseUrl() {
-  if (Platform.OS === 'web') {
-    return 'http://localhost:8000';
-  }
-
-  const scriptUrl = NativeModules.SourceCode?.scriptURL as string | undefined;
-  const host = scriptUrl?.split('://')[1]?.split(':')[0];
-
-  if (host) {
-    return `http://${host}:8000`;
-  }
-
-  return 'http://192.168.1.10:8000';
+function normalizeApiBaseUrl(value: string) {
+  return value.replace(/\/+$/, '');
 }
 
-export const API_BASE_URL = getDevelopmentApiBaseUrl();
+function getConfiguredApiBaseUrl() {
+  const processEnv = (
+    globalThis as {
+      process?: { env?: Record<string, string | undefined> };
+    }
+  ).process?.env;
+
+  const configuredUrl = processEnv?.EXPO_PUBLIC_TRAFFIQ_API_BASE_URL?.trim();
+
+  if (configuredUrl) {
+    return normalizeApiBaseUrl(configuredUrl);
+  }
+
+  return CLOUD_API_BASE_URL;
+}
+
+export const API_BASE_URL = getConfiguredApiBaseUrl();

@@ -32,6 +32,10 @@ The deployed AWS App Runner backend service is documented in:
 
 - `docs/AWS_APP_RUNNER_BACKEND.md`
 
+The mobile app cloud API configuration is documented in:
+
+- `docs/MOBILE_CLOUD_API_CONFIG.md`
+
 Secrets and environment configuration strategy is documented in:
 
 - `docs/SECRETS_AND_CONFIG.md`

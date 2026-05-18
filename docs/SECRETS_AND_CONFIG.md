@@ -149,9 +149,8 @@ Current file:
 
 Current behavior:
 
-- web uses `http://localhost:8000`
-- Expo on phone derives the PC host from the Expo script URL
-- fallback uses a local LAN IP
+- default API URL uses the AWS App Runner backend
+- local development can override the API URL with `EXPO_PUBLIC_TRAFFIQ_API_BASE_URL`
 
 Future cloud behavior:
 
@@ -161,6 +160,10 @@ cloud/demo mobile build -> public App Runner API URL
 ```
 
 The public API URL can be committed if it is truly public. API keys, private tokens, and database credentials must not be committed.
+
+Current mobile cloud API configuration is documented in:
+
+- `docs/MOBILE_CLOUD_API_CONFIG.md`
 
 ## Git Rules
 
