@@ -2100,6 +2100,53 @@ Notes:
 - the mobile app should not use a Cognito client secret
 - this closes Task 10 from the v3 Notion plan
 - the next task is `Task 11. Add mobile auth screens`
+
+### Update 081 - Mobile Cognito auth screens added
+
+Completed:
+
+- added Cognito auth configuration to the Expo app
+- enabled `ALLOW_USER_PASSWORD_AUTH` on the Cognito app client
+- added direct Cognito API auth service through `fetch`
+- added app-wide `AuthProvider`
+- added secure token storage with `expo-secure-store`
+- added Account screen
+- added Auth screen modes:
+  - login
+  - register
+  - confirm email
+  - forgot password
+  - reset password
+- added logout behavior
+- added Account navigation from Drive
+- added Expo scheme `traffiq` for the Cognito callback URL
+- created `docs/MOBILE_COGNITO_AUTH.md`
+- linked the mobile auth document from README, LOCAL_SETUP, AWS_DEPLOYMENT, CLOUD_WORKFLOW, SECRETS_AND_CONFIG, and the v3 execution plan
+- updated `docs/chat.md` for v3 execution continuity
+
+Validation:
+
+```text
+npx.cmd tsc --noEmit -> passed
+npx.cmd expo config --type public -> passed
+Expo scheme: traffiq
+Expo plugin: expo-secure-store
+npm audit fix without --force -> high severity issue removed
+npm audit remaining -> moderate Expo/Metro transitive issues only
+Cognito public SignUp API: passed with temporary user
+Cognito USER_PASSWORD_AUTH login: passed with temporary confirmed user
+Current Cognito users after cleanup: 0
+```
+
+Notes:
+
+- public Drive features remain available for guests
+- personal backend endpoints are not protected yet
+- FastAPI JWT validation belongs to Task 12
+- personal feature protection belongs to Task 13
+- npm audit --force was not used because it would introduce a breaking Expo version change
+- this closes Task 11 from the v3 Notion plan
+- the next task is `Task 12. Add backend JWT validation`
 ---
 
 ## 9. Instructions For Any New Chat

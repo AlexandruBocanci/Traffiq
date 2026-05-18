@@ -56,6 +56,10 @@ The Cognito user pool for authentication is documented in:
 
 - `docs/AWS_COGNITO_USER_POOL.md`
 
+The mobile Cognito authentication implementation is documented in:
+
+- `docs/MOBILE_COGNITO_AUTH.md`
+
 ## Deployment Flow
 
 ### 1. Validate Locally With Docker
@@ -300,6 +304,21 @@ traffiq-mobile
 
 The Cognito setup does not protect API routes by itself. FastAPI JWT validation is added in a later task.
 
+### 13. Add Mobile Auth Screens
+
+The Expo mobile app connects to Cognito for:
+
+- register
+- confirm email
+- login
+- forgot password
+- reset password
+- logout
+
+The mobile app stores Cognito tokens with Expo Secure Store.
+
+This makes the mobile app aware of authentication state, but it does not protect backend endpoints yet.
+
 ## Common Failure Points
 
 - RDS security group does not allow access from the API service
@@ -310,13 +329,14 @@ The Cognito setup does not protect API routes by itself. FastAPI JWT validation 
 - mobile app still points to a local LAN IP instead of the public API URL
 - Cognito app client ID is missing from the mobile auth configuration
 - protected endpoints are expected before backend JWT validation exists
+- Expo deep link scheme does not match the Cognito callback URL
 
 ## Final Cloud Story
 
 The professional explanation is:
 
 ```text
-Traffiq is built locally with Docker, FastAPI, PostgreSQL, and Expo, and v3 moves the runtime toward AWS. The backend image is stored in ECR, served through App Runner, connected to RDS PostgreSQL, and prepared for Cognito authentication. The mobile app consumes the public API URL instead of a local machine, while scheduled ETL remains a later cloud step.
+Traffiq is built locally with Docker, FastAPI, PostgreSQL, and Expo, and v3 moves the runtime toward AWS. The backend image is stored in ECR, served through App Runner, connected to RDS PostgreSQL, and integrated with Cognito for mobile authentication. The mobile app consumes the public API URL instead of a local machine, while scheduled ETL and backend JWT protection remain later cloud steps.
 ```
 
 This shows that the project is not only a local demo. It has a realistic path toward a deployable data product.

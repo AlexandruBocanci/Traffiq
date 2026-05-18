@@ -35,6 +35,7 @@ Created AWS resources:
 | App client ID | `6vp5r1edjn8phjhfm2jk1f4dcp` |
 | Callback URL | `traffiq://auth` |
 | Identity provider | `COGNITO` |
+| Explicit auth flows | `ALLOW_USER_PASSWORD_AUTH`, `ALLOW_USER_SRP_AUTH`, `ALLOW_REFRESH_TOKEN_AUTH` |
 
 ## Sign-In Model
 
@@ -81,6 +82,8 @@ mobile apps cannot safely hide permanent secrets inside the installed applicatio
 ```
 
 The app client ID is configuration, not a secret. It can be documented and used by the Expo mobile app in Task 11.
+
+The app client allows `USER_PASSWORD_AUTH` so the Expo app can authenticate through direct Cognito API requests without implementing SRP cryptography in the first mobile auth version.
 
 ## Callback URL
 
@@ -149,6 +152,7 @@ ClientName: traffiq-mobile
 ClientId: 6vp5r1edjn8phjhfm2jk1f4dcp
 CallbackURLs: traffiq://auth
 SupportedIdentityProviders: COGNITO
+ExplicitAuthFlows: ALLOW_USER_PASSWORD_AUTH, ALLOW_USER_SRP_AUTH, ALLOW_REFRESH_TOKEN_AUTH
 ```
 
 Temporary user creation validation:
@@ -156,6 +160,15 @@ Temporary user creation validation:
 ```text
 Temporary user created successfully with status FORCE_CHANGE_PASSWORD.
 Temporary user deleted immediately after validation.
+Current user count after cleanup: 0
+```
+
+Mobile auth validation:
+
+```text
+Public SignUp API accepted a temporary mobile test user.
+USER_PASSWORD_AUTH returned TokenType Bearer for a temporary confirmed user.
+All temporary users were deleted after validation.
 Current user count after cleanup: 0
 ```
 

@@ -75,6 +75,10 @@ Current core packages expected by the project:
 - python-dotenv
 - httpx
 
+Current Expo auth-related package:
+
+- expo-secure-store
+
 ## 5. PostgreSQL Setup
 
 PostgreSQL must be installed locally.
@@ -311,6 +315,10 @@ The mobile cloud API configuration is documented in:
 The Cognito user pool for v3 authentication is documented in:
 
 - `docs/AWS_COGNITO_USER_POOL.md`
+
+The mobile Cognito authentication screens are documented in:
+
+- `docs/MOBILE_COGNITO_AUTH.md`
 
 That file explains how the current Docker backend can evolve toward:
 

@@ -294,6 +294,10 @@ Goal:
 
 - add user-facing authentication UI
 
+Mobile auth document:
+
+- `docs/MOBILE_COGNITO_AUTH.md`
+
 Screens:
 
 - Login
@@ -308,6 +312,8 @@ Definition of done:
 - user can log in
 - user can log out
 - user can request password reset
+- mobile app stores the Cognito session securely
+- guest users can still access public Drive features
 
 ### Task 12. Add backend JWT validation
 

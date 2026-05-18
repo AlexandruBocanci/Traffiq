@@ -23,6 +23,7 @@ import {
 } from '../types/api';
 
 type DriveScreenProps = {
+  onOpenAccount: () => void;
   onOpenPipeline: () => void;
 };
 
@@ -54,7 +55,7 @@ function getSeverityColor(severity: string) {
   return colors.accent;
 }
 
-export default function DriveScreen({ onOpenPipeline }: DriveScreenProps) {
+export default function DriveScreen({ onOpenAccount, onOpenPipeline }: DriveScreenProps) {
   const [data, setData] = useState<DriveState>({
     routes: [],
     events: [],
@@ -109,14 +110,24 @@ export default function DriveScreen({ onOpenPipeline }: DriveScreenProps) {
             <Text style={styles.title}>Where are you going?</Text>
           </View>
 
-          <Pressable
-            accessibilityLabel="Open pipeline status"
-            onPress={onOpenPipeline}
-            style={styles.settingsButton}
-          >
-            <View style={styles.settingsLine} />
-            <View style={styles.settingsLineShort} />
-          </Pressable>
+          <View style={styles.headerActions}>
+            <Pressable
+              accessibilityLabel="Open account"
+              onPress={onOpenAccount}
+              style={styles.accountButton}
+            >
+              <Text style={styles.accountButtonText}>A</Text>
+            </Pressable>
+
+            <Pressable
+              accessibilityLabel="Open pipeline status"
+              onPress={onOpenPipeline}
+              style={styles.settingsButton}
+            >
+              <View style={styles.settingsLine} />
+              <View style={styles.settingsLineShort} />
+            </Pressable>
+          </View>
         </View>
 
         <Pressable
@@ -349,6 +360,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
+  headerActions: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 2,
+  },
   eyebrow: {
     color: colors.primary,
     fontSize: 12,
@@ -371,9 +387,21 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     height: 46,
     justifyContent: 'center',
-    marginTop: 2,
     gap: 5,
     width: 46,
+  },
+  accountButton: {
+    alignItems: 'center',
+    backgroundColor: colors.primary,
+    borderRadius: 999,
+    height: 46,
+    justifyContent: 'center',
+    width: 46,
+  },
+  accountButtonText: {
+    color: colors.primaryText,
+    fontSize: 16,
+    fontWeight: '900',
   },
   settingsLine: {
     backgroundColor: colors.text,

@@ -205,6 +205,7 @@ Deployment and operations:
 - `docs/AWS_APP_RUNNER_BACKEND.md`
 - `docs/MOBILE_CLOUD_API_CONFIG.md`
 - `docs/AWS_COGNITO_USER_POOL.md`
+- `docs/MOBILE_COGNITO_AUTH.md`
 - `docs/CLOUD_WORKFLOW.md`
 - `docs/ENVIRONMENTS.md`
 - `docs/SCHEDULER_STRATEGY.md`

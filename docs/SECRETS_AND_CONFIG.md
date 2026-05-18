@@ -194,6 +194,18 @@ The current Cognito setup is documented in:
 
 - `docs/AWS_COGNITO_USER_POOL.md`
 
+The mobile Cognito authentication implementation is documented in:
+
+- `docs/MOBILE_COGNITO_AUTH.md`
+
+Mobile token storage uses:
+
+```text
+expo-secure-store
+```
+
+Cognito tokens must not be logged or committed. They are runtime credentials for the signed-in user.
+
 ## Git Rules
 
 These files must never be committed:
