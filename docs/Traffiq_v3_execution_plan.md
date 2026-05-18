@@ -272,6 +272,10 @@ Goal:
 
 - support email/password authentication through AWS
 
+Cognito document:
+
+- `docs/AWS_COGNITO_USER_POOL.md`
+
 Deliverables:
 
 - Cognito User Pool
@@ -281,6 +285,8 @@ Deliverables:
 Definition of done:
 
 - users can be created in Cognito
+- user pool and app client are documented
+- mobile/backend integration values are known
 
 ### Task 11. Add mobile auth screens
 

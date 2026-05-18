@@ -308,10 +308,15 @@ The mobile cloud API configuration is documented in:
 
 - `docs/MOBILE_CLOUD_API_CONFIG.md`
 
+The Cognito user pool for v3 authentication is documented in:
+
+- `docs/AWS_COGNITO_USER_POOL.md`
+
 That file explains how the current Docker backend can evolve toward:
 
 - containerized FastAPI on AWS
 - PostgreSQL on Amazon RDS
+- authentication through Amazon Cognito
 - scheduled ETL execution
 - environment-based secrets and configuration
 

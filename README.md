@@ -204,6 +204,7 @@ Deployment and operations:
 - `docs/AWS_ECR_BACKEND_IMAGE.md`
 - `docs/AWS_APP_RUNNER_BACKEND.md`
 - `docs/MOBILE_CLOUD_API_CONFIG.md`
+- `docs/AWS_COGNITO_USER_POOL.md`
 - `docs/CLOUD_WORKFLOW.md`
 - `docs/ENVIRONMENTS.md`
 - `docs/SCHEDULER_STRATEGY.md`
@@ -233,6 +234,6 @@ Current limitations are intentional and documented:
 - traffic data is not real-time yet
 - route and event sources are controlled demo datasets
 - the app is not a full navigation engine
-- AWS deployment is documented but not executed yet
+- AWS deployment is partial and intentionally low-cost
 
 The strength of the project is the end-to-end data system: ingestion, transformation, SQL modeling, API serving, mobile consumption, observability, Docker, and cloud readiness.

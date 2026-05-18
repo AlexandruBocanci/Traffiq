@@ -52,6 +52,10 @@ The mobile app cloud API configuration is documented in:
 
 - `docs/MOBILE_CLOUD_API_CONFIG.md`
 
+The Cognito user pool for authentication is documented in:
+
+- `docs/AWS_COGNITO_USER_POOL.md`
+
 ## Deployment Flow
 
 ### 1. Validate Locally With Docker
@@ -268,6 +272,34 @@ Expected result:
 - successful runs have `status = success`
 - record counters are populated
 
+### 12. Create Cognito Authentication
+
+Create a Cognito User Pool for email/password authentication.
+
+Traffiq v3 uses Cognito for:
+
+- registration
+- login
+- logout
+- email verification
+- password reset
+- JWT token issuing
+
+Created user pool:
+
+```text
+eu-central-1_QLCNGVSM1
+```
+
+Created mobile app client:
+
+```text
+traffiq-mobile
+6vp5r1edjn8phjhfm2jk1f4dcp
+```
+
+The Cognito setup does not protect API routes by itself. FastAPI JWT validation is added in a later task.
+
 ## Common Failure Points
 
 - RDS security group does not allow access from the API service
@@ -276,13 +308,15 @@ Expected result:
 - App Runner environment variables are missing
 - API startup uses local demo seeding when it should use normal FastAPI startup
 - mobile app still points to a local LAN IP instead of the public API URL
+- Cognito app client ID is missing from the mobile auth configuration
+- protected endpoints are expected before backend JWT validation exists
 
 ## Final Cloud Story
 
 The professional explanation is:
 
 ```text
-Traffiq is built locally with Docker, FastAPI, PostgreSQL, and Expo, but the deployment path is cloud-ready. The backend image can be pushed to ECR, served through App Runner, connected to RDS PostgreSQL, and refreshed by a scheduled ETL job through EventBridge and ECS Fargate. The mobile app then consumes the public API URL instead of a local machine.
+Traffiq is built locally with Docker, FastAPI, PostgreSQL, and Expo, and v3 moves the runtime toward AWS. The backend image is stored in ECR, served through App Runner, connected to RDS PostgreSQL, and prepared for Cognito authentication. The mobile app consumes the public API URL instead of a local machine, while scheduled ETL remains a later cloud step.
 ```
 
 This shows that the project is not only a local demo. It has a realistic path toward a deployable data product.

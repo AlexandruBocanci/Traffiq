@@ -36,6 +36,10 @@ The mobile app cloud API configuration is documented in:
 
 - `docs/MOBILE_CLOUD_API_CONFIG.md`
 
+The Amazon Cognito user pool created for v3 authentication is documented in:
+
+- `docs/AWS_COGNITO_USER_POOL.md`
+
 Secrets and environment configuration strategy is documented in:
 
 - `docs/SECRETS_AND_CONFIG.md`
@@ -255,6 +259,15 @@ Future implementation:
 - run DDL against RDS
 - run the pipeline against RDS
 
+Current v3 status:
+
+- RDS PostgreSQL exists
+- the RDS schema exists
+- the backend image exists in ECR
+- FastAPI runs on App Runner
+- the mobile app defaults to the App Runner API URL
+- Cognito User Pool exists for future auth integration
+
 The detailed workflow for this phase is documented in:
 
 - `docs/CLOUD_WORKFLOW.md`
@@ -278,6 +291,8 @@ Before real deployment, the project should still add:
 - proper logging strategy
 - deployment-specific environment documentation
 - a seed strategy that is separate from normal API startup
+- mobile Cognito screens
+- FastAPI Cognito JWT validation
 
 The current automatic Docker seeding is useful for local demos, but a production API should not reseed demo data every time it starts.
 

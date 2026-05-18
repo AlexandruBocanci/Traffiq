@@ -2058,6 +2058,48 @@ Notes:
 - cloud data loading belongs to a later v3 task
 - this closes Task 9 from the v3 Notion plan
 - the next task is `Task 10. Create Cognito User Pool`
+
+### Update 080 - Cognito User Pool created
+
+Completed:
+
+- created Amazon Cognito User Pool for Traffiq v3 authentication
+- created mobile app client `traffiq-mobile`
+- configured email-based sign-in
+- enabled self-registration
+- configured email as required sign-up attribute
+- configured callback URL `traffiq://auth`
+- validated the User Pool with AWS CLI
+- validated the app client with AWS CLI
+- created and deleted a temporary Cognito user to confirm users can be created
+- created `docs/AWS_COGNITO_USER_POOL.md`
+- linked the Cognito document from README, LOCAL_SETUP, AWS_DEPLOYMENT, CLOUD_WORKFLOW, SECRETS_AND_CONFIG, and the v3 execution plan
+- updated `docs/chat.md` for v3 execution continuity
+
+Validation:
+
+```text
+User pool name: User pool - 02wbh
+User pool ID: eu-central-1_QLCNGVSM1
+Region: eu-central-1
+App client name: traffiq-mobile
+App client ID: 6vp5r1edjn8phjhfm2jk1f4dcp
+Sign-in identifier: email
+Auto-verified attribute: email
+Callback URL: traffiq://auth
+Supported identity provider: COGNITO
+Temporary user creation: passed
+Current users after cleanup: 0
+```
+
+Notes:
+
+- no mobile auth screens were added in this task
+- no backend endpoint is protected yet
+- Cognito app client ID and User Pool ID are configuration, not secrets
+- the mobile app should not use a Cognito client secret
+- this closes Task 10 from the v3 Notion plan
+- the next task is `Task 11. Add mobile auth screens`
 ---
 
 ## 9. Instructions For Any New Chat

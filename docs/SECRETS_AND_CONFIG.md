@@ -22,6 +22,8 @@ Examples:
 - database name
 - database port
 - public API base URL for the mobile app
+- Cognito user pool ID
+- Cognito app client ID
 - runtime mode
 
 ## What Counts As A Secret
@@ -164,6 +166,33 @@ The public API URL can be committed if it is truly public. API keys, private tok
 Current mobile cloud API configuration is documented in:
 
 - `docs/MOBILE_CLOUD_API_CONFIG.md`
+
+## Cognito Configuration Strategy
+
+Cognito identifiers are configuration, not secrets.
+
+Current values:
+
+```text
+COGNITO_REGION=eu-central-1
+COGNITO_USER_POOL_ID=eu-central-1_QLCNGVSM1
+COGNITO_APP_CLIENT_ID=6vp5r1edjn8phjhfm2jk1f4dcp
+COGNITO_CALLBACK_URL=traffiq://auth
+```
+
+These values can be used by the mobile app in Task 11 and by the backend JWT validation logic in Task 12.
+
+Do not commit:
+
+- AWS access keys
+- database passwords
+- Cognito client secrets
+
+The Traffiq mobile app should use a public Cognito app client without a client secret.
+
+The current Cognito setup is documented in:
+
+- `docs/AWS_COGNITO_USER_POOL.md`
 
 ## Git Rules
 
