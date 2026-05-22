@@ -31,7 +31,7 @@ Pushed image:
 Digest:
 
 ```text
-sha256:f31573ce977923a247fcb00d68f2ab726466da15d211aaac06c8f0cc4ff51018
+sha256:da6b792e416378763131f8d5c20d317a9c5370307592bea7f1a72f9a1a9c29f4
 ```
 
 Image status:
@@ -93,7 +93,7 @@ Validated result:
 ```text
 repositoryName: traffiq-api
 imageTag: latest
-imageDigest: sha256:854dc4499e317f5f2de36cafdb05657453fd7343786f57db858adaa348c477be
+imageDigest: sha256:da6b792e416378763131f8d5c20d317a9c5370307592bea7f1a72f9a1a9c29f4
 imageStatus: ACTIVE
 ```
 

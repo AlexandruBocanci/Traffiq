@@ -416,9 +416,13 @@ Goal:
 
 - generate real route geometry for Suceava
 
+Routing integration document:
+
+- `docs/ROUTING_API_INTEGRATION.md`
+
 Recommended option:
 
-- OpenRouteService if free tier is enough
+- OSRM Route Service for low-cost/no-key route previews
 
 Deliverables:
 
@@ -426,10 +430,12 @@ Deliverables:
 - route geometry response
 - distance
 - estimated duration
+- mobile route preview connected to routing response
 
 Definition of done:
 
 - backend can return route geometry between two Suceava points
+- mobile can show route distance and duration from the route preview flow
 
 ### Task 17. Render route polyline and markers
 

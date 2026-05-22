@@ -1,10 +1,38 @@
 from fastapi import APIRouter
 from fastapi import HTTPException
+from pydantic import BaseModel
 
+from src.api.routing_service import RoutingProviderError
+from src.api.routing_service import UnknownSuceavaLocationError
+from src.api.routing_service import build_route_preview
 from src.utils.db_utils import get_db_connection
 
 
 router = APIRouter()
+
+
+class RoutePreviewRequest(BaseModel):
+  origin_name: str
+  destination_name: str
+  origin_latitude: float | None = None
+  origin_longitude: float | None = None
+
+
+@router.post("/routes/preview")
+def preview_route(request: RoutePreviewRequest):
+  try:
+    return build_route_preview(
+      origin_name=request.origin_name,
+      destination_name=request.destination_name,
+      origin_latitude=request.origin_latitude,
+      origin_longitude=request.origin_longitude,
+    )
+
+  except UnknownSuceavaLocationError as exc:
+    raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+  except RoutingProviderError as exc:
+    raise HTTPException(status_code=502, detail=str(exc)) from exc
 
 
 @router.get("/routes/report")

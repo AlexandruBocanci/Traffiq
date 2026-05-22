@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import * as Location from 'expo-location';
 import {
   KeyboardAvoidingView,
   Modal,
@@ -16,11 +17,12 @@ import EmptyState from '../components/EmptyState';
 import ErrorState from '../components/ErrorState';
 import LoadingState from '../components/LoadingState';
 import SuceavaMap from '../components/SuceavaMap';
-import { getDriveOverview } from '../services/traffiqApi';
+import { getDriveOverview, previewRoute } from '../services/traffiqApi';
 import { colors, radius, shadows, spacing } from '../theme/theme';
 import {
   MapEventRecord,
   RideHistoryRecord,
+  RoutePreviewResponse,
   RouteReportRecord,
   TopCongestedStreetRecord,
   WeatherImpactRecord,
@@ -45,12 +47,19 @@ type PlannedRoute = {
   origin: string;
 };
 
+type RouteOriginMode = 'current' | 'manual';
+
+type CurrentRouteLocation = {
+  latitude: number;
+  longitude: number;
+};
+
 const SUCEAVA_DESTINATION_SUGGESTIONS = [
   'Iulius Mall Suceava',
-  'Stefan cel Mare University',
-  'Suceava Fortress',
-  'Suceava Railway Station',
-  'City Center',
+  'Universitatea Stefan cel Mare',
+  'Cetatea de Scaun',
+  'Gara Suceava',
+  'Centru',
 ];
 
 function formatValue(value: number | null | undefined, suffix = '') {
@@ -89,9 +98,16 @@ export default function DriveScreen({
   const [errorMessage, setErrorMessage] = useState('');
   const [isRouteSheetVisible, setIsRouteSheetVisible] = useState(false);
   const [isRideSheetVisible, setIsRideSheetVisible] = useState(false);
-  const [routeOrigin, setRouteOrigin] = useState('Current location');
+  const [routeOriginMode, setRouteOriginMode] = useState<RouteOriginMode>('current');
+  const [manualRouteOrigin, setManualRouteOrigin] = useState('');
   const [routeDestination, setRouteDestination] = useState('');
   const [plannedRoute, setPlannedRoute] = useState<PlannedRoute | null>(null);
+  const [routePreview, setRoutePreview] = useState<RoutePreviewResponse | null>(null);
+  const [isRoutePreviewLoading, setIsRoutePreviewLoading] = useState(false);
+  const [routePreviewError, setRoutePreviewError] = useState('');
+  const [currentLocationMessage, setCurrentLocationMessage] = useState('');
+  const [currentRouteLocation, setCurrentRouteLocation] =
+    useState<CurrentRouteLocation | null>(null);
 
   useEffect(() => {
     async function loadDriveData() {
@@ -112,19 +128,98 @@ export default function DriveScreen({
     loadDriveData();
   }, []);
 
-  function handlePreviewRoute() {
-    const normalizedOrigin = routeOrigin.trim() || 'Current location';
+  async function getCurrentRouteLocation() {
+    try {
+      const permission = await Location.requestForegroundPermissionsAsync();
+
+      if (permission.status !== 'granted') {
+        return null;
+      }
+
+      const position = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      });
+
+      const location = {
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+      };
+
+      setCurrentRouteLocation(location);
+
+      return location;
+    } catch {
+      return null;
+    }
+  }
+
+  async function handleSelectCurrentLocation() {
+    setRouteOriginMode('current');
+    setCurrentLocationMessage('');
+    setRoutePreviewError('');
+
+    const location = currentRouteLocation ?? (await getCurrentRouteLocation());
+
+    if (!location) {
+      setCurrentLocationMessage(
+        'Aplicatia nu poate determina locatia curenta. Permite accesul la locatie sau introdu manual punctul de plecare.'
+      );
+      return;
+    }
+
+    setRouteOriginMode('current');
+    setCurrentLocationMessage('Locatia curenta este disponibila.');
+  }
+
+  async function handlePreviewRoute() {
+    const normalizedOrigin =
+      routeOriginMode === 'current' ? 'Current location' : manualRouteOrigin.trim();
     const normalizedDestination = routeDestination.trim();
 
     if (!normalizedDestination) {
       return;
     }
 
-    setPlannedRoute({
-      destination: normalizedDestination,
-      origin: normalizedOrigin,
-    });
-    setIsRouteSheetVisible(false);
+    if (routeOriginMode === 'manual' && !normalizedOrigin) {
+      setRoutePreviewError('Introdu punctul de plecare sau alege locatia curenta.');
+      return;
+    }
+
+    try {
+      setIsRoutePreviewLoading(true);
+      setRoutePreviewError('');
+
+      const liveOrigin = routeOriginMode === 'current'
+        ? currentRouteLocation ?? (await getCurrentRouteLocation())
+        : null;
+
+      if (routeOriginMode === 'current' && !liveOrigin) {
+        setCurrentLocationMessage(
+          'Aplicatia nu poate determina locatia curenta. Introdu manual punctul de plecare.'
+        );
+        setIsRoutePreviewLoading(false);
+        return;
+      }
+
+      const preview = await previewRoute(normalizedOrigin, normalizedDestination, {
+        originLatitude: liveOrigin?.latitude,
+        originLongitude: liveOrigin?.longitude,
+      });
+
+      setPlannedRoute({
+        destination: preview.destination.name,
+        origin: preview.origin.name,
+      });
+      setRoutePreview(preview);
+      setIsRouteSheetVisible(false);
+    } catch {
+      setRoutePreview(null);
+      setRoutePreviewError(
+        'Could not calculate this Suceava route. Choose one of the supported suggestions.'
+      );
+    } finally {
+      setIsRoutePreviewLoading(false);
+    }
   }
 
   if (isLoading) {
@@ -230,8 +325,12 @@ export default function DriveScreen({
               </Pressable>
             </View>
             <Text style={styles.cardText}>
-              Route calculation will be connected in the next task. This step prepares the
-              route request flow for Suceava.
+              {routePreview
+                ? `${formatValue(routePreview.duration_minutes, ' min')} ETA · ${formatValue(
+                    routePreview.distance_km,
+                    ' km'
+                  )} · ${routePreview.provider}`
+                : 'Route calculation is waiting for a provider response.'}
             </Text>
           </View>
         ) : null}
@@ -348,19 +447,90 @@ export default function DriveScreen({
             <Text style={styles.sheetTitle}>Where to?</Text>
 
             <Text style={styles.sheetText}>
-              Choose a Suceava destination. Route calculation is connected in the next task.
+              Choose a Suceava destination. Current location uses your phone GPS when
+              permission is granted.
             </Text>
 
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>From</Text>
-              <TextInput
-                autoCapitalize="words"
-                onChangeText={setRouteOrigin}
-                placeholder="Current location"
-                placeholderTextColor={colors.textMuted}
-                style={styles.routeInput}
-                value={routeOrigin}
-              />
+              <View style={styles.originChoiceRow}>
+                <Pressable
+                  onPress={handleSelectCurrentLocation}
+                  style={[
+                    styles.originChoiceButton,
+                    routeOriginMode === 'current' && styles.originChoiceButtonActive,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.originChoiceTitle,
+                      routeOriginMode === 'current' && styles.originChoiceTitleActive,
+                    ]}
+                  >
+                    Current location
+                  </Text>
+                  <Text
+                    style={[
+                      styles.originChoiceText,
+                      routeOriginMode === 'current' && styles.originChoiceTextActive,
+                    ]}
+                  >
+                    Phone GPS
+                  </Text>
+                </Pressable>
+
+                <Pressable
+                  onPress={() => {
+                    setRouteOriginMode('manual');
+                    setCurrentLocationMessage('');
+                  }}
+                  style={[
+                    styles.originChoiceButton,
+                    routeOriginMode === 'manual' && styles.originChoiceButtonActive,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.originChoiceTitle,
+                      routeOriginMode === 'manual' && styles.originChoiceTitleActive,
+                    ]}
+                  >
+                    Type location
+                  </Text>
+                  <Text
+                    style={[
+                      styles.originChoiceText,
+                      routeOriginMode === 'manual' && styles.originChoiceTextActive,
+                    ]}
+                  >
+                    Supported places
+                  </Text>
+                </Pressable>
+              </View>
+
+              {routeOriginMode === 'manual' ? (
+                <TextInput
+                  autoCapitalize="words"
+                  onChangeText={setManualRouteOrigin}
+                  placeholder="Example: Centru"
+                  placeholderTextColor={colors.textMuted}
+                  style={styles.routeInput}
+                  value={manualRouteOrigin}
+                />
+              ) : null}
+
+              {currentLocationMessage ? (
+                <Text
+                  style={[
+                    styles.locationMessage,
+                    currentRouteLocation && routeOriginMode === 'current'
+                      ? styles.locationMessageSuccess
+                      : styles.locationMessageError,
+                  ]}
+                >
+                  {currentLocationMessage}
+                </Text>
+              ) : null}
             </View>
 
             <View style={styles.inputGroup}>
@@ -378,7 +548,7 @@ export default function DriveScreen({
             </View>
 
             <View style={styles.suggestionSection}>
-              <Text style={styles.inputLabel}>Popular in Suceava</Text>
+              <Text style={styles.inputLabel}>Populare in Suceava</Text>
               <View style={styles.suggestionGrid}>
                 {SUCEAVA_DESTINATION_SUGGESTIONS.map((destination) => (
                   <Pressable
@@ -403,21 +573,30 @@ export default function DriveScreen({
             </View>
 
             <Pressable
-              disabled={!routeDestination.trim()}
+              disabled={!routeDestination.trim() || isRoutePreviewLoading}
               onPress={handlePreviewRoute}
               style={[
                 styles.previewRouteButton,
-                !routeDestination.trim() && styles.previewRouteButtonDisabled,
+                (!routeDestination.trim() || isRoutePreviewLoading) &&
+                  styles.previewRouteButtonDisabled,
               ]}
             >
-              <Text style={styles.previewRouteButtonText}>Preview route</Text>
+              <Text style={styles.previewRouteButtonText}>
+                {isRoutePreviewLoading ? 'Calculating route...' : 'Preview route'}
+              </Text>
             </Pressable>
+
+            {routePreviewError ? (
+              <Text style={styles.routePreviewError}>{routePreviewError}</Text>
+            ) : null}
 
             {data.routes.slice(0, 3).map((route) => (
               <Pressable
                 key={route.route_id}
                 onPress={() => {
-                  setRouteOrigin(route.origin_name);
+                  setRouteOriginMode('manual');
+                  setManualRouteOrigin(route.origin_name);
+                  setCurrentLocationMessage('');
                   setRouteDestination(route.destination_name);
                 }}
                 style={styles.sheetRouteRow}
@@ -890,6 +1069,52 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 11,
   },
+  originChoiceRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  originChoiceButton: {
+    backgroundColor: colors.card,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    flex: 1,
+    minHeight: 64,
+    padding: 12,
+  },
+  originChoiceButtonActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  originChoiceTitle: {
+    color: colors.text,
+    fontSize: 14,
+    fontWeight: '900',
+  },
+  originChoiceTitleActive: {
+    color: colors.primaryText,
+  },
+  originChoiceText: {
+    color: colors.textMuted,
+    fontSize: 11,
+    fontWeight: '800',
+    marginTop: 5,
+    textTransform: 'uppercase',
+  },
+  originChoiceTextActive: {
+    color: colors.primaryText,
+  },
+  locationMessage: {
+    fontSize: 13,
+    fontWeight: '800',
+    lineHeight: 19,
+  },
+  locationMessageError: {
+    color: colors.red,
+  },
+  locationMessageSuccess: {
+    color: colors.accent,
+  },
   suggestionSection: {
     gap: 8,
   },
@@ -932,6 +1157,12 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '900',
     textTransform: 'uppercase',
+  },
+  routePreviewError: {
+    color: colors.red,
+    fontSize: 13,
+    fontWeight: '800',
+    lineHeight: 19,
   },
   sheetRouteRow: {
     backgroundColor: colors.card,

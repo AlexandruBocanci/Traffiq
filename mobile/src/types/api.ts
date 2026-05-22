@@ -46,6 +46,26 @@ export type RouteHourlyRecord = {
   estimated_duration_minutes: number | null;
 };
 
+export type RouteLocation = {
+  name: string;
+  latitude: number;
+  longitude: number;
+};
+
+export type RouteGeometry = {
+  type: 'LineString';
+  coordinates: [number, number][];
+};
+
+export type RoutePreviewResponse = {
+  origin: RouteLocation;
+  destination: RouteLocation;
+  distance_km: number;
+  duration_minutes: number;
+  geometry: RouteGeometry;
+  provider: string;
+};
+
 export type RideHistoryRecord = {
   ride_id: number;
   started_at: string;

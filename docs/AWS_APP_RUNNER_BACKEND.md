@@ -242,6 +242,32 @@ GET /mobile/drive-overview -> 200
 rides: []
 ```
 
+Route preview endpoint after Task 16:
+
+```powershell
+Invoke-RestMethod -Method Post -Uri 'https://eguwdq6puz.eu-central-1.awsapprunner.com/routes/preview' -ContentType 'application/json' -Body '{"origin_name":"City Center","destination_name":"Iulius Mall Suceava"}'
+```
+
+Validated result:
+
+```text
+status: 200
+provider: local_suceava_fallback
+geometry.type: LineString
+```
+
+The fallback provider is expected in App Runner because the service uses a VPC Connector for RDS and the project intentionally avoids NAT Gateway cost. The mobile app attempts direct OSRM routing when the backend returns this fallback.
+
+Current-location route preview validation after correction:
+
+```text
+POST /routes/preview with origin_name=Current location, origin_latitude, origin_longitude -> 200
+origin.name: Current location
+origin.latitude: request latitude
+origin.longitude: request longitude
+POST /routes/preview with origin_name=Current location and no coordinates -> 400
+```
+
 ## What This Enables
 
 The Traffiq backend is now reachable through a public AWS URL.

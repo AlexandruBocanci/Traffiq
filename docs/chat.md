@@ -2319,6 +2319,153 @@ Notes:
 - route polyline and map markers belong to Task 17
 - this closes Task 15 from the v3 Notion plan
 - the next task is `Task 16. Integrate routing API`
+
+### Update 086 - Routing API integration added
+
+Completed:
+
+- added backend routing service in `src/api/routing_service.py`
+- added controlled Suceava location catalog for route previews
+- added `POST /routes/preview`
+- integrated OSRM Route Service for distance, duration, and GeoJSON route geometry
+- added local Suceava fallback route generation when OSRM is unavailable
+- added mobile route preview API call
+- added mobile direct OSRM fallback when App Runner returns `local_suceava_fallback`
+- updated Drive route draft card to show ETA, distance, and provider
+- added route preview response types in the mobile app
+- added routing service unit tests
+- rebuilt backend Docker image
+- pushed updated backend image to ECR
+- started App Runner deployment and validated the service returned to `RUNNING`
+- created `docs/ROUTING_API_INTEGRATION.md`
+- linked routing docs from README, LOCAL_SETUP, and the v3 execution plan
+- updated AWS ECR and App Runner docs with the latest validation notes
+- updated `docs/chat.md` for v3 execution continuity
+
+Validation:
+
+```text
+.venv\Scripts\python.exe tests\unit\test_routing_service.py -> passed
+.venv\Scripts\python.exe -m compileall src\api tests\unit\test_routing_service.py -> passed
+Local TestClient POST /routes/preview -> 200
+Local route preview provider -> OSRM
+npx.cmd tsc --noEmit -> passed
+npx.cmd expo export --platform android --output-dir .expo-export-task16-final -> passed
+git diff --check -> passed, with only expected Windows CRLF/LF warnings
+Docker image build -> passed
+ECR push -> passed
+App Runner deployment -> RUNNING
+Public GET /health -> 200
+Public POST /routes/preview -> 200
+Public route preview provider -> local_suceava_fallback
+ECR latest digest -> sha256:ac6d3217dd8a6b5f36b3f8f965b1f75dda54e95928cdac84a8a8dd03b61699c4
+```
+
+Notes:
+
+- OSRM means Open Source Routing Machine
+- no paid routing account or API key was created
+- App Runner uses fallback because the service is connected to RDS through a VPC Connector and the project avoids NAT Gateway cost
+- mobile attempts direct OSRM routing if backend returns the fallback provider
+- this task calculates route data but does not render the route line on the map yet
+- route polyline and markers belong to Task 17
+- this closes Task 16 from the v3 Notion plan
+- the next task is `Task 17. Render route polyline and markers`
+
+### Update 087 - Current location routing corrected
+
+Completed:
+
+- corrected `Current location` routing behavior
+- backend route preview now accepts explicit `origin_latitude` and `origin_longitude`
+- mobile now reads phone GPS when `From` is `Current location`
+- mobile sends current GPS coordinates to `/routes/preview`
+- mobile direct OSRM fallback also supports explicit current-location coordinates
+- route planner copy now explains that current location uses phone GPS when permission is granted
+- added unit coverage for explicit current-location coordinates
+- updated `docs/ROUTING_API_INTEGRATION.md`
+
+Validation:
+
+```text
+.venv\Scripts\python.exe tests\unit\test_routing_service.py -> passed
+npx.cmd tsc --noEmit -> passed
+npx.cmd expo export --platform android --output-dir .expo-export-task16-current-location -> passed
+Local TestClient POST /routes/preview with origin_latitude/origin_longitude -> 200
+Local explicit origin.name -> Current location
+Local explicit origin coordinates -> request coordinates
+ECR latest digest -> sha256:e675e3fb7cec60127a26e1b8ca0ec4c7c45de4a7b09ce56aa084425dc11db23d
+App Runner deployment -> RUNNING
+Public POST /routes/preview with origin_latitude/origin_longitude -> 200
+Public explicit origin.name -> Current location
+Public explicit origin coordinates -> request coordinates
+```
+
+Notes:
+
+- previous behavior mapped `Current location` to `City Center`
+- corrected behavior uses live phone GPS if permission is granted
+- if permission is denied or unavailable, the app still falls back to supported catalog behavior
+- destination remains constrained to supported Suceava locations
+
+### Update 088 - Route origin selector improved
+
+Completed:
+
+- replaced the editable `From = Current location` text behavior with an explicit origin selector
+- added `Current location` option for phone GPS
+- added `Type location` option for manual origin entry
+- added inline message when the app cannot determine current location
+- prevented `Current location` without coordinates from resolving to `City Center`
+- translated visible Suceava destination suggestions to Romanian
+- kept destination routing constrained to supported Suceava locations
+- updated `docs/MOBILE_ROUTE_INPUT_FLOW.md`
+- updated `docs/ROUTING_API_INTEGRATION.md`
+- updated `docs/chat.md`
+
+Validation:
+
+```text
+npx.cmd tsc --noEmit -> passed
+npx.cmd expo export --platform android --output-dir .expo-export-route-origin-ux -> passed
+.venv\Scripts\python.exe tests\unit\test_routing_service.py -> passed
+Current location without coordinates -> rejected as unknown catalog location
+Docker image build -> passed
+ECR push -> passed
+App Runner deployment -> RUNNING
+Public current-location route with coordinates -> 200
+Public current-location route without coordinates -> 400
+ECR latest digest -> sha256:da6b792e416378763131f8d5c20d317a9c5370307592bea7f1a72f9a1a9c29f4
+```
+
+Notes:
+
+- this is a UX correction inside Task 16 before closing the task with commit
+- the user can no longer break `Current location` by mistyping it
+- if phone GPS is unavailable, the app shows an inline Romanian message and expects manual origin input
+
+### Update 089 - Route origin toggle bug fixed
+
+Completed:
+
+- fixed the route planner origin toggle
+- selecting `Current location` now immediately switches the selector back from `Type location`
+- GPS validation runs after the selector changes
+- if GPS is unavailable, the selector stays on `Current location` and shows the inline warning
+- prevented the preview loading state from staying active when current location cannot be read
+
+Validation:
+
+```text
+npx.cmd tsc --noEmit -> passed
+npx.cmd expo export --platform android --output-dir .expo-export-origin-toggle-fix -> passed
+git diff --check -> passed, with only expected Windows CRLF/LF warnings
+```
+
+Notes:
+
+- this is a mobile-only bugfix
+- no backend redeploy was needed for this toggle bug
 ---
 
 ## 9. Instructions For Any New Chat

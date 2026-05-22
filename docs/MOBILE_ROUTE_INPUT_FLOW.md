@@ -13,9 +13,11 @@ This task prepares the UI and state flow. It does not calculate route geometry y
 This task adds:
 
 - route planner bottom sheet
-- editable `From` field
+- explicit `From` selector
+- current-location GPS option
+- manual origin input option
 - editable `To` field
-- Suceava destination suggestions
+- Romanian Suceava destination suggestions
 - `Preview route` action
 - selected route draft summary on the Drive screen
 - quick selection from existing demo route recommendations
@@ -37,9 +39,12 @@ Updated file:
 
 New route state:
 
-- `routeOrigin`
+- `routeOriginMode`
+- `manualRouteOrigin`
 - `routeDestination`
 - `plannedRoute`
+- `currentRouteLocation`
+- `currentLocationMessage`
 
 Default origin:
 
@@ -50,10 +55,19 @@ Current location
 Suceava destination suggestions:
 
 - Iulius Mall Suceava
-- Stefan cel Mare University
-- Suceava Fortress
-- Suceava Railway Station
-- City Center
+- Universitatea Stefan cel Mare
+- Cetatea de Scaun
+- Gara Suceava
+- Centru
+
+The `From` flow is intentionally not a free text field for `Current location`.
+
+The user chooses between:
+
+- `Current location`
+- `Type location`
+
+If `Current location` is selected, the app asks for phone GPS permission. If the app cannot determine the location, it switches back to manual origin mode and shows an inline message.
 
 When the user taps `Preview route`, the app stores the selected origin and destination locally and shows a `Route preview ready` card on Drive.
 
@@ -92,11 +106,14 @@ Open the app in Expo Go and verify:
 
 1. Tap `Where to?`.
 2. The route planner bottom sheet opens.
-3. The `From` and `To` fields are editable.
-4. Tapping a Suceava suggestion fills the destination.
-5. `Preview route` is disabled while destination is empty.
-6. `Preview route` closes the sheet and shows a route draft card.
-7. Tapping `Edit` opens the planner again.
+3. The `From` area shows `Current location` and `Type location`.
+4. Selecting `Current location` uses phone GPS when permission is granted.
+5. If GPS is unavailable, an inline message appears and manual origin remains available.
+6. The `To` field is editable.
+7. Tapping a Romanian Suceava suggestion fills the destination.
+8. `Preview route` is disabled while destination is empty.
+9. `Preview route` closes the sheet and shows a route draft card.
+10. Tapping `Edit` opens the planner again.
 
 ## Explanation For Presentation
 
