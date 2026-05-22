@@ -2243,6 +2243,46 @@ Notes:
 - saved routes and preferences are not implemented yet
 - this closes Task 13 from the v3 Notion plan
 - the next task is `Task 14. Add real map component`
+
+### Update 084 - Real Suceava map component added
+
+Completed:
+
+- installed `react-native-maps`
+- installed `expo-location`
+- added `mobile/src/components/SuceavaMap.tsx`
+- replaced the static drawn map panel on Drive with the real Suceava map component
+- centered the default map viewport on Suceava city
+- added foreground location permission handling
+- added current-location marker support when permission is granted
+- kept the default Suceava viewport when permission is denied or unavailable
+- kept the existing congestion summary overlay on top of the map
+- added Android location permissions in `mobile/app.json`
+- added the iOS location permission explanation in `mobile/app.json`
+- created `docs/MOBILE_REAL_MAP.md`
+- linked the real map document from README, LOCAL_SETUP, and the v3 execution plan
+- updated `docs/chat.md` for v3 execution continuity
+
+Validation:
+
+```text
+npx.cmd tsc --noEmit -> passed
+npx.cmd expo config --type public -> passed
+git diff --check -> passed, with only expected Windows CRLF/LF warnings
+npx.cmd expo export --platform android --output-dir .expo-export-task14 -> passed
+npm.cmd audit --omit=dev -> 11 moderate Expo/Metro dependency advisories remain
+```
+
+Notes:
+
+- no paid map account was created for this task
+- this task adds the real map foundation, not route search or route rendering
+- route input belongs to Task 15
+- route API integration belongs to Task 16
+- route polyline and markers belong to Task 17
+- `npm audit fix --force` was not used because it would upgrade Expo to a breaking major version
+- this closes Task 14 from the v3 Notion plan
+- the next task is `Task 15. Add route input flow`
 ---
 
 ## 9. Instructions For Any New Chat

@@ -371,15 +371,21 @@ Goal:
 
 - replace static map-like presentation with a real map interface
 
+Map implementation document:
+
+- `docs/MOBILE_REAL_MAP.md`
+
 Deliverables:
 
 - map screen centered on Suceava
 - current location support if permission is granted
 - default Suceava viewport if permission is denied
+- mobile location permissions documented
 
 Definition of done:
 
 - app displays a real map for Suceava
+- TypeScript and Expo config validation pass
 
 ### Task 15. Add route input flow
 

@@ -110,9 +110,12 @@ The current mobile app is a product-style demo focused on a traffic intelligence
 Current screens:
 
 - Drive
+- History
+- Account
 - Pipeline
 
 The Drive screen is powered by the backend-shaped `/mobile/drive-overview` response.
+It now uses a real Suceava-centered mobile map component with optional current-location support.
 
 ## Tech Stack
 
@@ -128,6 +131,8 @@ The Drive screen is powered by the backend-shaped `/mobile/drive-overview` respo
 - React Native
 - Expo
 - TypeScript
+- react-native-maps
+- expo-location
 
 ## Quick Start With Docker
 
@@ -208,6 +213,7 @@ Deployment and operations:
 - `docs/MOBILE_COGNITO_AUTH.md`
 - `docs/BACKEND_COGNITO_JWT_VALIDATION.md`
 - `docs/PERSONAL_FEATURE_PROTECTION.md`
+- `docs/MOBILE_REAL_MAP.md`
 - `docs/CLOUD_WORKFLOW.md`
 - `docs/ENVIRONMENTS.md`
 - `docs/SCHEDULER_STRATEGY.md`

@@ -76,9 +76,11 @@ Current core packages expected by the project:
 - httpx
 - PyJWT[crypto]
 
-Current Expo auth-related package:
+Current Expo/mobile packages added for v3:
 
 - expo-secure-store
+- expo-location
+- react-native-maps
 
 ## 5. PostgreSQL Setup
 
@@ -221,6 +223,7 @@ Then:
 - open Expo Go on your Android phone
 - scan the QR code
 - make sure the phone and the PC are on the same Wi-Fi network
+- allow or deny foreground location permission when testing the Suceava map
 
 ## 10. Current Database Notes
 
@@ -328,6 +331,10 @@ The backend Cognito JWT validation implementation is documented in:
 The personal feature protection rule is documented in:
 
 - `docs/PERSONAL_FEATURE_PROTECTION.md`
+
+The real mobile map component is documented in:
+
+- `docs/MOBILE_REAL_MAP.md`
 
 That file explains how the current Docker backend can evolve toward:
 
