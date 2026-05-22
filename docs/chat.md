@@ -2466,6 +2466,37 @@ Notes:
 
 - this is a mobile-only bugfix
 - no backend redeploy was needed for this toggle bug
+
+### Update 090 - Route polyline and markers rendered
+
+Completed:
+
+- connected `routePreview` from Drive to `SuceavaMap`
+- rendered route polyline on the map
+- rendered route origin marker
+- rendered route destination marker
+- converted GeoJSON coordinates from `[longitude, latitude]` to React Native Maps `{ latitude, longitude }`
+- updated map overlay to show active route destination, ETA, and distance
+- added route summary grid on the Drive screen
+- created `docs/MOBILE_ROUTE_POLYLINE.md`
+- linked route rendering docs from README, LOCAL_SETUP, and the v3 execution plan
+- updated `docs/chat.md` for v3 execution continuity
+
+Validation:
+
+```text
+npx.cmd tsc --noEmit -> passed
+npx.cmd expo export --platform android --output-dir .expo-export-task17 -> passed
+git diff --check -> passed, with only expected Windows CRLF/LF warnings
+```
+
+Notes:
+
+- route rendering is mobile-only
+- no backend redeploy was needed for Task 17
+- route alternatives and turn-by-turn navigation are not part of v3
+- this closes Task 17 from the v3 Notion plan
+- the next task is `Task 18. Add Suceava route condition summary`
 ---
 
 ## 9. Instructions For Any New Chat

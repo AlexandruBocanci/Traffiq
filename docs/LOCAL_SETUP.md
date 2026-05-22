@@ -344,6 +344,10 @@ The routing API integration is documented in:
 
 - `docs/ROUTING_API_INTEGRATION.md`
 
+The mobile route polyline and marker rendering is documented in:
+
+- `docs/MOBILE_ROUTE_POLYLINE.md`
+
 That file explains how the current Docker backend can evolve toward:
 
 - containerized FastAPI on AWS

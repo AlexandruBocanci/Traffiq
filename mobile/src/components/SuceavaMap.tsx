@@ -1,9 +1,16 @@
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import * as Location from 'expo-location';
-import MapView, { Marker, PROVIDER_DEFAULT, Region } from 'react-native-maps';
+import MapView, {
+  LatLng,
+  Marker,
+  Polyline,
+  PROVIDER_DEFAULT,
+  Region,
+} from 'react-native-maps';
 
 import { colors, radius, shadows } from '../theme/theme';
+import { RoutePreviewResponse } from '../types/api';
 
 const SUCEAVA_REGION: Region = {
   latitude: 47.6514,
@@ -17,11 +24,13 @@ type LocationStatus = 'checking' | 'granted' | 'denied';
 type SuceavaMapProps = {
   congestionLabel: string;
   congestionScore: string;
+  routePreview?: RoutePreviewResponse | null;
 };
 
 export default function SuceavaMap({
   congestionLabel,
   congestionScore,
+  routePreview,
 }: SuceavaMapProps) {
   const [currentRegion, setCurrentRegion] = useState<Region>(SUCEAVA_REGION);
   const [currentLocation, setCurrentLocation] = useState<{
@@ -87,6 +96,12 @@ export default function SuceavaMap({
       : locationStatus === 'granted'
         ? 'Current location enabled'
         : 'Default Suceava view';
+  const routeCoordinates: LatLng[] =
+    routePreview?.geometry.coordinates.map(([longitude, latitude]) => ({
+      latitude,
+      longitude,
+    })) ?? [];
+  const activeRoute = routePreview && routeCoordinates.length >= 2 ? routePreview : null;
 
   return (
     <View style={styles.mapPanel}>
@@ -108,6 +123,38 @@ export default function SuceavaMap({
           title="Suceava"
         />
 
+        {activeRoute ? (
+          <>
+            <Polyline
+              coordinates={routeCoordinates}
+              lineCap="round"
+              lineJoin="round"
+              strokeColor={colors.primary}
+              strokeWidth={5}
+            />
+
+            <Marker
+              coordinate={{
+                latitude: activeRoute.origin.latitude,
+                longitude: activeRoute.origin.longitude,
+              }}
+              description="Route start"
+              pinColor={colors.accent}
+              title={activeRoute.origin.name}
+            />
+
+            <Marker
+              coordinate={{
+                latitude: activeRoute.destination.latitude,
+                longitude: activeRoute.destination.longitude,
+              }}
+              description="Route destination"
+              pinColor={colors.red}
+              title={activeRoute.destination.name}
+            />
+          </>
+        ) : null}
+
         {currentLocation ? (
           <Marker
             coordinate={currentLocation}
@@ -123,9 +170,15 @@ export default function SuceavaMap({
       </View>
 
       <View style={styles.mapOverlay}>
-        <Text style={styles.mapLabel}>Suceava map</Text>
-        <Text style={styles.mapTitle}>{congestionLabel}</Text>
-        <Text style={styles.mapText}>Congestion score {congestionScore}</Text>
+        <Text style={styles.mapLabel}>{activeRoute ? 'Route preview' : 'Suceava map'}</Text>
+        <Text style={styles.mapTitle}>
+          {activeRoute ? activeRoute.destination.name : congestionLabel}
+        </Text>
+        <Text style={styles.mapText}>
+          {activeRoute
+            ? `${activeRoute.duration_minutes} min ETA · ${activeRoute.distance_km} km`
+            : `Congestion score ${congestionScore}`}
+        </Text>
       </View>
     </View>
   );

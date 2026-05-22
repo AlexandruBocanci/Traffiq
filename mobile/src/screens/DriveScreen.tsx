@@ -305,6 +305,7 @@ export default function DriveScreen({
         <SuceavaMap
           congestionLabel={topCongestedSegment?.street_name ?? 'City network'}
           congestionScore={formatValue(topCongestedSegment?.congestion_score)}
+          routePreview={routePreview}
         />
 
         {plannedRoute ? (
@@ -332,6 +333,31 @@ export default function DriveScreen({
                   )} · ${routePreview.provider}`
                 : 'Route calculation is waiting for a provider response.'}
             </Text>
+
+            {routePreview ? (
+              <View style={styles.routeSummaryGrid}>
+                <View style={styles.routeSummaryItem}>
+                  <Text style={styles.routeSummaryLabel}>From</Text>
+                  <Text style={styles.routeSummaryValue}>{routePreview.origin.name}</Text>
+                </View>
+                <View style={styles.routeSummaryItem}>
+                  <Text style={styles.routeSummaryLabel}>To</Text>
+                  <Text style={styles.routeSummaryValue}>{routePreview.destination.name}</Text>
+                </View>
+                <View style={styles.routeSummaryItem}>
+                  <Text style={styles.routeSummaryLabel}>Distance</Text>
+                  <Text style={styles.routeSummaryValue}>
+                    {formatValue(routePreview.distance_km, ' km')}
+                  </Text>
+                </View>
+                <View style={styles.routeSummaryItem}>
+                  <Text style={styles.routeSummaryLabel}>ETA</Text>
+                  <Text style={styles.routeSummaryValue}>
+                    {formatValue(routePreview.duration_minutes, ' min')}
+                  </Text>
+                </View>
+              </View>
+            ) : null}
           </View>
         ) : null}
 
@@ -852,6 +878,35 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '900',
     textTransform: 'uppercase',
+  },
+  routeSummaryGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginTop: 4,
+  },
+  routeSummaryItem: {
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    flexBasis: '48%',
+    flexGrow: 1,
+    minHeight: 66,
+    padding: 12,
+  },
+  routeSummaryLabel: {
+    color: colors.textMuted,
+    fontSize: 11,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+  },
+  routeSummaryValue: {
+    color: colors.text,
+    fontSize: 14,
+    fontWeight: '900',
+    lineHeight: 19,
+    marginTop: 5,
   },
   section: {
     gap: 12,

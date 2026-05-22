@@ -443,16 +443,22 @@ Goal:
 
 - show the calculated route visually on the map
 
+Route rendering document:
+
+- `docs/MOBILE_ROUTE_POLYLINE.md`
+
 Deliverables:
 
 - origin marker
 - destination marker
 - route polyline
 - route summary bottom sheet
+- route summary grid on Drive
 
 Definition of done:
 
 - selected route appears on map with distance and duration
+- route geometry is converted from GeoJSON coordinate order to React Native Maps coordinate order
 
 ### Task 18. Add Suceava route condition summary
 
