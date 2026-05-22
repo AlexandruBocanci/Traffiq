@@ -2283,6 +2283,42 @@ Notes:
 - `npm audit fix --force` was not used because it would upgrade Expo to a breaking major version
 - this closes Task 14 from the v3 Notion plan
 - the next task is `Task 15. Add route input flow`
+
+### Update 085 - Mobile route input flow added
+
+Completed:
+
+- added route origin state to the Drive screen
+- added route destination state to the Drive screen
+- added local planned route draft state
+- added a route planner bottom sheet
+- added editable `From` and `To` fields
+- added Suceava destination suggestions
+- added disabled/enabled `Preview route` action
+- added quick selection from existing demo route recommendations
+- added a `Route preview ready` summary card on Drive
+- kept route calculation out of this task
+- created `docs/MOBILE_ROUTE_INPUT_FLOW.md`
+- linked the route input document from README, LOCAL_SETUP, and the v3 execution plan
+- updated `docs/chat.md` for v3 execution continuity
+
+Validation:
+
+```text
+npx.cmd tsc --noEmit -> passed
+npx.cmd expo export --platform android --output-dir .expo-export-task15 -> passed
+git diff --check -> passed, with only expected Windows CRLF/LF warnings
+```
+
+Notes:
+
+- the route planner is a mobile UI/state flow only
+- no routing provider was called in this task
+- no AWS resource was needed for this task
+- real route geometry belongs to Task 16
+- route polyline and map markers belong to Task 17
+- this closes Task 15 from the v3 Notion plan
+- the next task is `Task 16. Integrate routing API`
 ---
 
 ## 9. Instructions For Any New Chat

@@ -336,6 +336,10 @@ The real mobile map component is documented in:
 
 - `docs/MOBILE_REAL_MAP.md`
 
+The mobile route input flow is documented in:
+
+- `docs/MOBILE_ROUTE_INPUT_FLOW.md`
+
 That file explains how the current Docker backend can evolve toward:
 
 - containerized FastAPI on AWS

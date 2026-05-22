@@ -393,15 +393,22 @@ Goal:
 
 - allow user to choose a destination
 
+Route input flow document:
+
+- `docs/MOBILE_ROUTE_INPUT_FLOW.md`
+
 Deliverables:
 
 - destination input
 - bottom sheet or modal
 - route search action
+- Suceava destination suggestions
+- selected route draft summary
 
 Definition of done:
 
 - user can start route preview flow from the map
+- route calculation is clearly left for Task 16
 
 ### Task 16. Integrate routing API
 

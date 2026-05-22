@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react';
 import {
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Pressable,
   SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from 'react-native';
 
@@ -36,6 +39,19 @@ type DriveState = {
   congested: TopCongestedStreetRecord[];
   weather: WeatherImpactRecord[];
 };
+
+type PlannedRoute = {
+  destination: string;
+  origin: string;
+};
+
+const SUCEAVA_DESTINATION_SUGGESTIONS = [
+  'Iulius Mall Suceava',
+  'Stefan cel Mare University',
+  'Suceava Fortress',
+  'Suceava Railway Station',
+  'City Center',
+];
 
 function formatValue(value: number | null | undefined, suffix = '') {
   if (value === null || value === undefined) {
@@ -73,6 +89,9 @@ export default function DriveScreen({
   const [errorMessage, setErrorMessage] = useState('');
   const [isRouteSheetVisible, setIsRouteSheetVisible] = useState(false);
   const [isRideSheetVisible, setIsRideSheetVisible] = useState(false);
+  const [routeOrigin, setRouteOrigin] = useState('Current location');
+  const [routeDestination, setRouteDestination] = useState('');
+  const [plannedRoute, setPlannedRoute] = useState<PlannedRoute | null>(null);
 
   useEffect(() => {
     async function loadDriveData() {
@@ -92,6 +111,21 @@ export default function DriveScreen({
 
     loadDriveData();
   }, []);
+
+  function handlePreviewRoute() {
+    const normalizedOrigin = routeOrigin.trim() || 'Current location';
+    const normalizedDestination = routeDestination.trim();
+
+    if (!normalizedDestination) {
+      return;
+    }
+
+    setPlannedRoute({
+      destination: normalizedDestination,
+      origin: normalizedOrigin,
+    });
+    setIsRouteSheetVisible(false);
+  }
 
   if (isLoading) {
     return <LoadingState message="Loading Traffiq mobility data..." />;
@@ -153,7 +187,9 @@ export default function DriveScreen({
           </View>
           <View style={styles.destinationTextWrap}>
             <Text style={styles.destinationLabel}>Plan a route</Text>
-            <Text style={styles.destinationText}>Where to?</Text>
+            <Text style={styles.destinationText}>
+              {plannedRoute ? plannedRoute.destination : 'Where to?'}
+            </Text>
           </View>
           <Text style={styles.destinationArrow}>›</Text>
         </Pressable>
@@ -175,6 +211,30 @@ export default function DriveScreen({
           congestionLabel={topCongestedSegment?.street_name ?? 'City network'}
           congestionScore={formatValue(topCongestedSegment?.congestion_score)}
         />
+
+        {plannedRoute ? (
+          <View style={styles.routeDraftCard}>
+            <View style={styles.cardTopRow}>
+              <View style={styles.routeDraftTextWrap}>
+                <Text style={styles.routeDraftLabel}>Route preview ready</Text>
+                <Text style={styles.routeDraftTitle}>
+                  {plannedRoute.origin} to {plannedRoute.destination}
+                </Text>
+              </View>
+              <Pressable
+                accessibilityLabel="Edit planned route"
+                onPress={() => setIsRouteSheetVisible(true)}
+                style={styles.routeDraftEditButton}
+              >
+                <Text style={styles.routeDraftEditText}>Edit</Text>
+              </Pressable>
+            </View>
+            <Text style={styles.cardText}>
+              Route calculation will be connected in the next task. This step prepares the
+              route request flow for Suceava.
+            </Text>
+          </View>
+        ) : null}
 
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
@@ -273,24 +333,103 @@ export default function DriveScreen({
         visible={isRouteSheetVisible}
         onRequestClose={() => setIsRouteSheetVisible(false)}
       >
-        <Pressable
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={styles.sheetBackdrop}
-          onPress={() => setIsRouteSheetVisible(false)}
         >
-          <Pressable style={styles.bottomSheet}>
+          <Pressable
+            accessibilityLabel="Close route planner"
+            onPress={() => setIsRouteSheetVisible(false)}
+            style={styles.sheetDismissArea}
+          />
+
+          <View style={styles.bottomSheet}>
             <View style={styles.sheetHandle} />
             <Text style={styles.sheetTitle}>Where to?</Text>
 
-            {data.routes.slice(0, 5).map((route) => (
-              <View key={route.route_id} style={styles.sheetRouteRow}>
+            <Text style={styles.sheetText}>
+              Choose a Suceava destination. Route calculation is connected in the next task.
+            </Text>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>From</Text>
+              <TextInput
+                autoCapitalize="words"
+                onChangeText={setRouteOrigin}
+                placeholder="Current location"
+                placeholderTextColor={colors.textMuted}
+                style={styles.routeInput}
+                value={routeOrigin}
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>To</Text>
+              <TextInput
+                autoCapitalize="words"
+                autoFocus
+                onChangeText={setRouteDestination}
+                placeholder="Search destination in Suceava"
+                placeholderTextColor={colors.textMuted}
+                returnKeyType="done"
+                style={styles.routeInput}
+                value={routeDestination}
+              />
+            </View>
+
+            <View style={styles.suggestionSection}>
+              <Text style={styles.inputLabel}>Popular in Suceava</Text>
+              <View style={styles.suggestionGrid}>
+                {SUCEAVA_DESTINATION_SUGGESTIONS.map((destination) => (
+                  <Pressable
+                    key={destination}
+                    onPress={() => setRouteDestination(destination)}
+                    style={[
+                      styles.suggestionChip,
+                      routeDestination === destination && styles.suggestionChipActive,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.suggestionChipText,
+                        routeDestination === destination && styles.suggestionChipTextActive,
+                      ]}
+                    >
+                      {destination}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+
+            <Pressable
+              disabled={!routeDestination.trim()}
+              onPress={handlePreviewRoute}
+              style={[
+                styles.previewRouteButton,
+                !routeDestination.trim() && styles.previewRouteButtonDisabled,
+              ]}
+            >
+              <Text style={styles.previewRouteButtonText}>Preview route</Text>
+            </Pressable>
+
+            {data.routes.slice(0, 3).map((route) => (
+              <Pressable
+                key={route.route_id}
+                onPress={() => {
+                  setRouteOrigin(route.origin_name);
+                  setRouteDestination(route.destination_name);
+                }}
+                style={styles.sheetRouteRow}
+              >
                 <Text style={styles.sheetRouteName}>{route.route_name}</Text>
                 <Text style={styles.sheetRouteMeta}>
                   {formatValue(route.estimated_duration_minutes, 'm')} · {route.congestion_level}
                 </Text>
-              </View>
+              </Pressable>
             ))}
-          </Pressable>
-        </Pressable>
+          </View>
+        </KeyboardAvoidingView>
       </Modal>
 
       <Modal
@@ -496,6 +635,45 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     textTransform: 'uppercase',
   },
+  routeDraftCard: {
+    ...shadows.card,
+    backgroundColor: colors.card,
+    borderColor: colors.border,
+    borderRadius: radius.xl,
+    borderWidth: 1,
+    gap: 10,
+    padding: 18,
+  },
+  routeDraftTextWrap: {
+    flex: 1,
+  },
+  routeDraftLabel: {
+    color: colors.primary,
+    fontSize: 12,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+  },
+  routeDraftTitle: {
+    color: colors.text,
+    fontSize: 18,
+    fontWeight: '900',
+    lineHeight: 24,
+    marginTop: 4,
+  },
+  routeDraftEditButton: {
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: 999,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+  },
+  routeDraftEditText: {
+    color: colors.text,
+    fontSize: 12,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+  },
   section: {
     gap: 12,
   },
@@ -653,6 +831,13 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-end',
   },
+  sheetDismissArea: {
+    bottom: 0,
+    left: 0,
+    position: 'absolute',
+    right: 0,
+    top: 0,
+  },
   bottomSheet: {
     backgroundColor: colors.surface,
     borderTopLeftRadius: radius.xl,
@@ -661,6 +846,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     gap: 12,
     marginBottom: -1,
+    maxHeight: '88%',
     padding: 20,
     paddingBottom: 14,
   },
@@ -681,6 +867,71 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     fontSize: 14,
     lineHeight: 21,
+  },
+  inputGroup: {
+    gap: 7,
+  },
+  inputLabel: {
+    color: colors.textMuted,
+    fontSize: 11,
+    fontWeight: '900',
+    letterSpacing: 0.7,
+    textTransform: 'uppercase',
+  },
+  routeInput: {
+    backgroundColor: colors.card,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    color: colors.text,
+    fontSize: 16,
+    fontWeight: '800',
+    minHeight: 48,
+    paddingHorizontal: 14,
+    paddingVertical: 11,
+  },
+  suggestionSection: {
+    gap: 8,
+  },
+  suggestionGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  suggestionChip: {
+    backgroundColor: colors.card,
+    borderColor: colors.border,
+    borderRadius: 999,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  suggestionChipActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  suggestionChipText: {
+    color: colors.textSoft,
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  suggestionChipTextActive: {
+    color: colors.primaryText,
+  },
+  previewRouteButton: {
+    alignItems: 'center',
+    backgroundColor: colors.primary,
+    borderRadius: radius.md,
+    paddingVertical: 15,
+  },
+  previewRouteButtonDisabled: {
+    opacity: 0.45,
+  },
+  previewRouteButtonText: {
+    color: colors.primaryText,
+    fontSize: 15,
+    fontWeight: '900',
+    textTransform: 'uppercase',
   },
   sheetRouteRow: {
     backgroundColor: colors.card,

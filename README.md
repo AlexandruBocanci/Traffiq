@@ -116,6 +116,7 @@ Current screens:
 
 The Drive screen is powered by the backend-shaped `/mobile/drive-overview` response.
 It now uses a real Suceava-centered mobile map component with optional current-location support.
+It also includes a route input flow for choosing a Suceava origin and destination before routing API integration.
 
 ## Tech Stack
 
@@ -214,6 +215,7 @@ Deployment and operations:
 - `docs/BACKEND_COGNITO_JWT_VALIDATION.md`
 - `docs/PERSONAL_FEATURE_PROTECTION.md`
 - `docs/MOBILE_REAL_MAP.md`
+- `docs/MOBILE_ROUTE_INPUT_FLOW.md`
 - `docs/CLOUD_WORKFLOW.md`
 - `docs/ENVIRONMENTS.md`
 - `docs/SCHEDULER_STRATEGY.md`
