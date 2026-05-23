@@ -119,6 +119,7 @@ It now uses a real Suceava-centered mobile map component with optional current-l
 It also includes a route input flow for choosing a Suceava origin and destination before routing API integration.
 Route previews can now calculate distance, duration, and geometry through the routing integration.
 Calculated routes are rendered on the map with a polyline and origin/destination markers.
+Route previews also include a Suceava condition summary that combines ETA, weather context, congestion score, and active city alerts.
 
 ## Tech Stack
 
@@ -220,6 +221,7 @@ Deployment and operations:
 - `docs/MOBILE_ROUTE_INPUT_FLOW.md`
 - `docs/ROUTING_API_INTEGRATION.md`
 - `docs/MOBILE_ROUTE_POLYLINE.md`
+- `docs/MOBILE_ROUTE_CONDITION_SUMMARY.md`
 - `docs/CLOUD_WORKFLOW.md`
 - `docs/ENVIRONMENTS.md`
 - `docs/SCHEDULER_STRATEGY.md`

@@ -466,6 +466,10 @@ Goal:
 
 - combine route, weather, and existing traffic analytics into a useful summary
 
+Route condition document:
+
+- `docs/MOBILE_ROUTE_CONDITION_SUMMARY.md`
+
 Deliverables:
 
 - route condition label
@@ -477,6 +481,8 @@ Deliverables:
 Definition of done:
 
 - route preview feels like a traffic intelligence feature, not just a map line
+- selected routes show a condition summary in the Drive screen
+- the summary explicitly remains a Suceava traffic intelligence estimate, not real-time navigation
 
 ---
 

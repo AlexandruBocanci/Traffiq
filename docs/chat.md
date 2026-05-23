@@ -2497,6 +2497,43 @@ Notes:
 - route alternatives and turn-by-turn navigation are not part of v3
 - this closes Task 17 from the v3 Notion plan
 - the next task is `Task 18. Add Suceava route condition summary`
+
+### Update 091 - Suceava route condition summary added
+
+Completed:
+
+- added a route condition summary to the Drive route preview card
+- combined selected route ETA with existing weather, congestion, and city alert data
+- added condition labels:
+  - `Light traffic`
+  - `Moderate traffic`
+  - `Heavy traffic expected`
+- added route condition metrics:
+  - ETA
+  - weather
+  - congestion
+  - alerts
+- kept the calculation mobile-side because `/routes/preview` and `/mobile/drive-overview` already expose the required data
+- created `docs/MOBILE_ROUTE_CONDITION_SUMMARY.md`
+- linked the new document from README, LOCAL_SETUP, and the v3 execution plan
+- updated `docs/chat.md` for v3 execution continuity
+
+Validation:
+
+```text
+npx.cmd tsc --noEmit -> passed
+npx.cmd expo export --platform android --output-dir .expo-export-task18 -> passed
+git diff --check -> passed, with only expected Windows CRLF/LF warnings
+```
+
+Notes:
+
+- this is a mobile-only task
+- no backend redeploy was needed
+- no AWS resource change was needed
+- the summary is a Suceava traffic intelligence estimate, not real-time turn-by-turn navigation
+- this closes Task 18 from the v3 Notion plan
+- the next task is `Task 19. Define Suceava route and street seed dataset`
 ---
 
 ## 9. Instructions For Any New Chat

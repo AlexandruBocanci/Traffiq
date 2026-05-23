@@ -348,6 +348,14 @@ The mobile route polyline and marker rendering is documented in:
 
 - `docs/MOBILE_ROUTE_POLYLINE.md`
 
+The mobile route condition summary is documented in:
+
+- `docs/MOBILE_ROUTE_CONDITION_SUMMARY.md`
+
+The cloud workflow is documented in:
+
+- `docs/CLOUD_WORKFLOW.md`
+
 That file explains how the current Docker backend can evolve toward:
 
 - containerized FastAPI on AWS

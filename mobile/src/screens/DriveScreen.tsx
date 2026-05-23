@@ -54,6 +54,18 @@ type CurrentRouteLocation = {
   longitude: number;
 };
 
+type RouteConditionTone = 'low' | 'moderate' | 'high';
+
+type RouteConditionSummary = {
+  alertContext: string;
+  congestionContext: string;
+  description: string;
+  etaContext: string;
+  label: string;
+  tone: RouteConditionTone;
+  weatherContext: string;
+};
+
 const SUCEAVA_DESTINATION_SUGGESTIONS = [
   'Iulius Mall Suceava',
   'Universitatea Stefan cel Mare',
@@ -80,6 +92,93 @@ function getSeverityColor(severity: string) {
   }
 
   return colors.accent;
+}
+
+function getConditionColor(tone: RouteConditionTone) {
+  if (tone === 'high') {
+    return colors.red;
+  }
+
+  if (tone === 'moderate') {
+    return colors.amber;
+  }
+
+  return colors.accent;
+}
+
+function getRouteConditionTone(
+  congestionScore: number | null | undefined,
+  alerts: MapEventRecord[]
+): RouteConditionTone {
+  const hasHighAlert = alerts.some((event) => event.severity === 'high');
+  const hasMediumAlert = alerts.some((event) => event.severity === 'medium');
+
+  if (hasHighAlert || (congestionScore !== null && congestionScore !== undefined && congestionScore >= 70)) {
+    return 'high';
+  }
+
+  if (
+    hasMediumAlert ||
+    (congestionScore !== null && congestionScore !== undefined && congestionScore >= 40)
+  ) {
+    return 'moderate';
+  }
+
+  return 'low';
+}
+
+function getConditionLabel(tone: RouteConditionTone) {
+  if (tone === 'high') {
+    return 'Heavy traffic expected';
+  }
+
+  if (tone === 'moderate') {
+    return 'Moderate traffic';
+  }
+
+  return 'Light traffic';
+}
+
+function buildRouteConditionSummary(
+  routePreview: RoutePreviewResponse | null,
+  weatherImpact: WeatherImpactRecord | undefined,
+  topCongestedSegment: TopCongestedStreetRecord | undefined,
+  events: MapEventRecord[]
+): RouteConditionSummary | null {
+  if (!routePreview) {
+    return null;
+  }
+
+  const congestionScore =
+    topCongestedSegment?.congestion_score ?? weatherImpact?.avg_congestion_score ?? null;
+  const cityAlerts = events.slice(0, 3);
+  const tone = getRouteConditionTone(congestionScore, cityAlerts);
+  const weatherLabel = weatherImpact?.weather_label ?? 'No weather signal';
+  const congestedStreet = topCongestedSegment?.street_name ?? 'Suceava city network';
+
+  const descriptions: Record<RouteConditionTone, string> = {
+    high:
+      'Expect a slower trip. The route estimate is combined with elevated Suceava congestion signals and active city alerts.',
+    low:
+      'No heavy Suceava congestion signal is active for this preview. Use the ETA as the baseline estimate.',
+    moderate:
+      'Expect some delay around Suceava. The estimate combines route duration with current city congestion and weather context.',
+  };
+
+  return {
+    alertContext: cityAlerts.length
+      ? `${cityAlerts.length} active city alert${cityAlerts.length === 1 ? '' : 's'}`
+      : 'No active alerts',
+    congestionContext:
+      congestionScore === null || congestionScore === undefined
+        ? `${congestedStreet}: no score`
+        : `${congestedStreet}: ${congestionScore}`,
+    description: descriptions[tone],
+    etaContext: `${formatValue(routePreview.duration_minutes, ' min')} ETA`,
+    label: getConditionLabel(tone),
+    tone,
+    weatherContext: weatherLabel,
+  };
 }
 
 export default function DriveScreen({
@@ -235,6 +334,12 @@ export default function DriveScreen({
   const topCongestedSegment = data.congested[0];
   const weatherImpact = data.weather[0];
   const recentRide = data.rides[0];
+  const routeCondition = buildRouteConditionSummary(
+    routePreview,
+    weatherImpact,
+    topCongestedSegment,
+    data.events
+  );
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -355,6 +460,48 @@ export default function DriveScreen({
                   <Text style={styles.routeSummaryValue}>
                     {formatValue(routePreview.duration_minutes, ' min')}
                   </Text>
+                </View>
+              </View>
+            ) : null}
+
+            {routeCondition ? (
+              <View style={styles.conditionPanel}>
+                <View style={styles.conditionHeader}>
+                  <View
+                    style={[
+                      styles.conditionIndicator,
+                      { backgroundColor: getConditionColor(routeCondition.tone) },
+                    ]}
+                  />
+                  <View style={styles.conditionTitleWrap}>
+                    <Text style={styles.conditionLabel}>Route condition</Text>
+                    <Text style={styles.conditionTitle}>{routeCondition.label}</Text>
+                  </View>
+                </View>
+
+                <Text style={styles.conditionDescription}>{routeCondition.description}</Text>
+
+                <View style={styles.conditionMetrics}>
+                  <View style={styles.conditionMetric}>
+                    <Text style={styles.conditionMetricLabel}>ETA</Text>
+                    <Text style={styles.conditionMetricValue}>{routeCondition.etaContext}</Text>
+                  </View>
+                  <View style={styles.conditionMetric}>
+                    <Text style={styles.conditionMetricLabel}>Weather</Text>
+                    <Text style={styles.conditionMetricValue}>
+                      {routeCondition.weatherContext}
+                    </Text>
+                  </View>
+                  <View style={styles.conditionMetric}>
+                    <Text style={styles.conditionMetricLabel}>Congestion</Text>
+                    <Text style={styles.conditionMetricValue}>
+                      {routeCondition.congestionContext}
+                    </Text>
+                  </View>
+                  <View style={styles.conditionMetric}>
+                    <Text style={styles.conditionMetricLabel}>Alerts</Text>
+                    <Text style={styles.conditionMetricValue}>{routeCondition.alertContext}</Text>
+                  </View>
                 </View>
               </View>
             ) : null}
@@ -906,6 +1053,73 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '900',
     lineHeight: 19,
+    marginTop: 5,
+  },
+  conditionPanel: {
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    gap: 12,
+    marginTop: 4,
+    padding: 14,
+  },
+  conditionHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 10,
+  },
+  conditionIndicator: {
+    borderRadius: 999,
+    height: 12,
+    width: 12,
+  },
+  conditionTitleWrap: {
+    flex: 1,
+  },
+  conditionLabel: {
+    color: colors.textMuted,
+    fontSize: 11,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+  },
+  conditionTitle: {
+    color: colors.text,
+    fontSize: 17,
+    fontWeight: '900',
+    marginTop: 3,
+  },
+  conditionDescription: {
+    color: colors.textSoft,
+    fontSize: 13,
+    lineHeight: 20,
+  },
+  conditionMetrics: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  conditionMetric: {
+    backgroundColor: colors.card,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    flexBasis: '48%',
+    flexGrow: 1,
+    minHeight: 62,
+    padding: 10,
+  },
+  conditionMetricLabel: {
+    color: colors.textMuted,
+    fontSize: 10,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+  },
+  conditionMetricValue: {
+    color: colors.text,
+    fontSize: 13,
+    fontWeight: '900',
+    lineHeight: 18,
     marginTop: 5,
   },
   section: {
