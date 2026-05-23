@@ -12,7 +12,10 @@ import { useAuth } from '../context/AuthContext';
 import {
   confirmEmailSignUp,
   confirmPasswordReset,
+  isUserAlreadyConfirmedError,
+  isUsernameExistsError,
   requestPasswordReset,
+  resendEmailConfirmationCode,
   signUpWithEmail,
 } from '../services/cognitoAuth';
 import { colors, radius, shadows } from '../theme/theme';
@@ -91,6 +94,7 @@ export default function AuthScreen({ initialMode = 'login' }: AuthScreenProps) {
   const [message, setMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isResendingCode, setIsResendingCode] = useState(false);
 
   const needsPassword = mode === 'login' || mode === 'register' || mode === 'reset';
   const needsCode = mode === 'confirm' || mode === 'reset';
@@ -118,8 +122,31 @@ export default function AuthScreen({ initialMode = 'login' }: AuthScreenProps) {
       }
 
       if (mode === 'register') {
-        await signUpWithEmail(email, password);
-        setMessage('Confirmation code sent. Check your email.');
+        try {
+          await signUpWithEmail(email, password);
+          setMessage('Confirmation code sent. Check your inbox and spam folder.');
+        } catch (registerError) {
+          if (!isUsernameExistsError(registerError)) {
+            throw registerError;
+          }
+
+          try {
+            await resendEmailConfirmationCode(email);
+            setMessage(
+              'Account already exists but is not confirmed. We sent a new confirmation code. Check your inbox and spam folder.'
+            );
+          } catch (resendError) {
+            if (isUserAlreadyConfirmedError(resendError)) {
+              setMessage('Account already confirmed. Sign in with your password.');
+              setMode('login');
+              setPassword('');
+              return;
+            }
+
+            throw resendError;
+          }
+        }
+
         setMode('confirm');
         setPassword('');
         return;
@@ -149,6 +176,21 @@ export default function AuthScreen({ initialMode = 'login' }: AuthScreenProps) {
       setErrorMessage(error instanceof Error ? error.message : 'Authentication failed.');
     } finally {
       setIsSubmitting(false);
+    }
+  }
+
+  async function handleResendConfirmationCode() {
+    try {
+      setIsResendingCode(true);
+      setMessage('');
+      setErrorMessage('');
+
+      await resendEmailConfirmationCode(email);
+      setMessage('Confirmation code resent. Check your inbox and spam folder.');
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Could not resend code.');
+    } finally {
+      setIsResendingCode(false);
     }
   }
 
@@ -209,6 +251,20 @@ export default function AuthScreen({ initialMode = 'login' }: AuthScreenProps) {
           <Text style={styles.primaryButtonText}>{getPrimaryLabel(mode)}</Text>
         )}
       </Pressable>
+
+      {mode === 'confirm' ? (
+        <Pressable
+          disabled={isResendingCode || isSubmitting}
+          onPress={handleResendConfirmationCode}
+          style={[styles.secondaryButton, isResendingCode ? styles.disabledButton : null]}
+        >
+          {isResendingCode ? (
+            <ActivityIndicator color={colors.text} />
+          ) : (
+            <Text style={styles.secondaryButtonText}>Resend confirmation code</Text>
+          )}
+        </Pressable>
+      ) : null}
 
       <View style={styles.links}>
         {mode !== 'login' ? (
@@ -297,6 +353,23 @@ const styles = StyleSheet.create({
   primaryButtonText: {
     color: colors.primaryText,
     fontSize: 15,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+  },
+  secondaryButton: {
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    minHeight: 48,
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  secondaryButtonText: {
+    color: colors.text,
+    fontSize: 14,
     fontWeight: '900',
     textTransform: 'uppercase',
   },

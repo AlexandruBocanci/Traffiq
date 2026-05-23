@@ -172,6 +172,22 @@ All temporary users were deleted after validation.
 Current user count after cleanup: 0
 ```
 
+Confirmation email resend validation:
+
+```text
+SignUp accepted with DeliveryMedium=EMAIL.
+ResendConfirmationCode accepted with DeliveryMedium=EMAIL.
+Temporary unconfirmed test user deleted after validation.
+```
+
+The User Pool currently uses:
+
+```text
+EmailSendingAccount: COGNITO_DEFAULT
+```
+
+This is low-cost and simple, but the sender is controlled by Cognito. If delivery remains unreliable after using the resend action and checking Spam/Junk, the next operational improvement is to configure Cognito with a verified Amazon SES sender identity.
+
 ## Where To Find It In AWS
 
 AWS Console path:

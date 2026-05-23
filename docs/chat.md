@@ -2874,6 +2874,60 @@ Notes:
 - no new AWS service was created
 - this closes Task 23 from the v3 Notion plan
 - the next task is `Task 24. Add ride history per user`
+
+### Update 097 - Cognito confirmation code resend added
+
+Completed:
+
+- diagnosed the mobile create-account confirmation issue
+- confirmed the Cognito User Pool is configured with:
+  - `AutoVerifiedAttributes=email`
+  - `DefaultEmailOption=CONFIRM_WITH_CODE`
+  - `EmailSendingAccount=COGNITO_DEFAULT`
+- confirmed Cognito accepts public `SignUp` and returns `DeliveryMedium=EMAIL`
+- added `ResendConfirmationCode` support to `mobile/src/services/cognitoAuth.ts`
+- added a `Resend confirmation code` button to the mobile Confirm email screen
+- updated the success copy to tell users to check inbox and spam folder
+- updated Cognito and mobile auth documentation
+
+Validation:
+
+```text
+npx.cmd tsc --noEmit -> passed
+Cognito SignUp test -> UserConfirmed=False, DeliveryMedium=EMAIL
+Cognito ResendConfirmationCode test -> DeliveryMedium=EMAIL, DestinationPresent=True
+temporary Cognito resend test cleanup -> attempted
+```
+
+Notes:
+
+- App Runner redeploy was not required because this change is mobile-only
+- no new AWS service was created
+- Cognito still uses the default sender; if delivery remains unreliable after resend, the next fix is configuring a verified Amazon SES sender identity
+- this is an auth bugfix, not a Notion product task
+
+Follow-up fix:
+
+- added `Confirm existing account` on the Sign in screen
+- this handles the real Cognito state where a user exists as `UNCONFIRMED`, received the email later, and needs to enter the code after leaving the registration flow
+- `Forgot password` is not valid for this state because Cognito cannot reset an unconfirmed user with no verified email yet
+- `npx.cmd tsc --noEmit -> passed`
+
+Second follow-up fix:
+
+- updated `Create account` to handle an existing unconfirmed email like a consumer app
+- when Cognito returns `UsernameExistsException`, the mobile app now calls `ResendConfirmationCode`
+- if resend succeeds, the user is moved to `Confirm email`
+- if Cognito reports the user is already confirmed, the app sends the user back to Sign in
+- added typed Cognito error handling in `mobile/src/services/cognitoAuth.ts`
+- `npx.cmd tsc --noEmit -> passed`
+
+Third follow-up fix:
+
+- removed the manual `Confirm existing account` action from the Sign in screen
+- kept the required internal `Confirm email` screen for normal Cognito code entry after `Create account`
+- kept the consumer-style behavior where `Create account` with an existing unconfirmed email resends the code and moves the user to `Confirm email`
+- `npx.cmd tsc --noEmit -> passed`
 ---
 
 ## 9. Instructions For Any New Chat

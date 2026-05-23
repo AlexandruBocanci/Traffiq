@@ -69,6 +69,7 @@ The Account area now supports:
 - login
 - register
 - email confirmation
+- resend email confirmation code
 - forgot password request
 - password reset confirmation
 - signed-in account view
@@ -183,6 +184,36 @@ USER_PASSWORD_AUTH returned TokenType Bearer
 temporary confirmed user deleted after validation
 current Cognito user count after cleanup: 0
 ```
+
+Email confirmation resend validation:
+
+```text
+Cognito SignUp -> UserConfirmed=False, DeliveryMedium=EMAIL
+Cognito ResendConfirmationCode -> DeliveryMedium=EMAIL
+temporary unconfirmed test user deleted after validation
+npx.cmd tsc --noEmit -> passed
+```
+
+If the first confirmation email does not arrive, the Confirm email screen now exposes:
+
+```text
+Resend confirmation code
+```
+
+The Create account flow also handles an existing unconfirmed user:
+
+```text
+Create account with an existing UNCONFIRMED email
+-> Cognito returns UsernameExistsException
+-> mobile app calls ResendConfirmationCode
+-> user is moved to Confirm email
+```
+
+This matches common consumer-app behavior: the user does not need to understand Cognito's internal `UNCONFIRMED` state.
+
+The Sign in screen does not expose a separate manual confirm-account action. Re-confirmation is handled through `Create account` for a cleaner user flow.
+
+Users should also check Spam/Junk/Promotions because the current User Pool uses the Cognito default email sender.
 
 ## How To Test Manually
 

@@ -16,6 +16,16 @@ type CognitoAuthResult = {
   };
 };
 
+export class CognitoRequestError extends Error {
+  code?: string;
+
+  constructor(error: CognitoErrorResponse) {
+    super(getCognitoMessage(error));
+    this.name = 'CognitoRequestError';
+    this.code = error.__type?.split('#').pop();
+  }
+}
+
 function getCognitoMessage(error: CognitoErrorResponse) {
   if (error.message) {
     return error.message;
@@ -41,10 +51,18 @@ async function callCognito<T>(target: string, payload: Record<string, unknown>) 
   const body = await response.json();
 
   if (!response.ok) {
-    throw new Error(getCognitoMessage(body as CognitoErrorResponse));
+    throw new CognitoRequestError(body as CognitoErrorResponse);
   }
 
   return body as T;
+}
+
+export function isUsernameExistsError(error: unknown) {
+  return error instanceof CognitoRequestError && error.code === 'UsernameExistsException';
+}
+
+export function isUserAlreadyConfirmedError(error: unknown) {
+  return error instanceof Error && error.message.toLowerCase().includes('already confirmed');
 }
 
 function normalizeEmail(email: string) {
@@ -86,6 +104,13 @@ export async function confirmEmailSignUp(email: string, code: string) {
     ClientId: COGNITO_APP_CLIENT_ID,
     Username: normalizeEmail(email),
     ConfirmationCode: code.trim(),
+  });
+}
+
+export async function resendEmailConfirmationCode(email: string) {
+  return callCognito('ResendConfirmationCode', {
+    ClientId: COGNITO_APP_CLIENT_ID,
+    Username: normalizeEmail(email),
   });
 }
 
