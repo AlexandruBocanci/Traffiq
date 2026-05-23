@@ -1,6 +1,9 @@
 from src.extract.extract_weather_api import extract_weather_api
 from src.load.load_weather_raw_to_bronze import load_weather_raw_to_bronze
+from src.pipeline.execution_safety import validate_configured_pipeline_target
 from src.utils.db_utils import get_db_connection
+
+validate_configured_pipeline_target()
 
 def test_load_weather_raw_to_bronze():
   conn = None

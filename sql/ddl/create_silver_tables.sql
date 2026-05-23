@@ -40,8 +40,14 @@ CREATE TABLE IF NOT EXISTS silver.events_observations (
   event_type VARCHAR(100) NOT NULL,
   street_name VARCHAR(255) NOT NULL,
   event_description TEXT,
-  severity VARCHAR(50) NOT NULL
+  severity VARCHAR(50) NOT NULL,
+  latitude NUMERIC(9, 6),
+  longitude NUMERIC(9, 6)
 );
+
+ALTER TABLE silver.events_observations
+ADD COLUMN IF NOT EXISTS latitude NUMERIC(9, 6),
+ADD COLUMN IF NOT EXISTS longitude NUMERIC(9, 6);
 
 CREATE TABLE IF NOT EXISTS silver.ride_history (
   ride_id INTEGER PRIMARY KEY,

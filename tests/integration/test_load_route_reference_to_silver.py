@@ -1,7 +1,10 @@
 from src.extract.extract_route_reference_csv import extract_route_reference_csv
 from src.load.load_route_reference_to_silver import load_route_reference_to_silver
+from src.pipeline.execution_safety import validate_configured_pipeline_target
 from src.utils.db_utils import get_db_connection
 
+
+validate_configured_pipeline_target()
 
 def test_load_route_reference_to_silver():
   conn = None

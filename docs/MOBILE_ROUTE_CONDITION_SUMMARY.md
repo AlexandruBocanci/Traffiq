@@ -11,7 +11,7 @@ The summary combines:
 - route preview ETA and distance from `POST /routes/preview`
 - weather context from `/mobile/drive-overview`
 - congestion score from the existing serving data
-- active city alerts from the existing map events feed
+- mapped city alerts from the existing controlled map events feed
 
 ## What The User Sees
 
@@ -21,7 +21,7 @@ After selecting a route, the Drive screen shows:
 - route ETA
 - weather context
 - congestion context
-- active alert count
+- mapped alert count
 - short natural-language explanation
 
 Example labels:
@@ -68,7 +68,7 @@ It does not yet perform segment-by-segment traffic matching against every street
 That deeper data realism belongs to later v3 work:
 
 - Task 19: Suceava route and street seed dataset
-- Task 22: improved Suceava event data
+- Task 22: improved Suceava event data and map markers, now implemented
 
 ## Validation
 

@@ -285,6 +285,21 @@ Backend image deployed for this validation:
 sha256:e81b6e530deae41bd866ade7e1f5ab4c95ce94d753be51dbefb94a01b8f04f76
 ```
 
+Geolocated Suceava event alert validation after Task 22:
+
+```text
+App Runner status -> RUNNING
+Backend ECR digest -> sha256:879bea5b41c4cd8b2da5b895fce54d642060108089f27bafbc0d565381b63ecf
+GET /health -> status=ok
+GET /map/events -> count=5, latitude/longitude populated
+GET /mobile/drive-overview -> events=5 with coordinates, rides=0
+GET /reports/overview -> event_count=5, no recent_rides field
+GET /rides/history without token -> 401
+```
+
+These geolocated events are controlled Suceava alert examples, not live
+incident reports.
+
 ## What This Enables
 
 The Traffiq backend is now reachable through a public AWS URL.

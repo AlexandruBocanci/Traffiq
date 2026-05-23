@@ -1,9 +1,12 @@
 from src.extract.extract_events_csv import extract_events_csv
 from src.load.load_events_raw_to_bronze import load_events_raw_to_bronze
 from src.load.load_events_to_silver import load_events_to_silver
+from src.pipeline.execution_safety import validate_configured_pipeline_target
 from src.transform.transform_events_data import transform_events_data
 from src.utils.db_utils import get_db_connection
 
+
+validate_configured_pipeline_target()
 
 def test_load_events_to_silver():
   conn = None
@@ -51,7 +54,7 @@ def test_load_events_to_silver():
 
     cur.execute(
       """
-      SELECT event_timestamp, event_type, street_name, event_description, severity
+      SELECT event_timestamp, event_type, street_name, event_description, severity, latitude, longitude
       FROM silver.events_observations
       ORDER BY event_obs_id;
       """
@@ -67,6 +70,8 @@ def test_load_events_to_silver():
       street_name = row[2]
       event_description = row[3]
       severity = row[4]
+      latitude = row[5]
+      longitude = row[6]
 
       if event_timestamp is None:
         print("FAILED: event_timestamp should not be null.")
@@ -88,6 +93,10 @@ def test_load_events_to_silver():
       if severity not in allowed_severities:
         print("FAILED: severity is not valid.")
         print(row)
+        return 0
+
+      if latitude is None or longitude is None:
+        print("FAILED: event coordinates should not be null.")
         return 0
 
     print("SUCCESS: Silver events load test passed.")

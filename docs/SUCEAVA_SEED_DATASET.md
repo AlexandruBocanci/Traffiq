@@ -79,6 +79,10 @@ The current sample covers:
 - hazard
 - police checkpoint
 
+Each event includes representative `latitude` and `longitude` values for its
+Suceava corridor so the mobile map can render alert markers. The coordinates
+are controlled demo positions, not a live incident feed.
+
 Severity values remain:
 
 - `low`

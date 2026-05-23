@@ -1,7 +1,10 @@
 from src.load.load_weather_traffic_impact_to_gold import load_weather_traffic_impact_to_gold
+from src.pipeline.execution_safety import validate_configured_pipeline_target
 from src.utils.db_utils import get_db_connection
 import pandas as pd
 
+
+validate_configured_pipeline_target()
 
 def test_load_weather_traffic_impact_to_gold():
   conn = None

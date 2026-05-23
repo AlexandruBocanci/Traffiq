@@ -87,6 +87,8 @@ export type MapEventRecord = {
   street_name: string;
   event_description: string;
   severity: string;
+  latitude: number | null;
+  longitude: number | null;
 };
 
 export type ApiListResponse<T> = {

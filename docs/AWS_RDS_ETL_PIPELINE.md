@@ -209,6 +209,36 @@ Detailed weather ingestion documentation:
 
 - `docs/OPEN_METEO_WEATHER_INGESTION.md`
 
+## Task 22 Events Refresh Validation
+
+Task 22 introduced a dedicated controlled refresh for geolocated Suceava
+traffic alert examples:
+
+```powershell
+$env:PYTHONPATH='.'; .\.venv\Scripts\python.exe -m src.pipeline.run_events_pipeline --confirm-cloud-reset
+```
+
+Unlike the full seed command, this refresh resets only the Bronze and Silver
+event tables. It leaves traffic/weather, route analytics, and ride history
+unchanged.
+
+Validated on `May 23, 2026`:
+
+```text
+events pipeline run_id -> 4
+events pipeline status -> success
+records_extracted -> 5
+records_loaded -> 10
+invalid_rows_removed -> 0
+silver events with coordinates -> 5
+GET /map/events -> count=5, coordinates populated
+GET /mobile/drive-overview -> events=5 with coordinates, rides=0
+```
+
+Detailed events documentation:
+
+- `docs/SUCEAVA_EVENT_ALERTS.md`
+
 ## Current Limitation
 
 The cloud pipeline is currently executed manually from the developer machine.

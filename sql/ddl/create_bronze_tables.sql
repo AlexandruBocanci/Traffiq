@@ -26,8 +26,14 @@ CREATE TABLE IF NOT EXISTS bronze.events_raw (
     raw_event_type VARCHAR(100),
     raw_street_name VARCHAR(255),
     raw_description TEXT,
-    raw_severity VARCHAR(50)
+    raw_severity VARCHAR(50),
+    raw_latitude VARCHAR(50),
+    raw_longitude VARCHAR(50)
 );
+
+ALTER TABLE bronze.events_raw
+ADD COLUMN IF NOT EXISTS raw_latitude VARCHAR(50),
+ADD COLUMN IF NOT EXISTS raw_longitude VARCHAR(50);
 
 CREATE TABLE IF NOT EXISTS bronze.rides_raw (
     ingestion_id SERIAL PRIMARY KEY,

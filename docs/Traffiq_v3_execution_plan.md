@@ -558,6 +558,10 @@ Goal:
 
 - make events feel local and realistic
 
+Event alerts document:
+
+- `docs/SUCEAVA_EVENT_ALERTS.md`
+
 Deliverables:
 
 - Suceava-specific event seed data or free event source

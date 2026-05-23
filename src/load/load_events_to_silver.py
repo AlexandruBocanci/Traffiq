@@ -17,8 +17,8 @@ def load_events_to_silver(df):
       cur.execute(
         """
         INSERT INTO silver.events_observations
-        (event_timestamp, event_type, street_name, event_description, severity)
-        VALUES (%s, %s, %s, %s, %s)
+        (event_timestamp, event_type, street_name, event_description, severity, latitude, longitude)
+        VALUES (%s, %s, %s, %s, %s, %s, %s)
         """,
         (
           row["event_timestamp"],
@@ -26,6 +26,8 @@ def load_events_to_silver(df):
           row["street_name"],
           row["description"],
           row["severity"],
+          row["latitude"],
+          row["longitude"],
         ),
       )
 

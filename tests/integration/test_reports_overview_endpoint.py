@@ -14,11 +14,14 @@ from src.load.load_route_reference_to_silver import load_route_reference_to_silv
 from src.load.load_route_summary_to_gold import load_route_summary_to_gold
 from src.load.load_top_congested_segments_to_gold import load_top_congested_segments_to_gold
 from src.load.load_traffic_to_silver import load_traffic_to_silver
+from src.pipeline.execution_safety import validate_configured_pipeline_target
 from src.transform.transform_events_data import transform_events_data
 from src.transform.transform_rides_history_data import transform_rides_history_data
 from src.transform.transform_traffic_data import transform_traffic_data
 from src.utils.db_utils import get_db_connection
 
+
+validate_configured_pipeline_target()
 
 client = TestClient(app)
 

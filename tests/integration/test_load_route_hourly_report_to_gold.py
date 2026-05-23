@@ -1,8 +1,11 @@
 import pandas as pd
 
 from src.load.load_route_hourly_report_to_gold import load_route_hourly_report_to_gold
+from src.pipeline.execution_safety import validate_configured_pipeline_target
 from src.utils.db_utils import get_db_connection
 
+
+validate_configured_pipeline_target()
 
 def test_load_route_hourly_report_to_gold():
   conn = None

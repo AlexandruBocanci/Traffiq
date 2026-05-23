@@ -27,7 +27,9 @@ def get_map_events():
         event_type,
         street_name,
         event_description,
-        severity
+        severity,
+        latitude,
+        longitude
       FROM serving.vw_map_events
       ORDER BY event_timestamp DESC, event_id ASC
       LIMIT 50;
@@ -46,6 +48,8 @@ def get_map_events():
           "street_name": row[3],
           "event_description": row[4],
           "severity": row[5],
+          "latitude": float(row[6]) if row[6] is not None else None,
+          "longitude": float(row[7]) if row[7] is not None else None,
         }
       )
 

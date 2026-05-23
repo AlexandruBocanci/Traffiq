@@ -1,6 +1,6 @@
-event_timestamp,event_type,street_name,description,severity
-2026-03-25 07:30:00,accident,Bulevardul George Enescu,Minor collision slowing traffic near the residential-commercial corridor,medium
-2026-03-25 08:15:00,roadwork,Calea Unirii,Lane maintenance affecting the northbound direction,low
-2026-03-25 09:45:00,hazard,Strada Stefan cel Mare,Blocked lane reported close to the central area,medium
-2026-03-25 10:30:00,police,Calea Burdujeni,Traffic control checkpoint near the Burdujeni corridor,low
-2026-03-25 12:00:00,accident,Strada Marasesti,Collision causing heavy delays during midday traffic,high
+event_timestamp,event_type,street_name,description,severity,latitude,longitude
+2026-03-25 07:30:00,accident,Bulevardul George Enescu,Minor collision slowing traffic near the residential-commercial corridor,medium,47.642800,26.238800
+2026-03-25 08:15:00,roadwork,Calea Unirii,Lane maintenance affecting the northbound direction,low,47.665900,26.258800
+2026-03-25 09:45:00,hazard,Strada Stefan cel Mare,Blocked lane reported close to the central area,medium,47.651400,26.254700
+2026-03-25 10:30:00,police,Calea Burdujeni,Traffic control checkpoint near the Burdujeni corridor,low,47.670200,26.277600
+2026-03-25 12:00:00,accident,Strada Marasesti,Collision causing heavy delays during midday traffic,high,47.644500,26.249500

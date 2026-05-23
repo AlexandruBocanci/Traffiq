@@ -2,8 +2,11 @@ from src.extract.extract_rides_history_csv import extract_rides_history_csv
 from src.load.load_ride_history_to_silver import load_ride_history_to_silver
 from src.load.load_rides_raw_to_bronze import load_rides_raw_to_bronze
 from src.transform.transform_rides_history_data import transform_rides_history_data
+from src.pipeline.execution_safety import validate_configured_pipeline_target
 from src.utils.db_utils import get_db_connection
 
+
+validate_configured_pipeline_target()
 
 def test_load_ride_history_to_silver():
   conn = None

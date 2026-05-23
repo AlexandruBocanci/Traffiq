@@ -119,7 +119,9 @@ def get_reports_overview():
         event_type,
         street_name,
         event_description,
-        severity
+        severity,
+        latitude,
+        longitude
       FROM serving.vw_map_events
       ORDER BY event_timestamp DESC, event_id ASC
       LIMIT 5;
@@ -154,6 +156,8 @@ def get_reports_overview():
           "street_name": row["street_name"],
           "event_description": row["event_description"],
           "severity": row["severity"],
+          "latitude": to_float(row["latitude"]),
+          "longitude": to_float(row["longitude"]),
         }
         for row in event_rows
       ],

@@ -21,8 +21,8 @@ def load_events_raw_to_bronze(df, source_file):
       cur.execute(
         """
         INSERT INTO bronze.events_raw
-        (source_file, ingested_at, raw_event_timestamp, raw_event_type, raw_street_name, raw_description, raw_severity)
-        VALUES (%s, %s, %s, %s, %s, %s, %s)
+        (source_file, ingested_at, raw_event_timestamp, raw_event_type, raw_street_name, raw_description, raw_severity, raw_latitude, raw_longitude)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
         """,
         (
           source_file,
@@ -32,6 +32,8 @@ def load_events_raw_to_bronze(df, source_file):
           row["street_name"],
           row["description"],
           row["severity"],
+          row["latitude"],
+          row["longitude"],
         )
       )
 

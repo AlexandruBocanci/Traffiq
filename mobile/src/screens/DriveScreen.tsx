@@ -158,17 +158,17 @@ function buildRouteConditionSummary(
 
   const descriptions: Record<RouteConditionTone, string> = {
     high:
-      'Expect a slower trip. The route estimate is combined with elevated Suceava congestion signals and active city alerts.',
+      'Expect a slower trip. The route estimate is combined with elevated Suceava congestion signals and mapped city alerts.',
     low:
-      'No heavy Suceava congestion signal is active for this preview. Use the ETA as the baseline estimate.',
+      'No heavy Suceava congestion signal is shown for this preview. Use the ETA as the baseline estimate.',
     moderate:
       'Expect some delay around Suceava. The estimate combines route duration with current city congestion and weather context.',
   };
 
   return {
     alertContext: cityAlerts.length
-      ? `${cityAlerts.length} active city alert${cityAlerts.length === 1 ? '' : 's'}`
-      : 'No active alerts',
+      ? `${cityAlerts.length} mapped city alert${cityAlerts.length === 1 ? '' : 's'}`
+      : 'No mapped alerts',
     congestionContext:
       congestionScore === null || congestionScore === undefined
         ? `${congestedStreet}: no score`
@@ -410,6 +410,7 @@ export default function DriveScreen({
         <SuceavaMap
           congestionLabel={topCongestedSegment?.street_name ?? 'City network'}
           congestionScore={formatValue(topCongestedSegment?.congestion_score)}
+          events={data.events}
           routePreview={routePreview}
         />
 

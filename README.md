@@ -121,6 +121,7 @@ It also includes a route input flow for choosing a Suceava origin and destinatio
 Route previews can now calculate distance, duration, and geometry through the routing integration.
 Calculated routes are rendered on the map with a polyline and origin/destination markers.
 Route previews also include a Suceava condition summary that combines ETA, weather context, congestion score, and active city alerts.
+Controlled Suceava traffic alerts now include coordinates and render as severity-coded map markers.
 
 ## Tech Stack
 
@@ -226,6 +227,7 @@ Deployment and operations:
 - `docs/SUCEAVA_SEED_DATASET.md`
 - `docs/AWS_RDS_ETL_PIPELINE.md`
 - `docs/OPEN_METEO_WEATHER_INGESTION.md`
+- `docs/SUCEAVA_EVENT_ALERTS.md`
 - `docs/CLOUD_WORKFLOW.md`
 - `docs/ENVIRONMENTS.md`
 - `docs/SCHEDULER_STRATEGY.md`

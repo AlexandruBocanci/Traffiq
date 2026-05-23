@@ -10,7 +10,7 @@ import MapView, {
 } from 'react-native-maps';
 
 import { colors, radius, shadows } from '../theme/theme';
-import { RoutePreviewResponse } from '../types/api';
+import { MapEventRecord, RoutePreviewResponse } from '../types/api';
 
 const SUCEAVA_REGION: Region = {
   latitude: 47.6514,
@@ -24,12 +24,14 @@ type LocationStatus = 'checking' | 'granted' | 'denied';
 type SuceavaMapProps = {
   congestionLabel: string;
   congestionScore: string;
+  events?: MapEventRecord[];
   routePreview?: RoutePreviewResponse | null;
 };
 
 export default function SuceavaMap({
   congestionLabel,
   congestionScore,
+  events = [],
   routePreview,
 }: SuceavaMapProps) {
   const [currentRegion, setCurrentRegion] = useState<Region>(SUCEAVA_REGION);
@@ -102,6 +104,21 @@ export default function SuceavaMap({
       longitude,
     })) ?? [];
   const activeRoute = routePreview && routeCoordinates.length >= 2 ? routePreview : null;
+  const geolocatedEvents = events.filter(
+    (event) => event.latitude !== null && event.longitude !== null
+  );
+
+  function getEventMarkerColor(severity: string) {
+    if (severity === 'high') {
+      return colors.red;
+    }
+
+    if (severity === 'medium') {
+      return colors.amber;
+    }
+
+    return colors.accent;
+  }
 
   return (
     <View style={styles.mapPanel}>
@@ -122,6 +139,19 @@ export default function SuceavaMap({
           description="Default Traffiq city area"
           title="Suceava"
         />
+
+        {geolocatedEvents.map((event) => (
+          <Marker
+            coordinate={{
+              latitude: event.latitude as number,
+              longitude: event.longitude as number,
+            }}
+            description={`${event.event_type}: ${event.event_description}`}
+            key={`event-${event.event_id}`}
+            pinColor={getEventMarkerColor(event.severity)}
+            title={event.street_name}
+          />
+        ))}
 
         {activeRoute ? (
           <>
@@ -177,7 +207,7 @@ export default function SuceavaMap({
         <Text style={styles.mapText}>
           {activeRoute
             ? `${activeRoute.duration_minutes} min ETA · ${activeRoute.distance_km} km`
-            : `Congestion score ${congestionScore}`}
+            : `Congestion score ${congestionScore} | ${geolocatedEvents.length} alerts mapped`}
         </Text>
       </View>
     </View>

@@ -145,6 +145,28 @@ RDS now has the required Traffiq database structure:
 
 This prepares Task 20, where the ETL pipeline will load data into the cloud database.
 
+## Task 22 Event Geolocation Extension
+
+Task 22 extended the existing schema for Suceava map alert markers.
+
+Applied additions:
+
+```text
+bronze.events_raw.raw_latitude
+bronze.events_raw.raw_longitude
+silver.events_observations.latitude
+silver.events_observations.longitude
+serving.vw_map_events exposes latitude and longitude
+```
+
+The idempotent DDL was reapplied to RDS on `May 23, 2026`. It added columns
+and recreated Serving views without deleting existing table data. Event rows
+were subsequently refreshed through the dedicated guarded events pipeline.
+
+Detailed event documentation:
+
+- `docs/SUCEAVA_EVENT_ALERTS.md`
+
 ## What Is Not Done Yet
 
 This task only applies the schema.

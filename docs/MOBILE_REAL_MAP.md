@@ -118,4 +118,8 @@ The app now has a real map layer in the mobile client.
 
 This means Traffiq is no longer only showing a designed placeholder. It has the map surface required for the next product features: destination input, route calculation, route polyline rendering, markers, and route condition summaries.
 
+Task 22 now uses this map surface for geolocated controlled Suceava traffic
+alert markers. Marker positions come from the events Serving/API flow and are
+colored by severity.
+
 This is still intentionally not a production navigation engine. It is a data engineering portfolio app with a real mobile map interface connected to backend traffic intelligence.

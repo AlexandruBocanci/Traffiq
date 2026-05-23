@@ -1,7 +1,10 @@
 from src.extract.extract_events_csv import extract_events_csv
 from src.load.load_events_raw_to_bronze import load_events_raw_to_bronze
+from src.pipeline.execution_safety import validate_configured_pipeline_target
 from src.utils.db_utils import get_db_connection
 
+
+validate_configured_pipeline_target()
 
 def test_load_events_raw_to_bronze():
   conn = None
@@ -41,7 +44,9 @@ def test_load_events_raw_to_bronze():
         raw_event_type,
         raw_street_name,
         raw_description,
-        raw_severity
+        raw_severity,
+        raw_latitude,
+        raw_longitude
       FROM bronze.events_raw
       ORDER BY ingestion_id;
       """
@@ -55,6 +60,8 @@ def test_load_events_raw_to_bronze():
       raw_street_name = row[2]
       raw_description = row[3]
       raw_severity = row[4]
+      raw_latitude = row[5]
+      raw_longitude = row[6]
 
       if raw_event_timestamp is None:
         print("FAILED: raw_event_timestamp should not be null.")
@@ -74,6 +81,10 @@ def test_load_events_raw_to_bronze():
 
       if raw_severity is None or raw_severity == "":
         print("FAILED: raw_severity should not be empty.")
+        return 0
+
+      if raw_latitude is None or raw_longitude is None:
+        print("FAILED: raw event coordinates should not be null.")
         return 0
 
     print("SUCCESS: Bronze events raw load test passed.")

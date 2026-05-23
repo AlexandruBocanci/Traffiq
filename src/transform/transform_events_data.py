@@ -1,6 +1,10 @@
 import pandas as pd
 
 
+SUCEAVA_LATITUDE_BOUNDS = (47.60, 47.71)
+SUCEAVA_LONGITUDE_BOUNDS = (26.18, 26.34)
+
+
 def transform_events_data(df):
   if df.empty:
     print("FAILED: Events dataframe is empty.")
@@ -13,6 +17,8 @@ def transform_events_data(df):
   df["street_name"] = df["street_name"].astype(str).str.strip().str.lower()
   df["description"] = df["description"].astype(str).str.strip()
   df["severity"] = df["severity"].astype(str).str.strip().str.lower()
+  df["latitude"] = pd.to_numeric(df["latitude"], errors="coerce")
+  df["longitude"] = pd.to_numeric(df["longitude"], errors="coerce")
 
   df = df.dropna(
     subset=[
@@ -21,6 +27,8 @@ def transform_events_data(df):
       "street_name",
       "description",
       "severity",
+      "latitude",
+      "longitude",
     ]
   )
 
@@ -29,6 +37,8 @@ def transform_events_data(df):
 
   df = df[df["event_type"].isin(allowed_event_types)]
   df = df[df["severity"].isin(allowed_severities)]
+  df = df[df["latitude"].between(*SUCEAVA_LATITUDE_BOUNDS)]
+  df = df[df["longitude"].between(*SUCEAVA_LONGITUDE_BOUNDS)]
 
   df = df.drop_duplicates(
     subset=[
@@ -37,6 +47,8 @@ def transform_events_data(df):
       "street_name",
       "description",
       "severity",
+      "latitude",
+      "longitude",
     ]
   )
 
@@ -49,5 +61,7 @@ def transform_events_data(df):
       "street_name",
       "description",
       "severity",
+      "latitude",
+      "longitude",
     ]
   ]

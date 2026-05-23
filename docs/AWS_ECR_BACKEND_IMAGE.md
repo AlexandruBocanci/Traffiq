@@ -31,7 +31,7 @@ Pushed image:
 Digest:
 
 ```text
-sha256:e81b6e530deae41bd866ade7e1f5ab4c95ce94d753be51dbefb94a01b8f04f76
+sha256:879bea5b41c4cd8b2da5b895fce54d642060108089f27bafbc0d565381b63ecf
 ```
 
 Image status:
@@ -93,14 +93,14 @@ Validated result:
 ```text
 repositoryName: traffiq-api
 imageTag: latest
-imageDigest: sha256:e81b6e530deae41bd866ade7e1f5ab4c95ce94d753be51dbefb94a01b8f04f76
+imageDigest: sha256:879bea5b41c4cd8b2da5b895fce54d642060108089f27bafbc0d565381b63ecf
 imageStatus: ACTIVE
 ```
 
 Latest image update:
 
 ```text
-May 23, 2026 - Task 20 cloud ETL validation, RDS reset guard, and public reports privacy correction
+May 23, 2026 - Task 22 geolocated Suceava event API support
 ```
 
 ## What This Enables

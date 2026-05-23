@@ -2,7 +2,11 @@ from src.extract.extract_traffic_csv import extract_traffic_csv
 from src.transform.transform_traffic_data import transform_traffic_data
 from src.utils.db_utils import get_db_connection
 from src.load.load_hourly_street_metrics_to_gold import load_hourly_street_metrics_to_gold
+from src.pipeline.execution_safety import validate_configured_pipeline_target
 import pandas as pd
+
+validate_configured_pipeline_target()
+
 def test_load_hourly_street_metrics_to_gold(df):
   conn = None
   cur = None

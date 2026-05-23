@@ -364,6 +364,10 @@ The Open-Meteo Suceava weather configuration and cloud validation are documented
 
 - `docs/OPEN_METEO_WEATHER_INGESTION.md`
 
+The geolocated Suceava traffic event dataset and map marker validation are documented in:
+
+- `docs/SUCEAVA_EVENT_ALERTS.md`
+
 The cloud workflow is documented in:
 
 - `docs/CLOUD_WORKFLOW.md`

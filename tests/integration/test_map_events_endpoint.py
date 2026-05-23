@@ -4,9 +4,12 @@ from src.api.main import app
 from src.extract.extract_events_csv import extract_events_csv
 from src.load.load_events_raw_to_bronze import load_events_raw_to_bronze
 from src.load.load_events_to_silver import load_events_to_silver
+from src.pipeline.execution_safety import validate_configured_pipeline_target
 from src.transform.transform_events_data import transform_events_data
 from src.utils.db_utils import get_db_connection
 
+
+validate_configured_pipeline_target()
 
 client = TestClient(app)
 
@@ -102,6 +105,8 @@ def test_map_events_endpoint():
     "street_name",
     "event_description",
     "severity",
+    "latitude",
+    "longitude",
   ]
 
   for key in required_keys:
@@ -131,6 +136,11 @@ def test_map_events_endpoint():
 
     if row["event_description"] == "":
       print("FAILED: event_description should not be empty.")
+      print(row)
+      return 0
+
+    if row["latitude"] is None or row["longitude"] is None:
+      print("FAILED: mapped events must contain coordinates.")
       print(row)
       return 0
 

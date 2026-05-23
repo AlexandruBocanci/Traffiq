@@ -1,8 +1,11 @@
 from src.extract.extract_weather_api import extract_weather_api
 from src.transform.transform_weather_data import transform_weather_data
 from src.load.load_weather_to_silver import load_weather_to_silver
+from src.pipeline.execution_safety import validate_configured_pipeline_target
 from src.utils.db_utils import get_db_connection
 
+
+validate_configured_pipeline_target()
 
 def test_load_weather_to_silver(clean_df):
   conn = None

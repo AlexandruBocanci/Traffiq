@@ -60,7 +60,9 @@ SELECT
   event_type,
   street_name,
   event_description,
-  severity
+  severity,
+  latitude,
+  longitude
 FROM silver.events_observations;
 
 CREATE OR REPLACE VIEW serving.vw_ride_history AS

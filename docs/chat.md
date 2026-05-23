@@ -2715,6 +2715,93 @@ Notes:
 - App Runner was not redeployed because Task 21 changes pipeline execution and documentation; the public API already reads refreshed data from RDS
 - this closes Task 21 from the v3 Notion plan
 - the next task is `Task 22. Improve events data for Suceava`
+
+### Update 095 - Geolocated Suceava traffic alerts rendered on map
+
+Completed:
+
+- confirmed that Task 19 already localized event descriptions to Suceava streets
+- identified that events lacked coordinates and therefore could not render as map markers
+- extended `data/raw/events_raw.csv` with representative Suceava latitude/longitude values
+- extended Bronze event storage with:
+  - `raw_latitude`
+  - `raw_longitude`
+- extended Silver event storage with:
+  - `latitude`
+  - `longitude`
+- updated `serving.vw_map_events` to expose marker coordinates
+- updated the events transform to validate numeric coordinates inside Suceava bounds
+- updated Bronze and Silver event loads for the new location fields
+- added `src/pipeline/run_events_pipeline.py` for events-only controlled cloud refresh
+- exposed coordinates through:
+  - `GET /map/events`
+  - `GET /mobile/drive-overview`
+  - `GET /reports/overview`
+- updated the mobile API type for map events
+- rendered severity-colored Suceava event markers in `mobile/src/components/SuceavaMap.tsx`
+- connected Drive screen event data to the map component
+- changed route-condition copy from `active` to `mapped` alerts so controlled seed data is not presented as live reporting
+- created `docs/SUCEAVA_EVENT_ALERTS.md`
+- updated schema, RDS ETL, ECR, App Runner, mobile map, dataset, setup, and execution-plan documentation
+
+Data-loss protection correction:
+
+- discovered that direct integration test scripts contained `TRUNCATE` statements while `.env` can target Amazon RDS
+- updated all identified destructive integration tests to execute the RDS safety guard before database mutations
+- validated that `tests/integration/test_map_events_endpoint.py` is blocked on RDS before truncation
+- audited destructive integration tests: `18` identified, `0` left unguarded
+- cloud event loading is now performed through the dedicated guarded `run_events_pipeline` command instead of destructive test scripts
+
+RDS and events pipeline validation:
+
+```text
+RDS DDL application -> passed
+bronze.events_raw.raw_latitude -> present
+bronze.events_raw.raw_longitude -> present
+silver.events_observations.latitude -> present
+silver.events_observations.longitude -> present
+run_events_pipeline without --confirm-cloud-reset -> BLOCKED as intended
+run_events_pipeline with --confirm-cloud-reset -> passed
+events pipeline run_id -> 4
+events pipeline status -> success
+records_extracted -> 5
+records_loaded -> 10
+invalid_rows_removed -> 0
+silver event rows with coordinates -> 5 / 5
+```
+
+Cloud deployment and public API validation:
+
+```text
+Docker image build -> passed
+ECR latest digest -> sha256:879bea5b41c4cd8b2da5b895fce54d642060108089f27bafbc0d565381b63ecf
+App Runner deployment -> RUNNING
+GET /health -> status=ok
+GET /map/events -> count=5, latitude/longitude populated
+GET /mobile/drive-overview -> events=5 with coordinates, rides=0
+GET /reports/overview -> event_count=5, recent event coordinates populated, no recent_rides
+GET /rides/history without token -> 401
+```
+
+Technical validation:
+
+```text
+tests/unit/test_transform_events_geolocation.py -> passed
+tests/unit/test_seed_demo_cloud_guard.py -> passed
+python -m compileall src/api src/load src/pipeline src/transform tests/unit tests/integration -> passed
+npx.cmd tsc --noEmit -> passed
+npx.cmd expo export --platform android --output-dir .expo-export-task22-final -> passed
+destructive integration tests audited -> 18, unguarded -> 0
+git diff --check -> passed, with only expected Windows CRLF/LF warnings
+```
+
+Notes:
+
+- events remain realistic controlled Suceava examples, not a live traffic incident source
+- representative coordinates enable a real spatial data path without a paid API or new AWS resource
+- the event refresh resets only event Bronze/Silver tables and does not replace weather, routes, or personal ride data
+- this closes Task 22 from the v3 Notion plan
+- the next task is `Task 23. Add saved routes`
 ---
 
 ## 9. Instructions For Any New Chat

@@ -1,7 +1,10 @@
 from src.load.load_traffic_to_silver import load_traffic_to_silver
 from src.transform.transform_traffic_data import transform_traffic_data
 from src.extract.extract_traffic_csv import extract_traffic_csv
+from src.pipeline.execution_safety import validate_configured_pipeline_target
 from src.utils.db_utils import get_db_connection
+
+validate_configured_pipeline_target()
 
 def test_load_traffic_to_silver(df):
   conn = None
