@@ -2650,6 +2650,71 @@ Notes:
 - controlled seed observations are not a claim of real-time traffic
 - this closes Task 20 from the v3 Notion plan
 - the next task is `Task 21. Keep Open-Meteo weather ingestion for Suceava`
+
+### Update 094 - Open-Meteo weather ingestion kept for Suceava
+
+Completed:
+
+- audited the existing Open-Meteo weather path through Bronze, Silver, Gold, Serving, and FastAPI
+- confirmed the existing coordinates identify the Suceava city-center context
+- centralized weather source configuration in `src/config/settings.py`
+- added safe default configuration values:
+  - `WEATHER_LOCATION_NAME=Suceava`
+  - `WEATHER_LATITUDE=47.6514`
+  - `WEATHER_LONGITUDE=26.2556`
+  - `WEATHER_TIMEZONE=Europe/Bucharest`
+- updated the Open-Meteo extractor to request Suceava local timezone explicitly
+- updated the traffic-weather pipeline to consume centralized weather configuration
+- added a unit validation for the Open-Meteo Suceava request parameters
+- refreshed only the traffic-weather analytical tables in Amazon RDS through the controlled reset flag
+- kept routes, events, and ride history intact because a full demo reseed was unnecessary for this task
+- created `docs/OPEN_METEO_WEATHER_INGESTION.md`
+- linked the weather ingestion document from project and operational documentation
+- updated `docs/AWS_RDS_ETL_PIPELINE.md` with the Task 21 cloud validation
+
+Cloud pipeline validation:
+
+```text
+Configured weather target -> Suceava / 47.6514 / 26.2556 / Europe/Bucharest
+Open-Meteo extract -> passed
+run_pipeline --confirm-cloud-reset -> passed
+latest pipeline run_id -> 3
+latest pipeline status -> success
+records_extracted -> 196
+records_loaded -> 609
+bronze.weather_raw rows -> 168
+bronze weather timestamp range -> 2026-05-23T00:00 to 2026-05-29T23:00
+silver.weather_observations rows -> 168
+gold.weather_traffic_impact rows -> 2
+```
+
+Public API validation:
+
+```text
+GET /health -> status=ok
+GET /weather-impact -> count=2
+GET /mobile/drive-overview -> weather=2, routes=5, events=5, rides=0
+```
+
+Technical validation:
+
+```text
+tests/unit/test_extract_weather_api_config.py -> passed
+tests/integration/test_extract_weather_api.py -> passed
+tests/unit/test_transform_weather_data.py -> passed
+tests/unit/test_seed_demo_cloud_guard.py -> passed
+python -m compileall src/config src/extract src/pipeline tests/unit/test_extract_weather_api_config.py -> passed
+git diff --check -> passed, with only expected Windows CRLF/LF warnings
+```
+
+Notes:
+
+- Open-Meteo remains free and does not require an API key or a new AWS service
+- specifying `Europe/Bucharest` avoids UTC/local-hour mismatch in the existing hourly enrichment logic
+- traffic remains controlled seed data and the enrichment remains an hour-level analytical approximation
+- App Runner was not redeployed because Task 21 changes pipeline execution and documentation; the public API already reads refreshed data from RDS
+- this closes Task 21 from the v3 Notion plan
+- the next task is `Task 22. Improve events data for Suceava`
 ---
 
 ## 9. Instructions For Any New Chat

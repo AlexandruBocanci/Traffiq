@@ -225,6 +225,7 @@ Deployment and operations:
 - `docs/MOBILE_ROUTE_CONDITION_SUMMARY.md`
 - `docs/SUCEAVA_SEED_DATASET.md`
 - `docs/AWS_RDS_ETL_PIPELINE.md`
+- `docs/OPEN_METEO_WEATHER_INGESTION.md`
 - `docs/CLOUD_WORKFLOW.md`
 - `docs/ENVIRONMENTS.md`
 - `docs/SCHEDULER_STRATEGY.md`

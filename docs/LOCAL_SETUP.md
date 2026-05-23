@@ -360,6 +360,10 @@ The controlled ETL load into Amazon RDS is documented in:
 
 - `docs/AWS_RDS_ETL_PIPELINE.md`
 
+The Open-Meteo Suceava weather configuration and cloud validation are documented in:
+
+- `docs/OPEN_METEO_WEATHER_INGESTION.md`
+
 The cloud workflow is documented in:
 
 - `docs/CLOUD_WORKFLOW.md`

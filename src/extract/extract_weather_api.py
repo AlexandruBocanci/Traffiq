@@ -1,13 +1,15 @@
 import pandas as pd
 import requests
 
-def extract_weather_api(latitude, longitude):
+
+def extract_weather_api(latitude, longitude, timezone="Europe/Bucharest"):
 
   url = "https://api.open-meteo.com/v1/forecast"
   params = {
     "latitude": latitude,
     "longitude": longitude,
-    "hourly": "temperature_2m,precipitation,wind_speed_10m,weather_code"
+    "hourly": "temperature_2m,precipitation,wind_speed_10m,weather_code",
+    "timezone": timezone,
   }
 
   try:

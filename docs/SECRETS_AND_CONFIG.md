@@ -69,6 +69,28 @@ DB_CONFIG
 
 If a required variable is missing, the backend now fails early with a clear error instead of failing later during database connection.
 
+## Weather Source Configuration
+
+The Open-Meteo weather source uses non-secret Suceava configuration:
+
+```text
+WEATHER_LOCATION_NAME=Suceava
+WEATHER_LATITUDE=47.6514
+WEATHER_LONGITUDE=26.2556
+WEATHER_TIMEZONE=Europe/Bucharest
+```
+
+These values are configuration, not secrets. They are centralized in
+`src/config/settings.py` and committed as safe defaults in `.env.example`.
+
+The explicit timezone is required because the current traffic-weather
+enrichment matches observations using local hour-of-day buckets. v3 must keep
+the weather location set to Suceava.
+
+Task 21 implementation and RDS/API validation are documented in:
+
+- `docs/OPEN_METEO_WEATHER_INGESTION.md`
+
 ## Local Classic Strategy
 
 Local Windows development uses:

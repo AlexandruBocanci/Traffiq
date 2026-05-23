@@ -2,6 +2,9 @@ import argparse
 
 import pandas as pd
 
+from src.config.settings import WEATHER_LATITUDE
+from src.config.settings import WEATHER_LONGITUDE
+from src.config.settings import WEATHER_TIMEZONE
 from src.extract.extract_traffic_csv import extract_traffic_csv
 from src.extract.extract_weather_api import extract_weather_api
 from src.load.load_hourly_street_metrics_to_gold import load_hourly_street_metrics_to_gold
@@ -21,8 +24,6 @@ from src.utils.db_utils import get_db_connection
 
 
 TRAFFIC_SOURCE_FILE = "data/raw/traffic_raw.csv"
-WEATHER_LATITUDE = 47.6514
-WEATHER_LONGITUDE = 26.2556
 
 
 def reset_pipeline_tables():
@@ -151,7 +152,11 @@ def run_traffic_weather_pipeline(allow_cloud_reset=False):
     traffic_silver_rows = load_traffic_to_silver(clean_traffic_df)
     hourly_street_metrics_rows = load_hourly_street_metrics_to_gold(clean_traffic_df)
 
-    raw_weather_df = extract_weather_api(WEATHER_LATITUDE, WEATHER_LONGITUDE)
+    raw_weather_df = extract_weather_api(
+        WEATHER_LATITUDE,
+        WEATHER_LONGITUDE,
+        WEATHER_TIMEZONE,
+    )
     clean_weather_df = transform_weather_data(raw_weather_df)
     weather_removed_records = len(raw_weather_df) - len(clean_weather_df)
 

@@ -538,6 +538,10 @@ Goal:
 
 - keep weather data real and free
 
+Weather ingestion document:
+
+- `docs/OPEN_METEO_WEATHER_INGESTION.md`
+
 Deliverables:
 
 - Suceava latitude/longitude config

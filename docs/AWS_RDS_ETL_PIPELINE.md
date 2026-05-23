@@ -177,6 +177,38 @@ Final deployed image digest:
 sha256:e81b6e530deae41bd866ade7e1f5ab4c95ce94d753be51dbefb94a01b8f04f76
 ```
 
+## Task 21 Weather Refresh Validation
+
+Task 21 retained Open-Meteo as the free real-weather source and centralized
+the Suceava request configuration:
+
+```text
+latitude=47.6514
+longitude=26.2556
+timezone=Europe/Bucharest
+```
+
+Only the traffic-weather pipeline was refreshed in RDS, using the controlled
+cloud-reset confirmation. Routes, events, and ride history were not reset.
+
+Validated on `May 23, 2026`:
+
+```text
+latest pipeline run_id -> 3
+latest pipeline status -> success
+records_extracted -> 196
+records_loaded -> 609
+bronze.weather_raw rows -> 168
+silver.weather_observations rows -> 168
+gold.weather_traffic_impact rows -> 2
+GET /weather-impact -> count=2
+GET /mobile/drive-overview -> weather=2, routes=5, events=5, rides=0
+```
+
+Detailed weather ingestion documentation:
+
+- `docs/OPEN_METEO_WEATHER_INGESTION.md`
+
 ## Current Limitation
 
 The cloud pipeline is currently executed manually from the developer machine.

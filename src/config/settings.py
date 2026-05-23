@@ -23,6 +23,31 @@ def _get_int_env(name, default):
         raise ValueError(f"Environment variable {name} must be an integer.") from exc
 
 
+def _get_float_env(name, default, minimum, maximum):
+    value = os.getenv(name, default)
+
+    try:
+        numeric_value = float(value)
+    except ValueError as exc:
+        raise ValueError(f"Environment variable {name} must be a number.") from exc
+
+    if not minimum <= numeric_value <= maximum:
+        raise ValueError(
+            f"Environment variable {name} must be between {minimum} and {maximum}."
+        )
+
+    return numeric_value
+
+
+def _get_text_env(name, default):
+    value = os.getenv(name, default).strip()
+
+    if value == "":
+        raise ValueError(f"Environment variable {name} must not be empty.")
+
+    return value
+
+
 DB_CONFIG = {
     "host": _get_required_env("DB_HOST"),
     "dbname": _get_required_env("DB_NAME"),
@@ -30,6 +55,11 @@ DB_CONFIG = {
     "password": _get_required_env("DB_PASSWORD"),
     "port": _get_int_env("DB_PORT", "5432"),
 }
+
+WEATHER_LOCATION_NAME = _get_text_env("WEATHER_LOCATION_NAME", "Suceava")
+WEATHER_LATITUDE = _get_float_env("WEATHER_LATITUDE", "47.6514", -90, 90)
+WEATHER_LONGITUDE = _get_float_env("WEATHER_LONGITUDE", "26.2556", -180, 180)
+WEATHER_TIMEZONE = _get_text_env("WEATHER_TIMEZONE", "Europe/Bucharest")
 
 COGNITO_REGION = os.getenv("COGNITO_REGION", "eu-central-1")
 COGNITO_USER_POOL_ID = os.getenv("COGNITO_USER_POOL_ID", "eu-central-1_QLCNGVSM1")
