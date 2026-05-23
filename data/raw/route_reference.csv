@@ -1,6 +1,7 @@
 route_id,origin_name,destination_name,route_name,route_distance_km,route_geometry_ref
-1,Unirii,Romana,Unirii to Romana,3.20,route_unirii_romana
-2,Romana,Dorobanti,Romana to Dorobanti,2.10,route_romana_dorobanti
-3,Unirii,Victoriei,Unirii to Victoriei,2.80,route_unirii_victoriei
-4,Dorobanti,Victoriei,Dorobanti to Victoriei,2.40,route_dorobanti_victoriei
-5,Unirii,Dorobanti,Unirii to Dorobanti,3.60,route_unirii_dorobanti
+1,Calea Unirii,Bulevardul George Enescu,Calea Unirii to Bulevardul George Enescu,4.20,route_unirii_george_enescu
+2,Strada Universitatii,Strada Stefan cel Mare,Strada Universitatii to Strada Stefan cel Mare,1.90,route_universitatii_stefan_cel_mare
+3,Calea Burdujeni,Strada Traian Vuia,Calea Burdujeni to Strada Traian Vuia,2.70,route_burdujeni_traian_vuia
+4,Strada Ana Ipatescu,Strada Mitropoliei,Strada Ana Ipatescu to Strada Mitropoliei,1.60,route_ana_ipatescu_mitropoliei
+5,Bulevardul George Enescu,Calea Unirii,Bulevardul George Enescu to Calea Unirii,4.30,route_george_enescu_unirii
+6,Strada Marasesti,Strada Universitatii,Strada Marasesti to Strada Universitatii,2.10,route_marasesti_universitatii

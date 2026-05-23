@@ -5,6 +5,7 @@ Traffiq is an end-to-end traffic intelligence data engineering portfolio project
 It ingests traffic, weather, route, event, and ride data, processes them through Python ETL pipelines, stores them in PostgreSQL analytical layers, exposes the results through FastAPI, and presents them in a React Native / Expo mobile app.
 
 The project is built to demonstrate practical Junior Data Engineer skills, not to pretend to be a production Waze clone.
+The v3 seed dataset is localized to Suceava streets, corridors, and route examples.
 
 ## What The Project Demonstrates
 
@@ -222,6 +223,7 @@ Deployment and operations:
 - `docs/ROUTING_API_INTEGRATION.md`
 - `docs/MOBILE_ROUTE_POLYLINE.md`
 - `docs/MOBILE_ROUTE_CONDITION_SUMMARY.md`
+- `docs/SUCEAVA_SEED_DATASET.md`
 - `docs/CLOUD_WORKFLOW.md`
 - `docs/ENVIRONMENTS.md`
 - `docs/SCHEDULER_STRATEGY.md`

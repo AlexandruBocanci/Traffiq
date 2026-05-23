@@ -78,6 +78,60 @@ SUCEAVA_LOCATIONS = [
         longitude=26.2736,
         aliases=("suceava railway station", "gara suceava", "railway station"),
     ),
+    SuceavaLocation(
+        name="Calea Unirii",
+        latitude=47.6659,
+        longitude=26.2588,
+        aliases=("calea unirii", "unirii"),
+    ),
+    SuceavaLocation(
+        name="Bulevardul George Enescu",
+        latitude=47.6428,
+        longitude=26.2388,
+        aliases=("bulevardul george enescu", "george enescu"),
+    ),
+    SuceavaLocation(
+        name="Strada Universitatii",
+        latitude=47.6416,
+        longitude=26.2449,
+        aliases=("strada universitatii", "universitatii"),
+    ),
+    SuceavaLocation(
+        name="Strada Stefan cel Mare",
+        latitude=47.6514,
+        longitude=26.2547,
+        aliases=("strada stefan cel mare", "stefan cel mare"),
+    ),
+    SuceavaLocation(
+        name="Calea Burdujeni",
+        latitude=47.6702,
+        longitude=26.2776,
+        aliases=("calea burdujeni", "burdujeni"),
+    ),
+    SuceavaLocation(
+        name="Strada Traian Vuia",
+        latitude=47.6688,
+        longitude=26.2861,
+        aliases=("strada traian vuia", "traian vuia"),
+    ),
+    SuceavaLocation(
+        name="Strada Ana Ipatescu",
+        latitude=47.6505,
+        longitude=26.2574,
+        aliases=("strada ana ipatescu", "ana ipatescu"),
+    ),
+    SuceavaLocation(
+        name="Strada Mitropoliei",
+        latitude=47.6476,
+        longitude=26.2576,
+        aliases=("strada mitropoliei", "mitropoliei"),
+    ),
+    SuceavaLocation(
+        name="Strada Marasesti",
+        latitude=47.6445,
+        longitude=26.2495,
+        aliases=("strada marasesti", "marasesti"),
+    ),
 ]
 
 

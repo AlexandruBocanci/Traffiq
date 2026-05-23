@@ -352,6 +352,10 @@ The mobile route condition summary is documented in:
 
 - `docs/MOBILE_ROUTE_CONDITION_SUMMARY.md`
 
+The Suceava route and street seed dataset is documented in:
+
+- `docs/SUCEAVA_SEED_DATASET.md`
+
 The cloud workflow is documented in:
 
 - `docs/CLOUD_WORKFLOW.md`

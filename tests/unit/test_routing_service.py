@@ -20,6 +20,16 @@ def test_resolve_suceava_location_from_alias():
   return True
 
 
+def test_resolve_seeded_suceava_street_alias():
+  location = resolve_suceava_location("Calea Unirii")
+
+  if location.name != "Calea Unirii":
+    print("FAILED: Calea Unirii should resolve to the seeded Suceava street.")
+    return False
+
+  return True
+
+
 def test_resolve_unknown_suceava_location():
   try:
     resolve_suceava_location("Bucharest")
@@ -163,6 +173,7 @@ def test_current_location_without_coordinates_is_not_catalog_alias():
 
 
 print(test_resolve_suceava_location_from_alias())
+print(test_resolve_seeded_suceava_street_alias())
 print(test_resolve_unknown_suceava_location())
 print(test_build_osrm_coordinates_uses_longitude_latitude_order())
 print(test_build_route_preview_with_stubbed_provider())

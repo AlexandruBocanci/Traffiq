@@ -494,6 +494,10 @@ Goal:
 
 - replace generic demo routes with Suceava-specific routes
 
+Seed dataset document:
+
+- `docs/SUCEAVA_SEED_DATASET.md`
+
 Deliverables:
 
 - known Suceava streets/routes
@@ -503,6 +507,8 @@ Deliverables:
 Definition of done:
 
 - app data references Suceava locations only
+- route, traffic, events, and ride seed files use Suceava street/corridor names
+- manual route lookup can resolve the seeded Suceava streets
 
 ### Task 20. Update ETL pipeline for cloud database
 

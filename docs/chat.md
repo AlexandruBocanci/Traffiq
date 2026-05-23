@@ -2534,6 +2534,55 @@ Notes:
 - the summary is a Suceava traffic intelligence estimate, not real-time turn-by-turn navigation
 - this closes Task 18 from the v3 Notion plan
 - the next task is `Task 19. Define Suceava route and street seed dataset`
+
+### Update 092 - Suceava route and street seed dataset defined
+
+Completed:
+
+- replaced generic demo route references with Suceava-specific route corridors
+- replaced generic traffic observations with Suceava street observations
+- replaced generic event examples with Suceava street event examples
+- replaced generic ride history examples with Suceava route examples
+- added seeded Suceava street aliases to the backend routing catalog
+- added a unit validation for resolving a seeded Suceava street
+- created `docs/SUCEAVA_SEED_DATASET.md`
+- linked the dataset document from README, LOCAL_SETUP, and the v3 execution plan
+- updated `docs/chat.md` for v3 execution continuity
+
+Seeded streets:
+
+- `Calea Unirii`
+- `Bulevardul George Enescu`
+- `Strada Universitatii`
+- `Strada Stefan cel Mare`
+- `Calea Burdujeni`
+- `Strada Traian Vuia`
+- `Strada Ana Ipatescu`
+- `Strada Mitropoliei`
+- `Strada Marasesti`
+
+Validation:
+
+```text
+tests/unit/test_extract_traffic_csv.py -> passed
+tests/unit/test_transform_traffic_data.py -> passed
+tests/unit/test_routing_service.py -> passed
+route endpoint traffic coverage check -> passed, missing endpoints = []
+events CSV transform check -> passed, 5 rows
+rides CSV transform check -> passed, 6 rows
+python -m py_compile src/api/routing_service.py -> passed
+git diff --check -> passed, with only expected Windows CRLF/LF warnings
+```
+
+Notes:
+
+- this task updates controlled seed data and routing catalog metadata
+- no database schema change was needed
+- no AWS resource change was needed
+- no App Runner redeploy was done in this task
+- route analytics still use controlled demo observations, not official live traffic feeds
+- this closes Task 19 from the v3 Notion plan
+- the next task is `Task 20. Update ETL pipeline for cloud database`
 ---
 
 ## 9. Instructions For Any New Chat
