@@ -66,6 +66,27 @@ export type RoutePreviewResponse = {
   provider: string;
 };
 
+export type SavedRouteRecord = {
+  saved_route_id: number;
+  route_name: string;
+  origin_name: string;
+  origin_latitude: number;
+  origin_longitude: number;
+  destination_name: string;
+  destination_latitude: number;
+  destination_longitude: number;
+  distance_km: number;
+  duration_minutes: number;
+  provider: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type SaveRouteResponse = {
+  saved: boolean;
+  data: SavedRouteRecord;
+};
+
 export type RideHistoryRecord = {
   ride_id: number;
   started_at: string;

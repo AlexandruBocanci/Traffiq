@@ -8,6 +8,8 @@ import {
   RouteHourlyRecord,
   RoutePreviewResponse,
   RouteReportRecord,
+  SavedRouteRecord,
+  SaveRouteResponse,
   TopCongestedStreetRecord,
   TrafficRecord,
   WeatherImpactRecord,
@@ -16,7 +18,7 @@ import {
 type FetchOptions = {
   accessToken?: string;
   body?: unknown;
-  method?: 'GET' | 'POST';
+  method?: 'DELETE' | 'GET' | 'POST';
 };
 
 type KnownRouteLocation = {
@@ -226,6 +228,27 @@ async function previewRouteDirectlyWithOsrm(
 export async function getRidesHistory(accessToken: string) {
   return fetchFromApi<ApiListResponse<RideHistoryRecord>>('/rides/history', {
     accessToken,
+  });
+}
+
+export async function getSavedRoutes(accessToken: string) {
+  return fetchFromApi<ApiListResponse<SavedRouteRecord>>('/saved-routes', {
+    accessToken,
+  });
+}
+
+export async function saveRoute(routePreview: RoutePreviewResponse, accessToken: string) {
+  return fetchFromApi<SaveRouteResponse>('/saved-routes', {
+    accessToken,
+    body: {
+      destination: routePreview.destination,
+      distance_km: routePreview.distance_km,
+      duration_minutes: routePreview.duration_minutes,
+      origin: routePreview.origin,
+      provider: routePreview.provider,
+      route_name: `${routePreview.origin.name} to ${routePreview.destination.name}`,
+    },
+    method: 'POST',
   });
 }
 

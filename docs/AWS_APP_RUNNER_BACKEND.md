@@ -300,6 +300,22 @@ GET /rides/history without token -> 401
 These geolocated events are controlled Suceava alert examples, not live
 incident reports.
 
+Saved routes validation after Task 23:
+
+```text
+App Runner status -> RUNNING
+Backend ECR digest -> sha256:1ce14840d4d88db81d5c953a1754f2638870f181634bce9ab1c1297e02a691e6
+GET /health -> status=ok
+GET /saved-routes without token -> 401
+POST /saved-routes with real Cognito access token -> saved=True
+GET /saved-routes with real Cognito access token -> count=1
+DELETE /saved-routes/{id} with real Cognito access token -> deleted=True
+GET /saved-routes after delete -> count=0
+silver.saved_routes cloud validation leftovers -> 0
+```
+
+The validation used a temporary Cognito user and cleaned it up after the test.
+
 ## What This Enables
 
 The Traffiq backend is now reachable through a public AWS URL.

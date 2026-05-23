@@ -2802,6 +2802,78 @@ Notes:
 - the event refresh resets only event Bronze/Silver tables and does not replace weather, routes, or personal ride data
 - this closes Task 22 from the v3 Notion plan
 - the next task is `Task 23. Add saved routes`
+
+### Update 096 - Saved routes added for authenticated users
+
+Completed:
+
+- added `silver.saved_routes` for user-specific saved route persistence
+- added `serving.vw_saved_routes`
+- added saved route indexes:
+  - `idx_saved_routes_user_created_at`
+  - `idx_saved_routes_user_origin_destination`
+- added protected backend endpoints:
+  - `GET /saved-routes`
+  - `POST /saved-routes`
+  - `DELETE /saved-routes/{saved_route_id}`
+- connected saved routes to Cognito through `cognito_user_sub`
+- ensured saved route reads and deletes are filtered by the authenticated user's Cognito `sub`
+- registered the saved routes router in FastAPI
+- added integration validation for:
+  - guest rejection
+  - authenticated save/list flow
+  - cross-user isolation
+- added mobile API methods for saved routes
+- added a Drive route-preview save action
+- added an Account saved routes list for authenticated users
+- created `docs/SAVED_ROUTES.md`
+- updated README, execution plan, personal feature protection, RDS schema, ECR, and App Runner documentation
+
+RDS validation:
+
+```text
+sql/ddl/create_all.sql applied to RDS -> passed
+silver.saved_routes -> present
+serving.vw_saved_routes -> present
+saved route indexes -> present
+pipeline reset -> not run
+seed reload -> not run
+```
+
+Technical validation:
+
+```text
+python -m compileall src/api -> passed
+python tests/integration/test_saved_routes_endpoint.py with PYTHONPATH=. -> passed
+python tests/integration/test_auth_endpoint.py with PYTHONPATH=. -> passed
+npx.cmd tsc --noEmit -> passed
+```
+
+Cloud deployment and public API validation:
+
+```text
+Docker image build -> passed
+ECR latest digest -> sha256:1ce14840d4d88db81d5c953a1754f2638870f181634bce9ab1c1297e02a691e6
+App Runner deployment -> RUNNING
+GET /health -> status=ok
+GET /saved-routes without token -> 401
+POST /saved-routes with real Cognito access token -> saved=True
+GET /saved-routes with real Cognito access token -> count=1
+DELETE /saved-routes/{id} with real Cognito access token -> deleted=True
+GET /saved-routes after delete -> count=0
+temporary Cognito user cleanup -> attempted
+silver.saved_routes cloud validation leftovers -> 0
+```
+
+Notes:
+
+- saved routes are the first persisted per-user product feature in Traffiq
+- guest users can still preview routes; login is required only for saving and viewing saved routes
+- the database owner key is Cognito `sub`, not email, because `sub` is stable
+- App Runner still runs only FastAPI and does not run ETL or seed logic at startup
+- no new AWS service was created
+- this closes Task 23 from the v3 Notion plan
+- the next task is `Task 24. Add ride history per user`
 ---
 
 ## 9. Instructions For Any New Chat

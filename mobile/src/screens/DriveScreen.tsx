@@ -17,7 +17,8 @@ import EmptyState from '../components/EmptyState';
 import ErrorState from '../components/ErrorState';
 import LoadingState from '../components/LoadingState';
 import SuceavaMap from '../components/SuceavaMap';
-import { getDriveOverview, previewRoute } from '../services/traffiqApi';
+import { useAuth } from '../context/AuthContext';
+import { getDriveOverview, previewRoute, saveRoute } from '../services/traffiqApi';
 import { colors, radius, shadows, spacing } from '../theme/theme';
 import {
   MapEventRecord,
@@ -186,6 +187,7 @@ export default function DriveScreen({
   onOpenHistory,
   onOpenPipeline,
 }: DriveScreenProps) {
+  const { isAuthenticated, session } = useAuth();
   const [data, setData] = useState<DriveState>({
     routes: [],
     events: [],
@@ -204,6 +206,8 @@ export default function DriveScreen({
   const [routePreview, setRoutePreview] = useState<RoutePreviewResponse | null>(null);
   const [isRoutePreviewLoading, setIsRoutePreviewLoading] = useState(false);
   const [routePreviewError, setRoutePreviewError] = useState('');
+  const [isSavingRoute, setIsSavingRoute] = useState(false);
+  const [savedRouteMessage, setSavedRouteMessage] = useState('');
   const [currentLocationMessage, setCurrentLocationMessage] = useState('');
   const [currentRouteLocation, setCurrentRouteLocation] =
     useState<CurrentRouteLocation | null>(null);
@@ -310,6 +314,7 @@ export default function DriveScreen({
         origin: preview.origin.name,
       });
       setRoutePreview(preview);
+      setSavedRouteMessage('');
       setIsRouteSheetVisible(false);
     } catch {
       setRoutePreview(null);
@@ -318,6 +323,28 @@ export default function DriveScreen({
       );
     } finally {
       setIsRoutePreviewLoading(false);
+    }
+  }
+
+  async function handleSaveRoute() {
+    if (!routePreview) {
+      return;
+    }
+
+    if (!isAuthenticated || !session?.tokens.accessToken) {
+      onOpenAccount();
+      return;
+    }
+
+    try {
+      setIsSavingRoute(true);
+      setSavedRouteMessage('');
+      await saveRoute(routePreview, session.tokens.accessToken);
+      setSavedRouteMessage('Route saved to your account.');
+    } catch {
+      setSavedRouteMessage('Could not save this route. Try again.');
+    } finally {
+      setIsSavingRoute(false);
     }
   }
 
@@ -423,13 +450,29 @@ export default function DriveScreen({
                   {plannedRoute.origin} to {plannedRoute.destination}
                 </Text>
               </View>
-              <Pressable
-                accessibilityLabel="Edit planned route"
-                onPress={() => setIsRouteSheetVisible(true)}
-                style={styles.routeDraftEditButton}
-              >
-                <Text style={styles.routeDraftEditText}>Edit</Text>
-              </Pressable>
+              <View style={styles.routeDraftActions}>
+                <Pressable
+                  accessibilityLabel="Save planned route"
+                  disabled={!routePreview || isSavingRoute}
+                  onPress={handleSaveRoute}
+                  style={[
+                    styles.routeDraftSaveButton,
+                    (!routePreview || isSavingRoute) && styles.routeDraftButtonDisabled,
+                  ]}
+                >
+                  <Text style={styles.routeDraftSaveText}>
+                    {isSavingRoute ? 'Saving' : isAuthenticated ? 'Save' : 'Sign in'}
+                  </Text>
+                </Pressable>
+
+                <Pressable
+                  accessibilityLabel="Edit planned route"
+                  onPress={() => setIsRouteSheetVisible(true)}
+                  style={styles.routeDraftEditButton}
+                >
+                  <Text style={styles.routeDraftEditText}>Edit</Text>
+                </Pressable>
+              </View>
             </View>
             <Text style={styles.cardText}>
               {routePreview
@@ -463,6 +506,17 @@ export default function DriveScreen({
                   </Text>
                 </View>
               </View>
+            ) : null}
+
+            {savedRouteMessage ? (
+              <Text
+                style={[
+                  styles.savedRouteMessage,
+                  savedRouteMessage.startsWith('Could not') && styles.savedRouteMessageError,
+                ]}
+              >
+                {savedRouteMessage}
+              </Text>
             ) : null}
 
             {routeCondition ? (
@@ -1000,6 +1054,10 @@ const styles = StyleSheet.create({
   routeDraftTextWrap: {
     flex: 1,
   },
+  routeDraftActions: {
+    alignItems: 'flex-end',
+    gap: 8,
+  },
   routeDraftLabel: {
     color: colors.primary,
     fontSize: 12,
@@ -1021,11 +1079,37 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 8,
   },
+  routeDraftSaveButton: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+    borderRadius: 999,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+  },
+  routeDraftButtonDisabled: {
+    opacity: 0.5,
+  },
   routeDraftEditText: {
     color: colors.text,
     fontSize: 12,
     fontWeight: '900',
     textTransform: 'uppercase',
+  },
+  routeDraftSaveText: {
+    color: colors.primaryText,
+    fontSize: 12,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+  },
+  savedRouteMessage: {
+    color: colors.accent,
+    fontSize: 13,
+    fontWeight: '800',
+    lineHeight: 19,
+  },
+  savedRouteMessageError: {
+    color: colors.red,
   },
   routeSummaryGrid: {
     flexDirection: 'row',

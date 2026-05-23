@@ -31,7 +31,7 @@ Pushed image:
 Digest:
 
 ```text
-sha256:879bea5b41c4cd8b2da5b895fce54d642060108089f27bafbc0d565381b63ecf
+sha256:1ce14840d4d88db81d5c953a1754f2638870f181634bce9ab1c1297e02a691e6
 ```
 
 Image status:
@@ -93,14 +93,20 @@ Validated result:
 ```text
 repositoryName: traffiq-api
 imageTag: latest
-imageDigest: sha256:879bea5b41c4cd8b2da5b895fce54d642060108089f27bafbc0d565381b63ecf
+imageDigest: sha256:1ce14840d4d88db81d5c953a1754f2638870f181634bce9ab1c1297e02a691e6
 imageStatus: ACTIVE
 ```
 
 Latest image update:
 
 ```text
-May 23, 2026 - Task 22 geolocated Suceava event API support
+May 23, 2026 - Task 23 saved routes API support
+```
+
+Previous Task 22 digest:
+
+```text
+sha256:879bea5b41c4cd8b2da5b895fce54d642060108089f27bafbc0d565381b63ecf
 ```
 
 ## What This Enables

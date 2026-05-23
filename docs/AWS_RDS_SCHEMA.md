@@ -116,6 +116,13 @@ serving  | 9
 silver   | 6
 ```
 
+Task 23 adds `silver.saved_routes`, so the current RDS schema with saved routes contains:
+
+```text
+serving  | 10
+silver   | 7
+```
+
 ## Created Indexes
 
 Validation confirmed endpoint-supporting indexes in `silver` and `gold`, including:
@@ -129,6 +136,8 @@ idx_route_summary_congestion
 idx_route_hourly_report_route_time
 idx_events_observations_timestamp
 idx_ride_history_started_at
+idx_saved_routes_user_created_at
+idx_saved_routes_user_origin_destination
 idx_top_congested_segments_rank
 ```
 
@@ -166,6 +175,27 @@ were subsequently refreshed through the dedicated guarded events pipeline.
 Detailed event documentation:
 
 - `docs/SUCEAVA_EVENT_ALERTS.md`
+
+## Task 23 Saved Routes Extension
+
+Task 23 added user-specific route persistence.
+
+Applied additions:
+
+```text
+silver.saved_routes
+serving.vw_saved_routes
+idx_saved_routes_user_created_at
+idx_saved_routes_user_origin_destination
+```
+
+The schema was applied to RDS through the idempotent `sql/ddl/create_all.sql` entry point on `May 23, 2026`.
+
+No ETL reset or seed reload was required because saved routes are application-owned user data, not analytical seed data.
+
+Detailed saved routes documentation:
+
+- `docs/SAVED_ROUTES.md`
 
 ## What Is Not Done Yet
 

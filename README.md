@@ -101,6 +101,9 @@ Current backend endpoints:
 - `GET /routes/hourly`
 - `GET /map/events`
 - `GET /rides/history`
+- `GET /saved-routes`
+- `POST /saved-routes`
+- `DELETE /saved-routes/{saved_route_id}`
 - `GET /reports/overview`
 - `GET /mobile/drive-overview`
 
@@ -122,6 +125,7 @@ Route previews can now calculate distance, duration, and geometry through the ro
 Calculated routes are rendered on the map with a polyline and origin/destination markers.
 Route previews also include a Suceava condition summary that combines ETA, weather context, congestion score, and active city alerts.
 Controlled Suceava traffic alerts now include coordinates and render as severity-coded map markers.
+Authenticated users can save route previews and view their personal saved routes from Account.
 
 ## Tech Stack
 
@@ -228,6 +232,7 @@ Deployment and operations:
 - `docs/AWS_RDS_ETL_PIPELINE.md`
 - `docs/OPEN_METEO_WEATHER_INGESTION.md`
 - `docs/SUCEAVA_EVENT_ALERTS.md`
+- `docs/SAVED_ROUTES.md`
 - `docs/CLOUD_WORKFLOW.md`
 - `docs/ENVIRONMENTS.md`
 - `docs/SCHEDULER_STRATEGY.md`

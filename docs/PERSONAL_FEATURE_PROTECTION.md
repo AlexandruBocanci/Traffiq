@@ -21,6 +21,9 @@ Protected backend endpoint:
 
 ```text
 GET /rides/history
+GET /saved-routes
+POST /saved-routes
+DELETE /saved-routes/{saved_route_id}
 ```
 
 Guest behavior:
@@ -47,6 +50,8 @@ These public endpoints still work without login:
 - `GET /weather-impact`
 - `GET /streets/top-congested`
 - `GET /reports/overview`
+
+Saved routes are intentionally not included in public overview endpoints.
 
 The public mobile drive overview no longer exposes ride history:
 
@@ -108,13 +113,38 @@ src/api/auth.py
 
 The dependency validates the Cognito access token before the endpoint returns ride history.
 
+## Task 23 Saved Routes Extension
+
+Task 23 added the first persisted personal feature.
+
+Saved routes are stored with:
+
+```text
+cognito_user_sub
+```
+
+The backend extracts this value from the validated Cognito access token and filters all saved route reads/deletes by that value.
+
+Validated behavior:
+
+```text
+GET /saved-routes without token -> 401
+POST /saved-routes without token -> 401
+POST /saved-routes with real Cognito access token -> 200
+GET /saved-routes with real Cognito access token -> only the current user's routes
+DELETE /saved-routes/{id} with real Cognito access token -> deletes only the current user's route
+```
+
+Detailed documentation:
+
+- `docs/SAVED_ROUTES.md`
+
 ## What Is Not Done Yet
 
 This task does not:
 
 - create user-specific ride history database tables
 - filter ride history by Cognito user ID
-- add saved routes endpoints
 - add preferences endpoints
 - implement account settings persistence
 

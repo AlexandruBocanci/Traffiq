@@ -80,6 +80,24 @@ SELECT
   ride_status
 FROM silver.ride_history;
 
+CREATE OR REPLACE VIEW serving.vw_saved_routes AS
+SELECT
+  saved_route_id,
+  cognito_user_sub,
+  route_name,
+  origin_name,
+  origin_latitude,
+  origin_longitude,
+  destination_name,
+  destination_latitude,
+  destination_longitude,
+  distance_km,
+  duration_minutes,
+  provider,
+  created_at,
+  updated_at
+FROM silver.saved_routes;
+
 CREATE OR REPLACE VIEW serving.vw_reports_summary AS
 SELECT
   (SELECT COUNT(*) FROM gold.route_summary) AS route_count,

@@ -62,3 +62,20 @@ CREATE TABLE IF NOT EXISTS silver.ride_history (
   estimated_duration_minutes NUMERIC(10, 2) NOT NULL,
   ride_status VARCHAR(50) NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS silver.saved_routes (
+  saved_route_id SERIAL PRIMARY KEY,
+  cognito_user_sub VARCHAR(255) NOT NULL,
+  route_name VARCHAR(255) NOT NULL,
+  origin_name VARCHAR(255) NOT NULL,
+  origin_latitude NUMERIC(9, 6) NOT NULL,
+  origin_longitude NUMERIC(9, 6) NOT NULL,
+  destination_name VARCHAR(255) NOT NULL,
+  destination_latitude NUMERIC(9, 6) NOT NULL,
+  destination_longitude NUMERIC(9, 6) NOT NULL,
+  distance_km NUMERIC(10, 2) NOT NULL,
+  duration_minutes NUMERIC(10, 2) NOT NULL,
+  provider VARCHAR(100) NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
