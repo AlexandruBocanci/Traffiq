@@ -31,10 +31,15 @@ def test_mobile_drive_overview_endpoint():
       print(response_json)
       return 0
 
-    if len(response_json[key]) == 0:
+    if key != "rides" and len(response_json[key]) == 0:
       print(f"FAILED: {key} should not be empty.")
       print(response_json)
       return 0
+
+  if response_json["rides"] != []:
+    print("FAILED: public mobile overview should not expose personal ride history.")
+    print(response_json)
+    return 0
 
   first_route = response_json["routes"][0]
   route_keys = [

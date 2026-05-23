@@ -66,7 +66,6 @@ def get_reports_overview():
         route_count,
         congested_segment_count,
         event_count,
-        ride_count,
         avg_route_congestion_score,
         avg_route_speed,
         high_congestion_route_count
@@ -127,33 +126,11 @@ def get_reports_overview():
       """
     )
 
-    ride_rows = fetch_all_dicts(
-      cur,
-      """
-      SELECT
-        ride_id,
-        started_at,
-        ended_at,
-        origin_name,
-        destination_name,
-        route_name,
-        distance_km,
-        avg_speed,
-        congestion_score,
-        estimated_duration_minutes,
-        ride_status
-      FROM serving.vw_ride_history
-      ORDER BY started_at DESC, ride_id ASC
-      LIMIT 5;
-      """
-    )
-
     return {
       "summary": {
         "route_count": summary["route_count"],
         "congested_segment_count": summary["congested_segment_count"],
         "event_count": summary["event_count"],
-        "ride_count": summary["ride_count"],
         "avg_route_congestion_score": to_float(summary["avg_route_congestion_score"]),
         "avg_route_speed": to_float(summary["avg_route_speed"]),
         "high_congestion_route_count": summary["high_congestion_route_count"],
@@ -179,22 +156,6 @@ def get_reports_overview():
           "severity": row["severity"],
         }
         for row in event_rows
-      ],
-      "recent_rides": [
-        {
-          "ride_id": row["ride_id"],
-          "started_at": row["started_at"],
-          "ended_at": row["ended_at"],
-          "origin_name": row["origin_name"],
-          "destination_name": row["destination_name"],
-          "route_name": row["route_name"],
-          "distance_km": to_float(row["distance_km"]),
-          "avg_speed": to_float(row["avg_speed"]),
-          "congestion_score": to_float(row["congestion_score"]),
-          "estimated_duration_minutes": to_float(row["estimated_duration_minutes"]),
-          "ride_status": row["ride_status"],
-        }
-        for row in ride_rows
       ],
     }
 

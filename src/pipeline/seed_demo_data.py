@@ -1,3 +1,5 @@
+import argparse
+
 import pandas as pd
 
 from src.extract.extract_events_csv import extract_events_csv
@@ -94,8 +96,8 @@ def get_silver_traffic_df():
             conn.close()
 
 
-def seed_demo_data():
-    pipeline_result = run_traffic_weather_pipeline()
+def seed_demo_data(allow_cloud_reset=False):
+    pipeline_result = run_traffic_weather_pipeline(allow_cloud_reset=allow_cloud_reset)
 
     if pipeline_result.get("status") != "success":
         return {
@@ -154,4 +156,18 @@ def seed_demo_data():
 
 
 if __name__ == "__main__":
-    seed_demo_data()
+    parser = argparse.ArgumentParser(
+        description="Load the full Traffiq controlled demo dataset."
+    )
+    parser.add_argument(
+        "--confirm-cloud-reset",
+        action="store_true",
+        help="Allow destructive demo table reset when DB_HOST points to Amazon RDS.",
+    )
+    args = parser.parse_args()
+
+    try:
+        seed_demo_data(allow_cloud_reset=args.confirm_cloud_reset)
+    except RuntimeError as exc:
+        print(f"BLOCKED: {exc}")
+        raise SystemExit(1) from exc

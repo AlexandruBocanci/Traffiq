@@ -356,6 +356,10 @@ The Suceava route and street seed dataset is documented in:
 
 - `docs/SUCEAVA_SEED_DATASET.md`
 
+The controlled ETL load into Amazon RDS is documented in:
+
+- `docs/AWS_RDS_ETL_PIPELINE.md`
+
 The cloud workflow is documented in:
 
 - `docs/CLOUD_WORKFLOW.md`

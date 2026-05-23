@@ -2583,6 +2583,73 @@ Notes:
 - route analytics still use controlled demo observations, not official live traffic feeds
 - this closes Task 19 from the v3 Notion plan
 - the next task is `Task 20. Update ETL pipeline for cloud database`
+
+### Update 093 - ETL pipeline loaded into Amazon RDS
+
+Completed:
+
+- confirmed that ETL database connectivity is configured through the shared `DB_*` environment variables
+- created `src/pipeline/execution_safety.py` for destructive cloud target protection
+- protected both `run_pipeline.py` and `seed_demo_data.py` from accidental Amazon RDS resets
+- added the explicit `--confirm-cloud-reset` flag for intentional RDS ETL/demo loads
+- added `tests/unit/test_seed_demo_cloud_guard.py`
+- loaded the Suceava-controlled dataset into Amazon RDS PostgreSQL
+- validated populated RDS data through the public AWS App Runner API
+- detected and fixed an existing public-data contract issue: `/reports/overview` exposed personal ride history
+- removed `recent_rides` and `ride_count` from the public reports response
+- updated integration test expectations so public endpoints must not expose ride history
+- rebuilt the backend Docker image, pushed it to ECR, and redeployed App Runner
+- created `docs/AWS_RDS_ETL_PIPELINE.md`
+- updated cloud, environment, App Runner, ECR, and personal feature protection documentation
+
+Cloud pipeline validation:
+
+```text
+Configured DB target -> traffiq-db.cni4ck0o40p5.eu-central-1.rds.amazonaws.com / traffiq / traffiq_admin / 5432
+RDS TCP connectivity -> passed
+RDS Python connection -> passed
+run_pipeline without --confirm-cloud-reset -> BLOCKED as intended
+seed_demo_data without --confirm-cloud-reset -> BLOCKED as intended
+seed_demo_data with --confirm-cloud-reset -> passed
+latest pipeline run_id -> 2
+latest pipeline status -> success
+records_extracted -> 196
+records_loaded -> 609
+route_summary_rows -> 6
+route_hourly_rows -> 22
+top_congested_rows -> 9
+events_silver_rows -> 5
+rides_silver_rows -> 6
+```
+
+Public API validation:
+
+```text
+App Runner status -> RUNNING
+ECR latest digest -> sha256:e81b6e530deae41bd866ade7e1f5ab4c95ce94d753be51dbefb94a01b8f04f76
+GET /health -> status=ok
+GET /mobile/drive-overview -> routes=5, events=5, congested=5, weather=2, rides=0
+GET /reports/overview -> route_count=6, no recent_rides, no ride_count
+GET /rides/history without token -> 401
+POST /routes/preview with Calea Unirii to Strada Marasesti -> 200
+```
+
+Technical validation:
+
+```text
+tests/unit/test_seed_demo_cloud_guard.py -> passed
+python -m compileall src/api src/pipeline tests/integration tests/unit -> passed
+git diff --check -> passed, with only expected Windows CRLF/LF warnings
+```
+
+Notes:
+
+- the ETL job is currently executed manually from the developer machine and writes directly to RDS
+- App Runner only runs the FastAPI reader service; it does not reset or seed data at startup
+- scheduled ETL through an AWS job remains future work
+- controlled seed observations are not a claim of real-time traffic
+- this closes Task 20 from the v3 Notion plan
+- the next task is `Task 21. Keep Open-Meteo weather ingestion for Suceava`
 ---
 
 ## 9. Instructions For Any New Chat

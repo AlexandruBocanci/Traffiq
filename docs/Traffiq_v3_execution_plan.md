@@ -516,6 +516,10 @@ Goal:
 
 - make pipeline write to RDS, not only local DB
 
+Cloud ETL document:
+
+- `docs/AWS_RDS_ETL_PIPELINE.md`
+
 Deliverables:
 
 - cloud environment config
@@ -525,6 +529,8 @@ Deliverables:
 Definition of done:
 
 - pipeline can load data into RDS
+- destructive demo loading against RDS requires explicit confirmation
+- public API can read the loaded Suceava analytical data from RDS
 
 ### Task 21. Keep Open-Meteo weather ingestion for Suceava
 

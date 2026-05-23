@@ -31,7 +31,7 @@ Pushed image:
 Digest:
 
 ```text
-sha256:da6b792e416378763131f8d5c20d317a9c5370307592bea7f1a72f9a1a9c29f4
+sha256:e81b6e530deae41bd866ade7e1f5ab4c95ce94d753be51dbefb94a01b8f04f76
 ```
 
 Image status:
@@ -43,7 +43,7 @@ ACTIVE
 Approximate pushed image size:
 
 ```text
-110,460,015 bytes
+110,531,199 bytes
 ```
 
 ## Commands Used
@@ -93,8 +93,14 @@ Validated result:
 ```text
 repositoryName: traffiq-api
 imageTag: latest
-imageDigest: sha256:da6b792e416378763131f8d5c20d317a9c5370307592bea7f1a72f9a1a9c29f4
+imageDigest: sha256:e81b6e530deae41bd866ade7e1f5ab4c95ce94d753be51dbefb94a01b8f04f76
 imageStatus: ACTIVE
+```
+
+Latest image update:
+
+```text
+May 23, 2026 - Task 20 cloud ETL validation, RDS reset guard, and public reports privacy correction
 ```
 
 ## What This Enables

@@ -146,7 +146,6 @@ def test_reports_overview_endpoint():
     "route_highlights",
     "top_congested_segments",
     "recent_events",
-    "recent_rides",
   ]
 
   for key in required_top_level_keys:
@@ -160,7 +159,6 @@ def test_reports_overview_endpoint():
     "route_count",
     "congested_segment_count",
     "event_count",
-    "ride_count",
     "avg_route_congestion_score",
     "avg_route_speed",
     "high_congestion_route_count",
@@ -187,11 +185,6 @@ def test_reports_overview_endpoint():
     print(summary)
     return 0
 
-  if summary["ride_count"] <= 0:
-    print("FAILED: ride_count should be greater than 0.")
-    print(summary)
-    return 0
-
   if summary["avg_route_congestion_score"] < 0 or summary["avg_route_congestion_score"] > 100:
     print("FAILED: avg_route_congestion_score should be between 0 and 100.")
     print(summary)
@@ -212,8 +205,8 @@ def test_reports_overview_endpoint():
     print(response_json)
     return 0
 
-  if len(response_json["recent_rides"]) == 0:
-    print("FAILED: recent_rides should not be empty.")
+  if "recent_rides" in response_json or "ride_count" in summary:
+    print("FAILED: public reports should not expose personal ride history.")
     print(response_json)
     return 0
 

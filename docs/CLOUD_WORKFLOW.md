@@ -2,9 +2,9 @@
 
 ## Purpose
 
-This document defines the practical cloud deployment workflow for Traffiq.
+This document records the practical cloud deployment workflow for Traffiq.
 
-It does not mean the project is already deployed to AWS. It explains the exact sequence that turns the current Docker-based local backend into a deployable AWS setup.
+The first AWS deployment is now implemented: the backend runs on App Runner, PostgreSQL runs on RDS, authentication uses Cognito, and the controlled Suceava dataset has been loaded into RDS through the ETL pipeline.
 
 The goal is to make the project understandable as a real data engineering system:
 
@@ -67,6 +67,10 @@ The backend Cognito JWT validation implementation is documented in:
 The personal feature protection rule is documented in:
 
 - `docs/PERSONAL_FEATURE_PROTECTION.md`
+
+The controlled ETL load into Amazon RDS is documented in:
+
+- `docs/AWS_RDS_ETL_PIPELINE.md`
 
 ## Deployment Flow
 
@@ -215,13 +219,13 @@ After the API and RDS database are configured, run the pipeline once against the
 The pipeline command is:
 
 ```powershell
-python -m src.pipeline.run_pipeline
+python -m src.pipeline.run_pipeline --confirm-cloud-reset
 ```
 
 For a demo environment that needs the full mobile dataset:
 
 ```powershell
-python -m src.pipeline.seed_demo_data
+python -m src.pipeline.seed_demo_data --confirm-cloud-reset
 ```
 
 The important part is that the runtime environment must point to the RDS database through:
@@ -229,6 +233,8 @@ The important part is that the runtime environment must point to the RDS databas
 ```text
 DB_HOST=<rds-endpoint>
 ```
+
+The explicit flag is required because both pipeline execution commands truncate and rebuild analytical tables. This prevents accidentally replacing cloud data when the configured target is Amazon RDS.
 
 ### 9. Add Scheduled ETL Later
 

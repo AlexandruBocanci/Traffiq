@@ -1,3 +1,5 @@
+import argparse
+
 import pandas as pd
 
 from src.extract.extract_traffic_csv import extract_traffic_csv
@@ -14,6 +16,7 @@ from src.transform.transform_traffic_data import transform_traffic_data
 from src.transform.transform_weather_data import transform_weather_data
 from src.load.log_pipeline_run import finish_pipeline_run
 from src.load.log_pipeline_run import start_pipeline_run
+from src.pipeline.execution_safety import validate_configured_pipeline_target
 from src.utils.db_utils import get_db_connection
 
 
@@ -96,7 +99,9 @@ def get_enriched_traffic_weather_df():
             conn.close()
 
 
-def run_traffic_weather_pipeline():
+def run_traffic_weather_pipeline(allow_cloud_reset=False):
+    validate_configured_pipeline_target(allow_cloud_reset)
+
     run_id = start_pipeline_run("traffic_weather_pipeline")
 
     if run_id is None:
@@ -219,4 +224,18 @@ def run_traffic_weather_pipeline():
 
 
 if __name__ == "__main__":
-    run_traffic_weather_pipeline()
+    parser = argparse.ArgumentParser(
+        description="Run the Traffiq traffic and weather ETL pipeline."
+    )
+    parser.add_argument(
+        "--confirm-cloud-reset",
+        action="store_true",
+        help="Allow destructive pipeline table reset when DB_HOST points to Amazon RDS.",
+    )
+    args = parser.parse_args()
+
+    try:
+        run_traffic_weather_pipeline(allow_cloud_reset=args.confirm_cloud_reset)
+    except RuntimeError as exc:
+        print(f"BLOCKED: {exc}")
+        raise SystemExit(1) from exc

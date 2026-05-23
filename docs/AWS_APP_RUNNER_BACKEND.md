@@ -187,16 +187,17 @@ Invoke-RestMethod -Uri 'https://eguwdq6puz.eu-central-1.awsapprunner.com/mobile/
 Validated result:
 
 ```text
-routes: {}
-events: {}
-rides: {}
-congested: {}
-weather: {}
+routes: 5
+events: 5
+rides: 0
+congested: 5
+weather: 2
+first route: Strada Marasesti to Strada Universitatii
 ```
 
-The empty result is expected at this stage because RDS has schema objects but no loaded data yet.
+The populated public result is expected after Task 20 because the Suceava ETL dataset is now loaded in RDS.
 
-Data loading into RDS belongs to a later v3 task.
+`rides: 0` is intentional because public endpoints do not expose personal ride data.
 
 Protected auth validation endpoint:
 
@@ -268,6 +269,22 @@ origin.longitude: request longitude
 POST /routes/preview with origin_name=Current location and no coordinates -> 400
 ```
 
+Cloud ETL and Suceava street validation after Task 20:
+
+```text
+RDS pipeline final run_id=2 -> success
+POST /routes/preview with Calea Unirii to Strada Marasesti -> 200
+GET /reports/overview -> Suceava analytics populated
+GET /reports/overview -> no recent_rides and no ride_count
+GET /rides/history without token -> 401
+```
+
+Backend image deployed for this validation:
+
+```text
+sha256:e81b6e530deae41bd866ade7e1f5ab4c95ce94d753be51dbefb94a01b8f04f76
+```
+
 ## What This Enables
 
 The Traffiq backend is now reachable through a public AWS URL.
@@ -275,21 +292,17 @@ The Traffiq backend is now reachable through a public AWS URL.
 This enables:
 
 - mobile app cloud API configuration
-- future public demo without local FastAPI
+- public demo without local FastAPI
 - App Runner to RDS integration
-- later pipeline loading into cloud database
+- ETL-loaded Suceava data served from the cloud database
 
 ## What Is Not Done Yet
 
-This task does not:
+Remaining later work:
 
-- load data into RDS
-- configure the mobile app to use the cloud URL
-- create Cognito auth
-- create scheduled ETL
-- optimize App Runner scaling
-
-Those belong to later v3 tasks.
+- scheduled ETL execution
+- user-specific persisted personal feature modeling
+- App Runner scaling or cost optimization beyond the current demo setup
 
 ## Cost Guardrails
 

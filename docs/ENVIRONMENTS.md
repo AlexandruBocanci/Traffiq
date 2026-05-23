@@ -2,13 +2,13 @@
 
 ## Purpose
 
-This document defines how Traffiq separates local development, Docker-based local demos, and future deployable cloud environments.
+This document defines how Traffiq separates local development, Docker-based local demos, and the deployed AWS environment.
 
 The goal is to avoid mixing:
 
 - local machine configuration
 - Docker service configuration
-- future AWS deployment configuration
+- AWS deployment configuration
 
 ## Environment Modes
 
@@ -130,9 +130,9 @@ Use this when:
 
 ## 3. AWS Deployable Environment
 
-Use this mode as the future cloud deployment direction.
+Use this mode for the deployed cloud-backed v3 application.
 
-This environment is documented as a target architecture. It is not fully implemented yet.
+The current implementation uses App Runner for FastAPI, Amazon RDS PostgreSQL for storage, Amazon ECR for the container image, and Amazon Cognito for authentication.
 
 ### Runtime
 
@@ -190,7 +190,19 @@ Current RDS details are documented in:
 
 ### Pipeline execution
 
-Recommended future direction:
+Current Task 20 behavior:
+
+```text
+local Python ETL execution -> Amazon RDS PostgreSQL
+```
+
+The full controlled Suceava demo load requires:
+
+```powershell
+python -m src.pipeline.seed_demo_data --confirm-cloud-reset
+```
+
+Recommended later scheduled direction:
 
 ```text
 EventBridge Scheduler -> ECS Fargate task -> Amazon RDS PostgreSQL
