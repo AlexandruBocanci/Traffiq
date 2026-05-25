@@ -644,6 +644,10 @@ Goal:
 
 - expose operational status through the backend
 
+Pipeline status document:
+
+- `docs/PIPELINE_STATUS_ENDPOINT.md`
+
 Endpoint:
 
 ```text

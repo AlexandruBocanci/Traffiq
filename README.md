@@ -107,6 +107,7 @@ Current backend endpoints:
 - `DELETE /saved-routes/{saved_route_id}`
 - `GET /preferences`
 - `PUT /preferences`
+- `GET /pipeline/status`
 - `GET /reports/overview`
 - `GET /mobile/drive-overview`
 

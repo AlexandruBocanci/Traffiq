@@ -348,6 +348,17 @@ temporary Cognito user cleanup -> deleted
 
 The validation used a temporary Cognito user and cleaned it up after the test.
 
+Pipeline status validation after Task 26:
+
+```text
+App Runner status -> RUNNING
+Backend ECR digest -> sha256:d3ae9c92395cfeb4dab1e57494a6558f8df8002fda85ab98aa00295610071865
+GET /health -> status=ok
+GET /pipeline/status -> run_id=4, pipeline_name=events_pipeline, status=success, records_extracted=5, records_loaded=10, checks=1
+```
+
+The endpoint is read-only. It reads ETL metadata from RDS and does not run or reset the pipeline.
+
 ## What This Enables
 
 The Traffiq backend is now reachable through a public AWS URL.
@@ -364,7 +375,6 @@ This enables:
 Remaining later work:
 
 - scheduled ETL execution
-- pipeline status endpoint
 - Admin / Pipeline mobile screen
 - App Runner scaling or cost optimization beyond the current demo setup
 

@@ -3067,6 +3067,62 @@ Notes:
 - App Runner still runs only FastAPI and does not run ETL or seed logic at startup
 - this closes Task 25 from the v3 Notion plan
 - the next task is `Task 26. Add pipeline status endpoint`
+
+### Update 100 - Pipeline status endpoint added
+
+Completed:
+
+- added read-only backend endpoint:
+  - `GET /pipeline/status`
+- added `src/api/routes/pipeline.py`
+- registered the pipeline router in FastAPI
+- exposed the latest row from `etl_meta.pipeline_runs`
+- exposed data quality checks for the latest `run_id` from `etl_meta.data_quality_checks`
+- returned `latest_run=null` and `data_quality_checks=[]` if no pipeline run exists
+- added non-destructive integration validation:
+  - inserts a temporary pipeline run
+  - inserts temporary data quality checks
+  - validates the endpoint response
+  - deletes the temporary rows
+- created `docs/PIPELINE_STATUS_ENDPOINT.md`
+- updated README, execution plan, RDS ETL, ECR, App Runner, and chat documentation
+
+RDS behavior:
+
+```text
+schema change -> not required
+pipeline reset -> not run
+seed reload -> not run
+endpoint reads only etl_meta.pipeline_runs and etl_meta.data_quality_checks
+```
+
+Technical validation:
+
+```text
+python -m compileall src/api -> passed
+python tests/integration/test_pipeline_status_endpoint.py with PYTHONPATH=. -> passed
+GET /pipeline/status through TestClient on RDS data -> 200
+latest real RDS run -> run_id=4, pipeline_name=events_pipeline, status=success, quality_checks=1
+git diff --check -> passed, with only expected Windows CRLF/LF warnings
+```
+
+Cloud deployment and public API validation:
+
+```text
+Docker image build -> passed
+ECR latest digest -> sha256:d3ae9c92395cfeb4dab1e57494a6558f8df8002fda85ab98aa00295610071865
+App Runner deployment -> RUNNING
+GET /health -> status=ok
+GET /pipeline/status -> run_id=4, pipeline_name=events_pipeline, status=success, records_extracted=5, records_loaded=10, checks=1
+```
+
+Notes:
+
+- the endpoint is public for the current portfolio/demo version because it exposes operational metadata, not personal data or secrets
+- no AWS service was created
+- App Runner still runs only FastAPI and does not run ETL or seed logic at startup
+- this closes Task 26 from the v3 Notion plan
+- the next task is `Task 27. Add Admin / Pipeline screen`
 ---
 
 ## 9. Instructions For Any New Chat

@@ -105,6 +105,15 @@ mobile app calls API
 
 A backend container restart must not reset the analytical cloud data.
 
+Task 26 exposes ETL metadata through:
+
+```text
+GET /pipeline/status
+```
+
+This endpoint reads from `etl_meta.pipeline_runs` and `etl_meta.data_quality_checks`.
+It is read-only and does not trigger ETL execution.
+
 ## Validation
 
 Validate the selected database target without displaying the password:
@@ -238,6 +247,23 @@ GET /mobile/drive-overview -> events=5 with coordinates, rides=0
 Detailed events documentation:
 
 - `docs/SUCEAVA_EVENT_ALERTS.md`
+
+## Task 26 Pipeline Status Endpoint Validation
+
+Validated on `May 25, 2026`:
+
+```text
+GET /pipeline/status -> run_id=4
+pipeline_name -> events_pipeline
+status -> success
+records_extracted -> 5
+records_loaded -> 10
+data_quality_checks -> 1
+```
+
+Detailed endpoint documentation:
+
+- `docs/PIPELINE_STATUS_ENDPOINT.md`
 
 ## Current Limitation
 

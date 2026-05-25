@@ -31,7 +31,7 @@ Pushed image:
 Digest:
 
 ```text
-sha256:9aecf3fb15529ee4654f266936569d43599471c4b4453d4cc6b6d3f5bd5beb91
+sha256:d3ae9c92395cfeb4dab1e57494a6558f8df8002fda85ab98aa00295610071865
 ```
 
 Image status:
@@ -43,7 +43,7 @@ ACTIVE
 Approximate pushed image size:
 
 ```text
-110,565,014 bytes
+110,570,033 bytes
 ```
 
 ## Commands Used
@@ -93,20 +93,20 @@ Validated result:
 ```text
 repositoryName: traffiq-api
 imageTag: latest
-imageDigest: sha256:9aecf3fb15529ee4654f266936569d43599471c4b4453d4cc6b6d3f5bd5beb91
+imageDigest: sha256:d3ae9c92395cfeb4dab1e57494a6558f8df8002fda85ab98aa00295610071865
 imageStatus: ACTIVE
 ```
 
 Latest image update:
 
 ```text
-May 25, 2026 - Task 25 user preferences API support
+May 25, 2026 - Task 26 pipeline status endpoint support
 ```
 
-Previous Task 24 digest:
+Previous Task 25 digest:
 
 ```text
-sha256:33b830a5ba20e3f8582875d30a06ecb9982c5c69b652471cf90e711f62528fd7
+sha256:9aecf3fb15529ee4654f266936569d43599471c4b4453d4cc6b6d3f5bd5beb91
 ```
 
 ## What This Enables
