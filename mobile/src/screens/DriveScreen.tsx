@@ -21,11 +21,13 @@ import { useAuth } from '../context/AuthContext';
 import {
   addRideToHistory,
   getDriveOverview,
+  getUserPreferences,
   previewRoute,
   saveRoute,
 } from '../services/traffiqApi';
 import { colors, radius, shadows, spacing } from '../theme/theme';
 import {
+  DistanceUnit,
   MapEventRecord,
   RideHistoryRecord,
   RoutePreviewResponse,
@@ -72,6 +74,14 @@ type RouteConditionSummary = {
   weatherContext: string;
 };
 
+type WeatherImpactPresentation = {
+  emoji: string;
+  label: string;
+  scoreLabel: string;
+  scoreTone: string;
+  userText: string;
+};
+
 const SUCEAVA_DESTINATION_SUGGESTIONS = [
   'Iulius Mall Suceava',
   'Universitatea Stefan cel Mare',
@@ -98,6 +108,98 @@ function getSeverityColor(severity: string) {
   }
 
   return colors.accent;
+}
+
+function formatDistance(valueKm: number | null | undefined, unit: DistanceUnit) {
+  if (valueKm === null || valueKm === undefined) {
+    return 'N/A';
+  }
+
+  if (unit === 'mi') {
+    return `${Math.round(valueKm * 0.621371 * 100) / 100} mi`;
+  }
+
+  return `${valueKm} km`;
+}
+
+function roundValue(value: number | null | undefined) {
+  if (value === null || value === undefined) {
+    return 'N/A';
+  }
+
+  return Math.round(value).toString();
+}
+
+function getWeatherEmoji(weatherLabel: string | null | undefined) {
+  const normalized = weatherLabel?.toLowerCase() ?? '';
+
+  if (normalized.includes('rain')) {
+    return '🌧️';
+  }
+
+  if (normalized.includes('snow')) {
+    return '❄️';
+  }
+
+  if (normalized.includes('fog')) {
+    return '🌫️';
+  }
+
+  if (normalized.includes('cloud')) {
+    return '☁️';
+  }
+
+  if (normalized.includes('clear')) {
+    return '☀️';
+  }
+
+  return '🌤️';
+}
+
+function getWeatherImpactPresentation(
+  weatherImpact: WeatherImpactRecord | undefined
+): WeatherImpactPresentation {
+  const weatherLabel = weatherImpact?.weather_label ?? 'No weather data';
+  const score = weatherImpact?.avg_congestion_score;
+  const roundedScore = roundValue(score);
+
+  if (score === null || score === undefined) {
+    return {
+      emoji: getWeatherEmoji(weatherLabel),
+      label: weatherLabel,
+      scoreLabel: 'No score',
+      scoreTone: 'Unknown impact',
+      userText: 'No weather-to-traffic signal is available yet.',
+    };
+  }
+
+  if (score >= 70) {
+    return {
+      emoji: getWeatherEmoji(weatherLabel),
+      label: weatherLabel,
+      scoreLabel: `${roundedScore}/100`,
+      scoreTone: 'High traffic impact',
+      userText: 'Expect slower movement around Suceava.',
+    };
+  }
+
+  if (score >= 40) {
+    return {
+      emoji: getWeatherEmoji(weatherLabel),
+      label: weatherLabel,
+      scoreLabel: `${roundedScore}/100`,
+      scoreTone: 'Moderate traffic impact',
+      userText: 'Some delays are likely on busy corridors.',
+    };
+  }
+
+  return {
+    emoji: getWeatherEmoji(weatherLabel),
+    label: weatherLabel,
+    scoreLabel: `${roundedScore}/100`,
+    scoreTone: 'Low traffic impact',
+    userText: 'Weather is not adding major delay pressure.',
+  };
 }
 
 function getConditionColor(tone: RouteConditionTone) {
@@ -192,7 +294,7 @@ export default function DriveScreen({
   onOpenHistory,
   onOpenPipeline,
 }: DriveScreenProps) {
-  const { isAuthenticated, session } = useAuth();
+  const { getAccessToken, isAuthenticated, session } = useAuth();
   const [data, setData] = useState<DriveState>({
     routes: [],
     events: [],
@@ -203,6 +305,7 @@ export default function DriveScreen({
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
   const [isRouteSheetVisible, setIsRouteSheetVisible] = useState(false);
+  const [isMapExpandedVisible, setIsMapExpandedVisible] = useState(false);
   const [isRideSheetVisible, setIsRideSheetVisible] = useState(false);
   const [routeOriginMode, setRouteOriginMode] = useState<RouteOriginMode>('current');
   const [manualRouteOrigin, setManualRouteOrigin] = useState('');
@@ -216,6 +319,7 @@ export default function DriveScreen({
   const [isSavingRoute, setIsSavingRoute] = useState(false);
   const [savedRouteMessage, setSavedRouteMessage] = useState('');
   const [currentLocationMessage, setCurrentLocationMessage] = useState('');
+  const [distanceUnit, setDistanceUnit] = useState<DistanceUnit>('km');
   const [currentRouteLocation, setCurrentRouteLocation] =
     useState<CurrentRouteLocation | null>(null);
 
@@ -237,6 +341,31 @@ export default function DriveScreen({
 
     loadDriveData();
   }, []);
+
+  useEffect(() => {
+    async function loadDistancePreference() {
+      if (!isAuthenticated || !session?.tokens.accessToken) {
+        setDistanceUnit('km');
+        return;
+      }
+
+      const accessToken = await getAccessToken();
+
+      if (!accessToken) {
+        setDistanceUnit('km');
+        return;
+      }
+
+      try {
+        const response = await getUserPreferences(accessToken);
+        setDistanceUnit(response.data.distance_unit);
+      } catch {
+        setDistanceUnit('km');
+      }
+    }
+
+    loadDistancePreference();
+  }, [getAccessToken, isAuthenticated, session?.tokens.accessToken]);
 
   async function getCurrentRouteLocation() {
     try {
@@ -347,7 +476,15 @@ export default function DriveScreen({
     try {
       setIsSavingRoute(true);
       setSavedRouteMessage('');
-      await saveRoute(routePreview, session.tokens.accessToken);
+      const accessToken = await getAccessToken();
+
+      if (!accessToken) {
+        setSavedRouteMessage('Your session expired. Please sign in again.');
+        onOpenAccount();
+        return;
+      }
+
+      await saveRoute(routePreview, accessToken);
       setSavedRouteMessage('Route saved to your account.');
     } catch {
       setSavedRouteMessage('Could not save this route. Try again.');
@@ -369,9 +506,17 @@ export default function DriveScreen({
     try {
       setIsAddingRideHistory(true);
       setRideHistoryMessage('');
+      const accessToken = await getAccessToken();
+
+      if (!accessToken) {
+        setRideHistoryMessage('Your session expired. Please sign in again.');
+        onOpenAccount();
+        return;
+      }
+
       await addRideToHistory(
         routePreview,
-        session.tokens.accessToken,
+        accessToken,
         topCongestedSegment?.congestion_score ?? weatherImpact?.avg_congestion_score
       );
       setRideHistoryMessage('Ride added to your personal history.');
@@ -394,6 +539,7 @@ export default function DriveScreen({
   const primaryEvent = data.events[0];
   const topCongestedSegment = data.congested[0];
   const weatherImpact = data.weather[0];
+  const weatherPresentation = getWeatherImpactPresentation(weatherImpact);
   const recentRide = data.rides[0];
   const routeCondition = buildRouteConditionSummary(
     routePreview,
@@ -406,7 +552,7 @@ export default function DriveScreen({
     <SafeAreaView style={styles.safeArea}>
       <ScrollView style={styles.container} contentContainerStyle={styles.content}>
         <View style={styles.header}>
-          <View>
+          <View style={styles.headerTitleBlock}>
             <Text style={styles.eyebrow}>Traffiq</Text>
             <Text style={styles.title}>Where are you going?</Text>
           </View>
@@ -459,22 +605,22 @@ export default function DriveScreen({
         </Pressable>
 
         <View style={styles.weatherStrip}>
-          <View>
+          <View style={styles.weatherTextBlock}>
             <Text style={styles.weatherLabel}>Weather impact</Text>
-            <Text style={styles.weatherTitle}>{weatherImpact?.weather_label ?? 'No data'}</Text>
+            <Text style={styles.weatherTitle}>
+              {weatherPresentation.emoji} {weatherPresentation.label}
+            </Text>
+            <Text style={styles.weatherHelpText}>{weatherPresentation.userText}</Text>
           </View>
           <View style={styles.weatherMetric}>
-            <Text style={styles.weatherMetricValue}>
-              {formatValue(weatherImpact?.avg_congestion_score)}
-            </Text>
-            <Text style={styles.weatherMetricLabel}>congestion</Text>
+            <Text style={styles.weatherMetricValue}>{weatherPresentation.scoreLabel}</Text>
+            <Text style={styles.weatherMetricLabel}>{weatherPresentation.scoreTone}</Text>
           </View>
         </View>
 
         <SuceavaMap
-          congestionLabel={topCongestedSegment?.street_name ?? 'City network'}
-          congestionScore={formatValue(topCongestedSegment?.congestion_score)}
           events={data.events}
+          onExpand={() => setIsMapExpandedVisible(true)}
           routePreview={routePreview}
         />
 
@@ -527,9 +673,9 @@ export default function DriveScreen({
             </View>
             <Text style={styles.cardText}>
               {routePreview
-                ? `${formatValue(routePreview.duration_minutes, ' min')} ETA · ${formatValue(
+                ? `${formatValue(routePreview.duration_minutes, ' min')} ETA · ${formatDistance(
                     routePreview.distance_km,
-                    ' km'
+                    distanceUnit
                   )} · ${routePreview.provider}`
                 : 'Route calculation is waiting for a provider response.'}
             </Text>
@@ -547,7 +693,7 @@ export default function DriveScreen({
                 <View style={styles.routeSummaryItem}>
                   <Text style={styles.routeSummaryLabel}>Distance</Text>
                   <Text style={styles.routeSummaryValue}>
-                    {formatValue(routePreview.distance_km, ' km')}
+                    {formatDistance(routePreview.distance_km, distanceUnit)}
                   </Text>
                 </View>
                 <View style={styles.routeSummaryItem}>
@@ -628,7 +774,7 @@ export default function DriveScreen({
 
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Recommended route</Text>
+            <Text style={styles.sectionTitle}>Route traffic insight</Text>
             <Text style={styles.sectionAction}>Live model</Text>
           </View>
 
@@ -642,6 +788,10 @@ export default function DriveScreen({
               </View>
               <Text style={styles.cardText}>
                 {primaryRoute.origin_name} to {primaryRoute.destination_name}
+              </Text>
+              <Text style={styles.cardText}>
+                Analytical snapshot from the Suceava dataset, not a live navigation
+                recommendation.
               </Text>
 
               <View style={styles.tripStats}>
@@ -670,12 +820,12 @@ export default function DriveScreen({
 
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Traffic alerts</Text>
-            <Text style={styles.sectionAction}>Events</Text>
+            <Text style={styles.sectionTitle}>Mapped Suceava alerts</Text>
+            <Text style={styles.sectionAction}>Demo data</Text>
           </View>
 
           {!primaryEvent ? (
-            <EmptyState message="No traffic alerts available." />
+            <EmptyState message="No mapped demo alerts available." />
           ) : (
             data.events.slice(0, 3).map((event) => (
               <View key={event.event_id} style={styles.alertCard}>
@@ -716,6 +866,48 @@ export default function DriveScreen({
           <Text style={styles.recentRideArrow}>›</Text>
         </Pressable>
       </ScrollView>
+
+      <Modal
+        animationType="slide"
+        visible={isMapExpandedVisible}
+        onRequestClose={() => setIsMapExpandedVisible(false)}
+      >
+        <SafeAreaView style={styles.expandedMapContainer}>
+          <View style={styles.expandedMapHeader}>
+            <Text style={styles.expandedMapTitle}>Suceava map</Text>
+            <Pressable
+              onPress={() => setIsMapExpandedVisible(false)}
+              style={styles.expandedMapCloseButton}
+            >
+              <Text style={styles.expandedMapCloseText}>Close</Text>
+            </Pressable>
+          </View>
+
+          <View style={styles.expandedMapBody}>
+            <SuceavaMap
+              events={data.events}
+              routePreview={routePreview}
+              variant="expanded"
+            />
+          </View>
+
+          <Pressable
+            onPress={() => {
+              setIsMapExpandedVisible(false);
+              setIsRouteSheetVisible(true);
+            }}
+            style={styles.expandedRouteButton}
+          >
+            <View>
+              <Text style={styles.destinationLabel}>Plan a route</Text>
+              <Text style={styles.destinationText}>
+                {plannedRoute ? plannedRoute.destination : 'Where to?'}
+              </Text>
+            </View>
+            <Text style={styles.expandedRouteButtonText}>Choose</Text>
+          </Pressable>
+        </SafeAreaView>
+      </Modal>
 
       <Modal
         animationType="slide"
@@ -952,8 +1144,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
+  headerTitleBlock: {
+    flex: 1,
+    paddingRight: 12,
+  },
   headerActions: {
     flexDirection: 'row',
+    flexShrink: 0,
     gap: 10,
     marginTop: 2,
   },
@@ -1122,18 +1319,87 @@ const styles = StyleSheet.create({
     marginTop: 3,
     textTransform: 'capitalize',
   },
+  weatherTextBlock: {
+    flex: 1,
+    paddingRight: 12,
+  },
+  weatherHelpText: {
+    color: colors.textMuted,
+    fontSize: 12,
+    lineHeight: 18,
+    marginTop: 4,
+  },
   weatherMetric: {
     alignItems: 'flex-end',
+    maxWidth: 130,
   },
   weatherMetricValue: {
     color: colors.primary,
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '900',
   },
   weatherMetricLabel: {
     color: colors.textMuted,
     fontSize: 11,
     fontWeight: '800',
+    lineHeight: 15,
+    marginTop: 3,
+    textAlign: 'right',
+    textTransform: 'uppercase',
+  },
+  expandedMapContainer: {
+    backgroundColor: colors.background,
+    flex: 1,
+  },
+  expandedMapHeader: {
+    alignItems: 'center',
+    backgroundColor: colors.background,
+    borderBottomColor: colors.border,
+    borderBottomWidth: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.screenX,
+    paddingVertical: 14,
+  },
+  expandedMapTitle: {
+    color: colors.text,
+    fontSize: 20,
+    fontWeight: '900',
+  },
+  expandedMapCloseButton: {
+    backgroundColor: colors.primary,
+    borderRadius: 999,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+  },
+  expandedMapCloseText: {
+    color: colors.primaryText,
+    fontSize: 12,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+  },
+  expandedMapBody: {
+    flex: 1,
+  },
+  expandedRouteButton: {
+    ...shadows.card,
+    alignItems: 'center',
+    backgroundColor: colors.card,
+    borderColor: colors.border,
+    borderRadius: radius.xl,
+    borderWidth: 1,
+    bottom: 18,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    left: spacing.screenX,
+    padding: 16,
+    position: 'absolute',
+    right: spacing.screenX,
+  },
+  expandedRouteButtonText: {
+    color: colors.primary,
+    fontSize: 13,
+    fontWeight: '900',
     textTransform: 'uppercase',
   },
   routeDraftCard: {

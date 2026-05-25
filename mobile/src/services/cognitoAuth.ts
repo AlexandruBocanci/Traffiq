@@ -79,6 +79,7 @@ function toAuthTokens(result: CognitoAuthResult): AuthTokens {
     idToken: result.AuthenticationResult.IdToken,
     refreshToken: result.AuthenticationResult.RefreshToken,
     expiresIn: result.AuthenticationResult.ExpiresIn,
+    expiresAt: Date.now() + result.AuthenticationResult.ExpiresIn * 1000,
     tokenType: result.AuthenticationResult.TokenType,
   };
 }
@@ -131,6 +132,28 @@ export async function signInWithEmail(email: string, password: string) {
       email: normalizedEmail,
     },
     tokens: toAuthTokens(result),
+  };
+}
+
+export async function refreshSessionWithToken(email: string, refreshToken: string) {
+  const normalizedEmail = normalizeEmail(email);
+
+  const result = await callCognito<CognitoAuthResult>('InitiateAuth', {
+    AuthFlow: 'REFRESH_TOKEN_AUTH',
+    ClientId: COGNITO_APP_CLIENT_ID,
+    AuthParameters: {
+      REFRESH_TOKEN: refreshToken,
+    },
+  });
+
+  return {
+    user: {
+      email: normalizedEmail,
+    },
+    tokens: {
+      ...toAuthTokens(result),
+      refreshToken,
+    },
   };
 }
 

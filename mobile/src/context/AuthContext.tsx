@@ -1,13 +1,18 @@
 import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from 'react';
 import * as SecureStore from 'expo-secure-store';
 
-import { globalSignOut, signInWithEmail } from '../services/cognitoAuth';
+import {
+  globalSignOut,
+  refreshSessionWithToken,
+  signInWithEmail,
+} from '../services/cognitoAuth';
 import { AuthSession } from '../types/auth';
 
 type AuthContextValue = {
   session: AuthSession | null;
   isAuthenticated: boolean;
   isRestoringSession: boolean;
+  getAccessToken: () => Promise<string | null>;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
 };
@@ -63,6 +68,35 @@ export function AuthProvider({ children }: AuthProviderProps) {
       session,
       isAuthenticated: Boolean(session),
       isRestoringSession,
+      async getAccessToken() {
+        if (!session) {
+          return null;
+        }
+
+        const expiresAt = session.tokens.expiresAt ?? 0;
+
+        if (expiresAt > Date.now() + 60_000) {
+          return session.tokens.accessToken;
+        }
+
+        if (!session.tokens.refreshToken) {
+          return session.tokens.accessToken;
+        }
+
+        try {
+          const refreshedSession = await refreshSessionWithToken(
+            session.user.email,
+            session.tokens.refreshToken
+          );
+          await saveSession(refreshedSession);
+          setSession(refreshedSession);
+          return refreshedSession.tokens.accessToken;
+        } catch {
+          await clearSession();
+          setSession(null);
+          return null;
+        }
+      },
       async signIn(email: string, password: string) {
         const nextSession = await signInWithEmail(email, password);
         await saveSession(nextSession);

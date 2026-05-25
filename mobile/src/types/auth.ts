@@ -3,6 +3,7 @@ export type AuthTokens = {
   idToken: string;
   refreshToken?: string;
   expiresIn: number;
+  expiresAt?: number;
   tokenType: string;
 };
 

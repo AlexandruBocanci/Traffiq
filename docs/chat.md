@@ -3178,6 +3178,62 @@ Notes:
 - this closes Task 27 from the v3 Notion plan
 - this is the final planned Traffiq v3 implementation task
 - next phase is post-v3 bugfixing, polish, final validation, and preparation for merge to `main`
+
+### Update 102 - Post-v3 mobile UX and auth bugfix pass started
+
+Completed:
+
+- answered the product questions about:
+  - `Recommended route`: it was an analytical route snapshot, not a true live recommendation
+  - `Traffic alerts`: they are controlled geolocated Suceava demo alerts, not real-time reports
+- fixed personal feature token refresh:
+  - added Cognito `REFRESH_TOKEN_AUTH`
+  - added `expiresAt` to stored auth tokens
+  - added `getAccessToken()` in `AuthContext`
+  - updated History, Account, saved routes, preferences, save route, and add ride history flows to use refreshed access tokens
+- fixed History error dead-end:
+  - `ErrorState` now supports an action button
+  - History errors now include `Back to Drive`
+- fixed Drive header layout:
+  - title area now flexes correctly
+  - Account and History buttons no longer get pushed off-screen by the title
+- improved Weather impact UX:
+  - added weather-specific emoji
+  - replaced raw congestion score display with mapped user labels:
+    - low traffic impact
+    - moderate traffic impact
+    - high traffic impact
+  - kept the score as `/100` for transparency
+- improved map UX:
+  - removed the large map overlay that covered the map
+  - added `Expand map`
+  - expanded map opens in a full-screen modal
+  - expanded map includes a bottom `Where to?` route action
+  - route polyline changed from bright lime to darker green for better contrast
+- clarified route and alert copy:
+  - renamed `Recommended route` to `Route traffic insight`
+  - added text clarifying it is an analytical snapshot, not live navigation
+  - renamed `Traffic alerts` to `Mapped Suceava alerts`
+  - labeled alerts as demo data
+- corrected preference UX:
+  - removed inactive route type and theme controls from active UI
+  - kept distance unit as the visible preference
+  - distance unit now affects saved route display in Account and route distance display in Drive
+
+Technical validation:
+
+```text
+npx.cmd tsc --noEmit -> passed
+npx.cmd expo export --platform android --output-dir .expo-export-bugfix-pass -> passed
+generated .expo-export-bugfix-pass validation artifact -> deleted before commit
+```
+
+Notes:
+
+- no backend redeploy was required
+- no RDS change was required
+- no AWS service was created
+- this is a post-v3 bugfix/polish pass before preparing merge to `main`
 ---
 
 ## 9. Instructions For Any New Chat

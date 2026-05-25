@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import * as Location from 'expo-location';
 import MapView, {
   LatLng,
@@ -22,17 +22,17 @@ const SUCEAVA_REGION: Region = {
 type LocationStatus = 'checking' | 'granted' | 'denied';
 
 type SuceavaMapProps = {
-  congestionLabel: string;
-  congestionScore: string;
   events?: MapEventRecord[];
+  onExpand?: () => void;
   routePreview?: RoutePreviewResponse | null;
+  variant?: 'compact' | 'expanded';
 };
 
 export default function SuceavaMap({
-  congestionLabel,
-  congestionScore,
   events = [],
+  onExpand,
   routePreview,
+  variant = 'compact',
 }: SuceavaMapProps) {
   const [currentRegion, setCurrentRegion] = useState<Region>(SUCEAVA_REGION);
   const [currentLocation, setCurrentLocation] = useState<{
@@ -121,7 +121,7 @@ export default function SuceavaMap({
   }
 
   return (
-    <View style={styles.mapPanel}>
+    <View style={[styles.mapPanel, variant === 'expanded' && styles.mapPanelExpanded]}>
       <MapView
         initialRegion={SUCEAVA_REGION}
         provider={PROVIDER_DEFAULT}
@@ -159,8 +159,8 @@ export default function SuceavaMap({
               coordinates={routeCoordinates}
               lineCap="round"
               lineJoin="round"
-              strokeColor={colors.primary}
-              strokeWidth={5}
+              strokeColor={colors.tealDark}
+              strokeWidth={6}
             />
 
             <Marker
@@ -199,17 +199,11 @@ export default function SuceavaMap({
         <Text style={styles.locationBadgeText}>{locationLabel}</Text>
       </View>
 
-      <View style={styles.mapOverlay}>
-        <Text style={styles.mapLabel}>{activeRoute ? 'Route preview' : 'Suceava map'}</Text>
-        <Text style={styles.mapTitle}>
-          {activeRoute ? activeRoute.destination.name : congestionLabel}
-        </Text>
-        <Text style={styles.mapText}>
-          {activeRoute
-            ? `${activeRoute.duration_minutes} min ETA · ${activeRoute.distance_km} km`
-            : `Congestion score ${congestionScore} | ${geolocatedEvents.length} alerts mapped`}
-        </Text>
-      </View>
+      {onExpand ? (
+        <Pressable onPress={onExpand} style={styles.expandButton}>
+          <Text style={styles.expandButtonText}>Expand map</Text>
+        </Pressable>
+      ) : null}
     </View>
   );
 }
@@ -223,6 +217,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     height: 250,
     overflow: 'hidden',
+  },
+  mapPanelExpanded: {
+    borderRadius: 0,
+    borderWidth: 0,
+    flex: 1,
+    height: '100%',
   },
   map: {
     height: '100%',
@@ -245,34 +245,19 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     textTransform: 'uppercase',
   },
-  mapOverlay: {
-    backgroundColor: 'rgba(9, 11, 10, 0.82)',
-    borderColor: 'rgba(248, 250, 248, 0.12)',
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    bottom: 14,
-    left: 14,
-    padding: 12,
+  expandButton: {
+    backgroundColor: colors.primary,
+    borderRadius: 999,
+    bottom: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
     position: 'absolute',
-    right: 14,
+    right: 12,
   },
-  mapLabel: {
-    color: colors.primary,
+  expandButtonText: {
+    color: colors.primaryText,
     fontSize: 12,
     fontWeight: '900',
-    letterSpacing: 1.2,
     textTransform: 'uppercase',
-  },
-  mapTitle: {
-    color: colors.text,
-    fontSize: 24,
-    fontWeight: '900',
-    marginTop: 4,
-    textTransform: 'capitalize',
-  },
-  mapText: {
-    color: colors.textSoft,
-    fontSize: 14,
-    marginTop: 3,
   },
 });

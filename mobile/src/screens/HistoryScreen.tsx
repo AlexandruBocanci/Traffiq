@@ -33,7 +33,7 @@ export default function HistoryScreen({
   onBackToDrive,
   onOpenAccount,
 }: HistoryScreenProps) {
-  const { isAuthenticated, isRestoringSession, session } = useAuth();
+  const { getAccessToken, isAuthenticated, isRestoringSession, session } = useAuth();
   const [rides, setRides] = useState<RideHistoryRecord[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -48,7 +48,14 @@ export default function HistoryScreen({
         setIsLoading(true);
         setErrorMessage('');
 
-        const response = await getRidesHistory(session.tokens.accessToken);
+        const accessToken = await getAccessToken();
+
+        if (!accessToken) {
+          setErrorMessage('Your session expired. Please sign in again.');
+          return;
+        }
+
+        const response = await getRidesHistory(accessToken);
         setRides(response.data);
       } catch (error) {
         setErrorMessage('Could not load personal ride history.');
@@ -92,7 +99,14 @@ export default function HistoryScreen({
   }
 
   if (errorMessage) {
-    return <ErrorState title="History" message={errorMessage} />;
+    return (
+      <ErrorState
+        actionLabel="Back to Drive"
+        message={errorMessage}
+        onAction={onBackToDrive}
+        title="History"
+      />
+    );
   }
 
   return (

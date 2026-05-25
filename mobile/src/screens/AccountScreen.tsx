@@ -22,9 +22,7 @@ import {
 import { colors, radius, shadows, spacing } from '../theme/theme';
 import {
   DistanceUnit,
-  PreferredRouteType,
   SavedRouteRecord,
-  ThemeMode,
   UserPreferencesRecord,
 } from '../types/api';
 import AuthScreen from './AuthScreen';
@@ -43,20 +41,22 @@ const DISTANCE_UNIT_OPTIONS: PreferenceOption<DistanceUnit>[] = [
   { label: 'Miles', value: 'mi' },
 ];
 
-const ROUTE_TYPE_OPTIONS: PreferenceOption<PreferredRouteType>[] = [
-  { label: 'Balanced', value: 'balanced' },
-  { label: 'Fastest', value: 'fastest' },
-  { label: 'Less congested', value: 'less_congested' },
-];
+function formatDistance(valueKm: number, unit: DistanceUnit | undefined) {
+  if (unit === 'mi') {
+    return `${Math.round(valueKm * 0.621371 * 100) / 100} mi`;
+  }
 
-const THEME_MODE_OPTIONS: PreferenceOption<ThemeMode>[] = [
-  { label: 'System', value: 'system' },
-  { label: 'Dark', value: 'dark' },
-  { label: 'Light', value: 'light' },
-];
+  return `${valueKm} km`;
+}
 
 export default function AccountScreen({ onBackToDrive }: AccountScreenProps) {
-  const { isAuthenticated, isRestoringSession, session, signOut } = useAuth();
+  const {
+    getAccessToken,
+    isAuthenticated,
+    isRestoringSession,
+    session,
+    signOut,
+  } = useAuth();
   const [savedRoutes, setSavedRoutes] = useState<SavedRouteRecord[]>([]);
   const [isSavedRoutesLoading, setIsSavedRoutesLoading] = useState(false);
   const [savedRoutesError, setSavedRoutesError] = useState('');
@@ -76,7 +76,14 @@ export default function AccountScreen({ onBackToDrive }: AccountScreenProps) {
         setIsSavedRoutesLoading(true);
         setSavedRoutesError('');
 
-        const response = await getSavedRoutes(session.tokens.accessToken);
+        const accessToken = await getAccessToken();
+
+        if (!accessToken) {
+          setSavedRoutesError('Your session expired. Please sign in again.');
+          return;
+        }
+
+        const response = await getSavedRoutes(accessToken);
         setSavedRoutes(response.data);
       } catch {
         setSavedRoutesError('Could not load saved routes.');
@@ -86,7 +93,7 @@ export default function AccountScreen({ onBackToDrive }: AccountScreenProps) {
     }
 
     loadSavedRoutes();
-  }, [isAuthenticated, session?.tokens.accessToken]);
+  }, [getAccessToken, isAuthenticated, session?.tokens.accessToken]);
 
   useEffect(() => {
     async function loadPreferences() {
@@ -99,7 +106,14 @@ export default function AccountScreen({ onBackToDrive }: AccountScreenProps) {
         setIsPreferencesLoading(true);
         setPreferencesError('');
 
-        const response = await getUserPreferences(session.tokens.accessToken);
+        const accessToken = await getAccessToken();
+
+        if (!accessToken) {
+          setPreferencesError('Your session expired. Please sign in again.');
+          return;
+        }
+
+        const response = await getUserPreferences(accessToken);
         setPreferences(response.data);
       } catch {
         setPreferencesError('Could not load preferences.');
@@ -109,31 +123,31 @@ export default function AccountScreen({ onBackToDrive }: AccountScreenProps) {
     }
 
     loadPreferences();
-  }, [isAuthenticated, session?.tokens.accessToken]);
+  }, [getAccessToken, isAuthenticated, session?.tokens.accessToken]);
 
-  async function handlePreferenceChange(
-    field: 'distance_unit' | 'preferred_route_type' | 'theme_mode',
-    value: DistanceUnit | PreferredRouteType | ThemeMode
-  ) {
+  async function handlePreferenceChange(value: DistanceUnit) {
     if (!preferences || !session?.tokens.accessToken) {
       return;
     }
 
     const nextPreferences = {
-      distance_unit: preferences.distance_unit,
+      distance_unit: value,
       preferred_route_type: preferences.preferred_route_type,
       theme_mode: preferences.theme_mode,
-      [field]: value,
     };
 
     try {
       setIsPreferencesSaving(true);
       setPreferencesError('');
 
-      const response = await updateUserPreferences(
-        nextPreferences,
-        session.tokens.accessToken
-      );
+      const accessToken = await getAccessToken();
+
+      if (!accessToken) {
+        setPreferencesError('Your session expired. Please sign in again.');
+        return;
+      }
+
+      const response = await updateUserPreferences(nextPreferences, accessToken);
       setPreferences(response.data);
     } catch {
       setPreferencesError('Could not save preferences.');
@@ -229,8 +243,9 @@ export default function AccountScreen({ onBackToDrive }: AccountScreenProps) {
               <Text style={styles.cardLabel}>Preferences</Text>
               <Text style={styles.preferencesTitle}>Personal settings</Text>
               <Text style={styles.cardText}>
-                These settings are stored per Cognito user and do not affect guest
-                users.
+                Distance unit is stored per Cognito user and used for personal route
+                display. Route type and theme are kept out of the UI until they are
+                fully applied in the app.
               </Text>
 
               {isPreferencesLoading ? (
@@ -241,19 +256,7 @@ export default function AccountScreen({ onBackToDrive }: AccountScreenProps) {
                     'Distance unit',
                     DISTANCE_UNIT_OPTIONS,
                     preferences.distance_unit,
-                    (value) => handlePreferenceChange('distance_unit', value)
-                  )}
-                  {renderPreferenceOptions(
-                    'Route type',
-                    ROUTE_TYPE_OPTIONS,
-                    preferences.preferred_route_type,
-                    (value) => handlePreferenceChange('preferred_route_type', value)
-                  )}
-                  {renderPreferenceOptions(
-                    'Theme mode',
-                    THEME_MODE_OPTIONS,
-                    preferences.theme_mode,
-                    (value) => handlePreferenceChange('theme_mode', value)
+                    (value) => handlePreferenceChange(value)
                   )}
                   {isPreferencesSaving ? (
                     <Text style={styles.cardText}>Saving preferences...</Text>
@@ -288,7 +291,8 @@ export default function AccountScreen({ onBackToDrive }: AccountScreenProps) {
                   <View key={route.saved_route_id} style={styles.savedRouteRow}>
                     <Text style={styles.savedRouteName}>{route.route_name}</Text>
                     <Text style={styles.savedRouteMeta}>
-                      {route.distance_km} km - {route.duration_minutes} min - {route.provider}
+                      {formatDistance(route.distance_km, preferences?.distance_unit)} -{' '}
+                      {route.duration_minutes} min - {route.provider}
                     </Text>
                   </View>
                 ))
