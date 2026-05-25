@@ -1,5 +1,6 @@
 import { API_BASE_URL } from '../config/api';
 import {
+  AddRideHistoryResponse,
   ApiListResponse,
   DriveOverviewResponse,
   HealthResponse,
@@ -228,6 +229,30 @@ async function previewRouteDirectlyWithOsrm(
 export async function getRidesHistory(accessToken: string) {
   return fetchFromApi<ApiListResponse<RideHistoryRecord>>('/rides/history', {
     accessToken,
+  });
+}
+
+export async function addRideToHistory(
+  routePreview: RoutePreviewResponse,
+  accessToken: string,
+  congestionScore?: number | null
+) {
+  return fetchFromApi<AddRideHistoryResponse>('/rides/history', {
+    accessToken,
+    body: {
+      congestion_score: congestionScore ?? 0,
+      destination: {
+        name: routePreview.destination.name,
+      },
+      distance_km: routePreview.distance_km,
+      duration_minutes: routePreview.duration_minutes,
+      origin: {
+        name: routePreview.origin.name,
+      },
+      ride_status: 'completed',
+      route_name: `${routePreview.origin.name} to ${routePreview.destination.name}`,
+    },
+    method: 'POST',
   });
 }
 

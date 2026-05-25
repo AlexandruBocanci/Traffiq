@@ -21,6 +21,7 @@ Protected backend endpoint:
 
 ```text
 GET /rides/history
+POST /rides/history
 GET /saved-routes
 POST /saved-routes
 DELETE /saved-routes/{saved_route_id}
@@ -139,24 +140,37 @@ Detailed documentation:
 
 - `docs/SAVED_ROUTES.md`
 
+## Task 24 User Ride History Extension
+
+Task 24 made ride history personal.
+
+User ride history is stored with:
+
+```text
+cognito_user_sub
+```
+
+Validated behavior:
+
+```text
+GET /rides/history without token -> 401
+POST /rides/history without token -> 401
+POST /rides/history with real Cognito access token -> 200
+GET /rides/history with real Cognito access token -> only the current user's rides
+```
+
+Detailed documentation:
+
+- `docs/USER_RIDE_HISTORY.md`
+
 ## What Is Not Done Yet
 
 This task does not:
 
-- create user-specific ride history database tables
-- filter ride history by Cognito user ID
 - add preferences endpoints
 - implement account settings persistence
 
 Those belong to later product feature tasks.
-
-Current limitation:
-
-```text
-/rides/history is protected by Cognito, but the underlying ride history dataset is still the existing demo dataset.
-```
-
-That is acceptable for this task because the goal is endpoint protection, not full per-user data modeling.
 
 ## Local Validation
 

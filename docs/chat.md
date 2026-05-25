@@ -2928,6 +2928,70 @@ Third follow-up fix:
 - kept the required internal `Confirm email` screen for normal Cognito code entry after `Create account`
 - kept the consumer-style behavior where `Create account` with an existing unconfirmed email resends the code and moves the user to `Confirm email`
 - `npx.cmd tsc --noEmit -> passed`
+
+### Update 098 - Ride history made personal per Cognito user
+
+Completed:
+
+- added `silver.user_ride_history` for user-owned ride history
+- added `serving.vw_user_ride_history`
+- added `idx_user_ride_history_user_started_at`
+- kept `silver.ride_history` as the existing controlled demo/ETL table
+- updated `GET /rides/history` to read only rows owned by the authenticated Cognito `sub`
+- added `POST /rides/history` so authenticated users can add a route preview to personal ride history
+- updated the Drive route preview card with a `History` action
+- kept History guest behavior as login prompt
+- updated mobile API types and services
+- replaced the old destructive ride history integration test with user-scoped non-destructive tests
+- created `docs/USER_RIDE_HISTORY.md`
+- updated README, execution plan, personal feature protection, RDS schema, ECR, and App Runner documentation
+
+RDS validation:
+
+```text
+sql/ddl/create_all.sql applied to RDS -> passed
+silver.user_ride_history -> present
+serving.vw_user_ride_history -> present
+idx_user_ride_history_user_started_at -> present
+pipeline reset -> not run
+seed reload -> not run
+```
+
+Technical validation:
+
+```text
+python -m compileall src/api -> passed
+python tests/integration/test_rides_history_endpoint.py with PYTHONPATH=. -> passed
+python tests/integration/test_saved_routes_endpoint.py with PYTHONPATH=. -> passed
+npx.cmd tsc --noEmit -> passed
+```
+
+Cloud deployment and public API validation:
+
+```text
+Docker image build -> passed
+ECR latest digest -> sha256:33b830a5ba20e3f8582875d30a06ecb9982c5c69b652471cf90e711f62528fd7
+App Runner deployment -> RUNNING
+GET /health -> status=ok
+GET /rides/history without token -> 401
+GET /rides/history with real Cognito access token before insert -> count=0
+POST /rides/history with real Cognito access token -> created=True
+GET /rides/history with real Cognito access token after insert -> count=1
+temporary ride history cleanup rows remaining -> 0
+temporary Cognito user cleanup -> attempted
+GET /mobile/drive-overview -> routes=5, events=5, rides=0
+silver.user_ride_history rows after cleanup -> 0
+```
+
+Notes:
+
+- ride history is now both protected and personal
+- personal ownership uses Cognito `sub`, not email
+- public mobile overview still returns `rides=[]`
+- no new AWS service was created
+- App Runner still runs only FastAPI and does not run ETL or seed logic at startup
+- this closes Task 24 from the v3 Notion plan
+- the next task is `Task 25. Add user preferences`
 ---
 
 ## 9. Instructions For Any New Chat

@@ -316,6 +316,22 @@ silver.saved_routes cloud validation leftovers -> 0
 
 The validation used a temporary Cognito user and cleaned it up after the test.
 
+User ride history validation after Task 24:
+
+```text
+App Runner status -> RUNNING
+Backend ECR digest -> sha256:33b830a5ba20e3f8582875d30a06ecb9982c5c69b652471cf90e711f62528fd7
+GET /health -> status=ok
+GET /rides/history without token -> 401
+GET /rides/history with real Cognito access token before insert -> count=0
+POST /rides/history with real Cognito access token -> created=True
+GET /rides/history with real Cognito access token after insert -> count=1
+temporary ride history cleanup rows remaining -> 0
+GET /mobile/drive-overview -> rides=0
+```
+
+The validation used a temporary Cognito user and cleaned it up after the test.
+
 ## What This Enables
 
 The Traffiq backend is now reachable through a public AWS URL.

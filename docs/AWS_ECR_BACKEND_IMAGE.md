@@ -31,7 +31,7 @@ Pushed image:
 Digest:
 
 ```text
-sha256:1ce14840d4d88db81d5c953a1754f2638870f181634bce9ab1c1297e02a691e6
+sha256:33b830a5ba20e3f8582875d30a06ecb9982c5c69b652471cf90e711f62528fd7
 ```
 
 Image status:
@@ -93,20 +93,20 @@ Validated result:
 ```text
 repositoryName: traffiq-api
 imageTag: latest
-imageDigest: sha256:1ce14840d4d88db81d5c953a1754f2638870f181634bce9ab1c1297e02a691e6
+imageDigest: sha256:33b830a5ba20e3f8582875d30a06ecb9982c5c69b652471cf90e711f62528fd7
 imageStatus: ACTIVE
 ```
 
 Latest image update:
 
 ```text
-May 23, 2026 - Task 23 saved routes API support
+May 25, 2026 - Task 24 user ride history API support
 ```
 
-Previous Task 22 digest:
+Previous Task 23 digest:
 
 ```text
-sha256:879bea5b41c4cd8b2da5b895fce54d642060108089f27bafbc0d565381b63ecf
+sha256:1ce14840d4d88db81d5c953a1754f2638870f181634bce9ab1c1297e02a691e6
 ```
 
 ## What This Enables

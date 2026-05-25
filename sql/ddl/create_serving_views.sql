@@ -80,6 +80,24 @@ SELECT
   ride_status
 FROM silver.ride_history;
 
+CREATE OR REPLACE VIEW serving.vw_user_ride_history AS
+SELECT
+  ride_id,
+  cognito_user_sub,
+  started_at,
+  ended_at,
+  origin_name,
+  destination_name,
+  route_name,
+  distance_km,
+  avg_speed,
+  congestion_score,
+  estimated_duration_minutes,
+  ride_status,
+  source,
+  created_at
+FROM silver.user_ride_history;
+
 CREATE OR REPLACE VIEW serving.vw_saved_routes AS
 SELECT
   saved_route_id,

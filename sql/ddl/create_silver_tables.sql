@@ -63,6 +63,23 @@ CREATE TABLE IF NOT EXISTS silver.ride_history (
   ride_status VARCHAR(50) NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS silver.user_ride_history (
+  ride_id SERIAL PRIMARY KEY,
+  cognito_user_sub VARCHAR(255) NOT NULL,
+  started_at TIMESTAMP NOT NULL,
+  ended_at TIMESTAMP NOT NULL,
+  origin_name VARCHAR(255) NOT NULL,
+  destination_name VARCHAR(255) NOT NULL,
+  route_name VARCHAR(255) NOT NULL,
+  distance_km NUMERIC(10, 2) NOT NULL,
+  avg_speed NUMERIC(10, 2) NOT NULL,
+  congestion_score NUMERIC(10, 2) NOT NULL,
+  estimated_duration_minutes NUMERIC(10, 2) NOT NULL,
+  ride_status VARCHAR(50) NOT NULL,
+  source VARCHAR(100) NOT NULL DEFAULT 'mobile_route_preview',
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE IF NOT EXISTS silver.saved_routes (
   saved_route_id SERIAL PRIMARY KEY,
   cognito_user_sub VARCHAR(255) NOT NULL,

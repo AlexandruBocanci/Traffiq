@@ -2,22 +2,17 @@ from fastapi.testclient import TestClient
 
 from src.api.auth import require_current_user
 from src.api.main import app
-from src.extract.extract_rides_history_csv import extract_rides_history_csv
-from src.load.load_ride_history_to_silver import load_ride_history_to_silver
-from src.load.load_rides_raw_to_bronze import load_rides_raw_to_bronze
-from src.pipeline.execution_safety import validate_configured_pipeline_target
-from src.transform.transform_rides_history_data import transform_rides_history_data
 from src.utils.db_utils import get_db_connection
 
 
-validate_configured_pipeline_target()
-
 client = TestClient(app)
+TEST_USER_SUB = "test-user-sub-rides-history"
+OTHER_USER_SUB = "test-user-sub-rides-history-other"
 
 
 def get_test_user():
   return {
-    "sub": "test-user-sub",
+    "sub": TEST_USER_SUB,
     "username": "test-user",
     "client_id": "test-client",
     "scope": "",
@@ -25,46 +20,36 @@ def get_test_user():
   }
 
 
-def seed_ride_history_data():
+def get_other_test_user():
+  return {
+    "sub": OTHER_USER_SUB,
+    "username": "other-test-user",
+    "client_id": "test-client",
+    "scope": "",
+    "token_use": "access",
+  }
+
+
+def cleanup_user_ride_history():
   conn = None
   cur = None
-  source_file = "data/raw/rides_history_raw.csv"
 
   try:
-    raw_rides_df = extract_rides_history_csv(source_file)
-    clean_rides_df = transform_rides_history_data(raw_rides_df)
-
-    if raw_rides_df.empty or clean_rides_df.empty:
-      print("FAILED: ride history test seed data should not be empty.")
-      return 0
-
     conn = get_db_connection()
     cur = conn.cursor()
-
     cur.execute(
       """
-      TRUNCATE TABLE
-        bronze.rides_raw,
-        silver.ride_history
-      RESTART IDENTITY;
-      """
+      DELETE FROM silver.user_ride_history
+      WHERE cognito_user_sub IN (%s, %s);
+      """,
+      (TEST_USER_SUB, OTHER_USER_SUB),
     )
     conn.commit()
-
-    bronze_inserted_rows = load_rides_raw_to_bronze(raw_rides_df, source_file)
-    silver_inserted_rows = load_ride_history_to_silver(clean_rides_df)
-
-    if bronze_inserted_rows <= 0 or silver_inserted_rows <= 0:
-      print("FAILED: ride history seed inserts should be greater than 0.")
-      return 0
-
-    return silver_inserted_rows
 
   except Exception as e:
     if conn is not None:
       conn.rollback()
-    print("FAILED: Could not seed ride history endpoint test data:", e)
-    return 0
+    print("FAILED: Could not clean ride history test rows:", e)
 
   finally:
     if cur is not None:
@@ -73,47 +58,76 @@ def seed_ride_history_data():
       conn.close()
 
 
-def test_rides_history_endpoint():
-  seeded_rows = seed_ride_history_data()
+def build_ride_history_payload():
+  return {
+    "origin": {
+      "name": "City Center",
+    },
+    "destination": {
+      "name": "Iulius Mall Suceava",
+    },
+    "route_name": "City Center to Iulius Mall Suceava",
+    "distance_km": 3.42,
+    "duration_minutes": 8.5,
+    "congestion_score": 42,
+    "ride_status": "completed",
+  }
 
-  if seeded_rows <= 0:
-    print("FAILED: seeded_rows should be greater than 0.")
-    return 0
 
-  app.dependency_overrides[require_current_user] = get_test_user
+def test_rides_history_requires_auth():
+  response = client.get("/rides/history")
 
-  try:
-    response = client.get("/rides/history")
-  finally:
-    app.dependency_overrides = {}
-
-  if response.status_code != 200:
-    print("FAILED: /rides/history should return status code 200.")
+  if response.status_code != 401:
+    print("FAILED: /rides/history should reject guests.")
+    print(response.status_code)
     print(response.text)
     return 0
 
-  response_json = response.json()
+  response = client.post("/rides/history", json=build_ride_history_payload())
 
-  if "count" not in response_json:
-    print("FAILED: response should contain count.")
+  if response.status_code != 401:
+    print("FAILED: POST /rides/history should reject guests.")
+    print(response.status_code)
+    print(response.text)
     return 0
 
-  if "data" not in response_json:
-    print("FAILED: response should contain data.")
+  print("SUCCESS: /rides/history rejects guests.")
+  return 1
+
+
+def test_authenticated_user_can_add_and_view_own_ride_history():
+  cleanup_user_ride_history()
+  app.dependency_overrides[require_current_user] = get_test_user
+
+  try:
+    add_response = client.post("/rides/history", json=build_ride_history_payload())
+    list_response = client.get("/rides/history")
+  finally:
+    app.dependency_overrides = {}
+
+  if add_response.status_code != 200:
+    print("FAILED: authenticated user should add ride history.")
+    print(add_response.status_code)
+    print(add_response.text)
+    cleanup_user_ride_history()
     return 0
 
-  if response_json["count"] != seeded_rows:
-    print("FAILED: count should match seeded_rows.")
+  if list_response.status_code != 200:
+    print("FAILED: authenticated user should list ride history.")
+    print(list_response.status_code)
+    print(list_response.text)
+    cleanup_user_ride_history()
+    return 0
+
+  response_json = list_response.json()
+
+  if response_json["count"] != 1:
+    print("FAILED: ride history list should contain one ride.")
     print(response_json)
+    cleanup_user_ride_history()
     return 0
 
-  if len(response_json["data"]) != response_json["count"]:
-    print("FAILED: data length should match count.")
-    print(response_json)
-    return 0
-
-  first_row = response_json["data"][0]
-
+  ride = response_json["data"][0]
   required_keys = [
     "ride_id",
     "started_at",
@@ -129,61 +143,74 @@ def test_rides_history_endpoint():
   ]
 
   for key in required_keys:
-    if key not in first_row:
+    if key not in ride:
       print(f"FAILED: missing key in ride history response: {key}")
-      print(first_row)
+      print(ride)
+      cleanup_user_ride_history()
       return 0
 
-  allowed_statuses = ["completed", "cancelled"]
+  if ride["origin_name"] != "City Center":
+    print("FAILED: ride origin should match request.")
+    print(ride)
+    cleanup_user_ride_history()
+    return 0
 
-  for row in response_json["data"]:
-    if row["origin_name"] == "" or row["destination_name"] == "" or row["route_name"] == "":
-      print("FAILED: ride route fields should not be empty.")
-      print(row)
-      return 0
+  if ride["destination_name"] != "Iulius Mall Suceava":
+    print("FAILED: ride destination should match request.")
+    print(ride)
+    cleanup_user_ride_history()
+    return 0
 
-    if row["distance_km"] <= 0:
-      print("FAILED: distance_km should be greater than 0.")
-      print(row)
-      return 0
+  if ride["ride_status"] != "completed":
+    print("FAILED: ride status should be completed.")
+    print(ride)
+    cleanup_user_ride_history()
+    return 0
 
-    if row["avg_speed"] <= 0:
-      print("FAILED: avg_speed should be greater than 0.")
-      print(row)
-      return 0
-
-    if row["congestion_score"] < 0 or row["congestion_score"] > 100:
-      print("FAILED: congestion_score should be between 0 and 100.")
-      print(row)
-      return 0
-
-    if row["estimated_duration_minutes"] <= 0:
-      print("FAILED: estimated_duration_minutes should be greater than 0.")
-      print(row)
-      return 0
-
-    if row["ride_status"] not in allowed_statuses:
-      print("FAILED: ride_status is not valid.")
-      print(row)
-      return 0
-
-  print("SUCCESS: Rides history endpoint test passed.")
-  print(response_json)
+  cleanup_user_ride_history()
+  print("SUCCESS: authenticated user can add and view own ride history.")
   return 1
 
 
-def test_rides_history_requires_auth():
-  response = client.get("/rides/history")
+def test_rides_history_is_user_scoped():
+  cleanup_user_ride_history()
+  app.dependency_overrides[require_current_user] = get_test_user
 
-  if response.status_code != 401:
-    print("FAILED: /rides/history should reject guests.")
-    print(response.status_code)
-    print(response.text)
+  try:
+    add_response = client.post("/rides/history", json=build_ride_history_payload())
+  finally:
+    app.dependency_overrides = {}
+
+  if add_response.status_code != 200:
+    print("FAILED: test user should add ride before scoping check.")
+    print(add_response.text)
+    cleanup_user_ride_history()
     return 0
 
-  print("SUCCESS: /rides/history rejects guests.")
+  app.dependency_overrides[require_current_user] = get_other_test_user
+
+  try:
+    other_user_response = client.get("/rides/history")
+  finally:
+    app.dependency_overrides = {}
+
+  if other_user_response.status_code != 200:
+    print("FAILED: other authenticated user should receive 200 with own list.")
+    print(other_user_response.text)
+    cleanup_user_ride_history()
+    return 0
+
+  if other_user_response.json()["count"] != 0:
+    print("FAILED: ride history should not leak across users.")
+    print(other_user_response.json())
+    cleanup_user_ride_history()
+    return 0
+
+  cleanup_user_ride_history()
+  print("SUCCESS: ride history is scoped by Cognito user subject.")
   return 1
 
 
 print(test_rides_history_requires_auth())
-print(test_rides_history_endpoint())
+print(test_authenticated_user_can_add_and_view_own_ride_history())
+print(test_rides_history_is_user_scoped())

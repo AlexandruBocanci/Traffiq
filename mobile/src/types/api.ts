@@ -101,6 +101,11 @@ export type RideHistoryRecord = {
   ride_status: string;
 };
 
+export type AddRideHistoryResponse = {
+  created: boolean;
+  data: RideHistoryRecord;
+};
+
 export type MapEventRecord = {
   event_id: number;
   event_timestamp: string;

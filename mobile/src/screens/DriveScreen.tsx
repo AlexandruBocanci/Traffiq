@@ -18,7 +18,12 @@ import ErrorState from '../components/ErrorState';
 import LoadingState from '../components/LoadingState';
 import SuceavaMap from '../components/SuceavaMap';
 import { useAuth } from '../context/AuthContext';
-import { getDriveOverview, previewRoute, saveRoute } from '../services/traffiqApi';
+import {
+  addRideToHistory,
+  getDriveOverview,
+  previewRoute,
+  saveRoute,
+} from '../services/traffiqApi';
 import { colors, radius, shadows, spacing } from '../theme/theme';
 import {
   MapEventRecord,
@@ -206,6 +211,8 @@ export default function DriveScreen({
   const [routePreview, setRoutePreview] = useState<RoutePreviewResponse | null>(null);
   const [isRoutePreviewLoading, setIsRoutePreviewLoading] = useState(false);
   const [routePreviewError, setRoutePreviewError] = useState('');
+  const [isAddingRideHistory, setIsAddingRideHistory] = useState(false);
+  const [rideHistoryMessage, setRideHistoryMessage] = useState('');
   const [isSavingRoute, setIsSavingRoute] = useState(false);
   const [savedRouteMessage, setSavedRouteMessage] = useState('');
   const [currentLocationMessage, setCurrentLocationMessage] = useState('');
@@ -315,6 +322,7 @@ export default function DriveScreen({
       });
       setRoutePreview(preview);
       setSavedRouteMessage('');
+      setRideHistoryMessage('');
       setIsRouteSheetVisible(false);
     } catch {
       setRoutePreview(null);
@@ -345,6 +353,32 @@ export default function DriveScreen({
       setSavedRouteMessage('Could not save this route. Try again.');
     } finally {
       setIsSavingRoute(false);
+    }
+  }
+
+  async function handleAddRideHistory() {
+    if (!routePreview) {
+      return;
+    }
+
+    if (!isAuthenticated || !session?.tokens.accessToken) {
+      onOpenAccount();
+      return;
+    }
+
+    try {
+      setIsAddingRideHistory(true);
+      setRideHistoryMessage('');
+      await addRideToHistory(
+        routePreview,
+        session.tokens.accessToken,
+        topCongestedSegment?.congestion_score ?? weatherImpact?.avg_congestion_score
+      );
+      setRideHistoryMessage('Ride added to your personal history.');
+    } catch {
+      setRideHistoryMessage('Could not add this ride to history. Try again.');
+    } finally {
+      setIsAddingRideHistory(false);
     }
   }
 
@@ -466,6 +500,20 @@ export default function DriveScreen({
                 </Pressable>
 
                 <Pressable
+                  accessibilityLabel="Add planned route to ride history"
+                  disabled={!routePreview || isAddingRideHistory}
+                  onPress={handleAddRideHistory}
+                  style={[
+                    styles.routeDraftSecondaryButton,
+                    (!routePreview || isAddingRideHistory) && styles.routeDraftButtonDisabled,
+                  ]}
+                >
+                  <Text style={styles.routeDraftSecondaryText}>
+                    {isAddingRideHistory ? 'Adding' : 'History'}
+                  </Text>
+                </Pressable>
+
+                <Pressable
                   accessibilityLabel="Edit planned route"
                   onPress={() => setIsRouteSheetVisible(true)}
                   style={styles.routeDraftEditButton}
@@ -516,6 +564,18 @@ export default function DriveScreen({
                 ]}
               >
                 {savedRouteMessage}
+              </Text>
+            ) : null}
+
+            {rideHistoryMessage ? (
+              <Text
+                style={[
+                  styles.savedRouteMessage,
+                  rideHistoryMessage.startsWith('Could not') &&
+                    styles.savedRouteMessageError,
+                ]}
+              >
+                {rideHistoryMessage}
               </Text>
             ) : null}
 
@@ -1087,6 +1147,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 8,
   },
+  routeDraftSecondaryButton: {
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: 999,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+  },
   routeDraftButtonDisabled: {
     opacity: 0.5,
   },
@@ -1098,6 +1166,12 @@ const styles = StyleSheet.create({
   },
   routeDraftSaveText: {
     color: colors.primaryText,
+    fontSize: 12,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+  },
+  routeDraftSecondaryText: {
+    color: colors.text,
     fontSize: 12,
     fontWeight: '900',
     textTransform: 'uppercase',

@@ -123,6 +123,13 @@ serving  | 10
 silver   | 7
 ```
 
+Task 24 adds `silver.user_ride_history`, so the current RDS schema with user ride history contains:
+
+```text
+serving  | 11
+silver   | 8
+```
+
 ## Created Indexes
 
 Validation confirmed endpoint-supporting indexes in `silver` and `gold`, including:
@@ -136,6 +143,7 @@ idx_route_summary_congestion
 idx_route_hourly_report_route_time
 idx_events_observations_timestamp
 idx_ride_history_started_at
+idx_user_ride_history_user_started_at
 idx_saved_routes_user_created_at
 idx_saved_routes_user_origin_destination
 idx_top_congested_segments_rank
@@ -196,6 +204,26 @@ No ETL reset or seed reload was required because saved routes are application-ow
 Detailed saved routes documentation:
 
 - `docs/SAVED_ROUTES.md`
+
+## Task 24 User Ride History Extension
+
+Task 24 added user-specific ride history persistence.
+
+Applied additions:
+
+```text
+silver.user_ride_history
+serving.vw_user_ride_history
+idx_user_ride_history_user_started_at
+```
+
+The schema was applied to RDS through the idempotent `sql/ddl/create_all.sql` entry point on `May 25, 2026`.
+
+No ETL reset or seed reload was required because user ride history is application-owned personal data, not analytical seed data.
+
+Detailed user ride history documentation:
+
+- `docs/USER_RIDE_HISTORY.md`
 
 ## What Is Not Done Yet
 

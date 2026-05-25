@@ -603,6 +603,10 @@ Goal:
 
 - make ride history personal
 
+User ride history document:
+
+- `docs/USER_RIDE_HISTORY.md`
+
 Deliverables:
 
 - user-linked ride history table
