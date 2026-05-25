@@ -28,6 +28,9 @@ ON silver.ride_history (started_at DESC, ride_id ASC);
 CREATE INDEX IF NOT EXISTS idx_user_ride_history_user_started_at
 ON silver.user_ride_history (cognito_user_sub ASC, started_at DESC, ride_id ASC);
 
+CREATE INDEX IF NOT EXISTS idx_user_preferences_user
+ON silver.user_preferences (cognito_user_sub ASC);
+
 CREATE INDEX IF NOT EXISTS idx_saved_routes_user_created_at
 ON silver.saved_routes (cognito_user_sub ASC, created_at DESC, saved_route_id ASC);
 

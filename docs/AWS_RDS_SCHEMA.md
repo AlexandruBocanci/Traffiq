@@ -130,6 +130,16 @@ serving  | 11
 silver   | 8
 ```
 
+Task 25 adds `silver.user_preferences`, so the current RDS schema with user preferences contains:
+
+```text
+bronze   | 4
+etl_meta | 2
+gold     | 5
+serving  | 12
+silver   | 9
+```
+
 ## Created Indexes
 
 Validation confirmed endpoint-supporting indexes in `silver` and `gold`, including:
@@ -146,6 +156,7 @@ idx_ride_history_started_at
 idx_user_ride_history_user_started_at
 idx_saved_routes_user_created_at
 idx_saved_routes_user_origin_destination
+idx_user_preferences_user
 idx_top_congested_segments_rank
 ```
 
@@ -224,6 +235,26 @@ No ETL reset or seed reload was required because user ride history is applicatio
 Detailed user ride history documentation:
 
 - `docs/USER_RIDE_HISTORY.md`
+
+## Task 25 User Preferences Extension
+
+Task 25 added user-specific preferences.
+
+Applied additions:
+
+```text
+silver.user_preferences
+serving.vw_user_preferences
+idx_user_preferences_user
+```
+
+The schema was applied to RDS through the idempotent `sql/ddl/create_all.sql` entry point on `May 25, 2026`.
+
+No ETL reset or seed reload was required because user preferences are application-owned personal data, not analytical seed data.
+
+Detailed user preferences documentation:
+
+- `docs/USER_PREFERENCES.md`
 
 ## What Is Not Done Yet
 

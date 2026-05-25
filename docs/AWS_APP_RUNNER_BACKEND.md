@@ -332,6 +332,22 @@ GET /mobile/drive-overview -> rides=0
 
 The validation used a temporary Cognito user and cleaned it up after the test.
 
+User preferences validation after Task 25:
+
+```text
+App Runner status -> RUNNING
+Backend ECR digest -> sha256:9aecf3fb15529ee4654f266936569d43599471c4b4453d4cc6b6d3f5bd5beb91
+GET /health -> status=ok
+GET /preferences without token -> 401
+GET /preferences with real Cognito access token -> distance_unit=km, preferred_route_type=balanced, theme_mode=system
+PUT /preferences with real Cognito access token -> updated=True, distance_unit=mi, preferred_route_type=less_congested, theme_mode=dark
+GET /preferences after update -> distance_unit=mi, preferred_route_type=less_congested, theme_mode=dark
+temporary preferences cleanup -> deleted
+temporary Cognito user cleanup -> deleted
+```
+
+The validation used a temporary Cognito user and cleaned it up after the test.
+
 ## What This Enables
 
 The Traffiq backend is now reachable through a public AWS URL.
@@ -348,7 +364,8 @@ This enables:
 Remaining later work:
 
 - scheduled ETL execution
-- user-specific persisted personal feature modeling
+- pipeline status endpoint
+- Admin / Pipeline mobile screen
 - App Runner scaling or cost optimization beyond the current demo setup
 
 ## Cost Guardrails

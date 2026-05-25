@@ -2992,6 +2992,81 @@ Notes:
 - App Runner still runs only FastAPI and does not run ETL or seed logic at startup
 - this closes Task 24 from the v3 Notion plan
 - the next task is `Task 25. Add user preferences`
+
+### Update 099 - User preferences added for authenticated users
+
+Completed:
+
+- added `silver.user_preferences` for one-row-per-user preference persistence
+- added `serving.vw_user_preferences`
+- added `idx_user_preferences_user`
+- added SQL constraints for valid preference values:
+  - `distance_unit`: `km`, `mi`
+  - `preferred_route_type`: `fastest`, `balanced`, `less_congested`
+  - `theme_mode`: `system`, `dark`, `light`
+- added protected backend endpoints:
+  - `GET /preferences`
+  - `PUT /preferences`
+- connected preferences to Cognito through `cognito_user_sub`
+- implemented default preference creation for authenticated users that do not have a row yet
+- implemented preference upsert through `ON CONFLICT (cognito_user_sub) DO UPDATE`
+- added mobile API types and service methods for preferences
+- added an Account preferences card for authenticated users
+- added integration validation for:
+  - guest rejection
+  - default preferences
+  - authenticated update flow
+  - cross-user isolation
+- created `docs/USER_PREFERENCES.md`
+- updated README, execution plan, personal feature protection, RDS schema, ECR, and App Runner documentation
+
+RDS validation:
+
+```text
+sql/ddl/create_all.sql applied to RDS -> passed
+silver.user_preferences -> present
+serving.vw_user_preferences -> present
+idx_user_preferences_user -> present
+RDS object counts -> bronze=4, etl_meta=2, gold=5, serving=12, silver=9
+pipeline reset -> not run
+seed reload -> not run
+```
+
+Technical validation:
+
+```text
+python -m compileall src/api -> passed
+npx.cmd tsc --noEmit -> passed
+python tests/integration/test_preferences_endpoint.py with PYTHONPATH=. -> passed
+python tests/integration/test_saved_routes_endpoint.py with PYTHONPATH=. -> passed
+python tests/integration/test_rides_history_endpoint.py with PYTHONPATH=. -> passed
+git diff --check -> passed, with only expected Windows CRLF/LF warnings
+```
+
+Cloud deployment and public API validation:
+
+```text
+Docker image build -> passed
+ECR latest digest -> sha256:9aecf3fb15529ee4654f266936569d43599471c4b4453d4cc6b6d3f5bd5beb91
+App Runner deployment -> RUNNING
+GET /health -> status=ok
+GET /preferences without token -> 401
+GET /preferences with real Cognito access token -> distance_unit=km, preferred_route_type=balanced, theme_mode=system
+PUT /preferences with real Cognito access token -> updated=True, distance_unit=mi, preferred_route_type=less_congested, theme_mode=dark
+GET /preferences after update -> distance_unit=mi, preferred_route_type=less_congested, theme_mode=dark
+temporary preferences cleanup -> deleted
+temporary Cognito user cleanup -> deleted
+```
+
+Notes:
+
+- preferences are protected and personal
+- personal ownership uses Cognito `sub`, not email
+- this is application-owned data, not ETL seed data
+- no new AWS service was created
+- App Runner still runs only FastAPI and does not run ETL or seed logic at startup
+- this closes Task 25 from the v3 Notion plan
+- the next task is `Task 26. Add pipeline status endpoint`
 ---
 
 ## 9. Instructions For Any New Chat

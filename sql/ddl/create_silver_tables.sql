@@ -80,6 +80,22 @@ CREATE TABLE IF NOT EXISTS silver.user_ride_history (
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS silver.user_preferences (
+  preference_id SERIAL PRIMARY KEY,
+  cognito_user_sub VARCHAR(255) NOT NULL UNIQUE,
+  distance_unit VARCHAR(10) NOT NULL DEFAULT 'km',
+  preferred_route_type VARCHAR(50) NOT NULL DEFAULT 'balanced',
+  theme_mode VARCHAR(20) NOT NULL DEFAULT 'system',
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT chk_user_preferences_distance_unit
+    CHECK (distance_unit IN ('km', 'mi')),
+  CONSTRAINT chk_user_preferences_route_type
+    CHECK (preferred_route_type IN ('fastest', 'balanced', 'less_congested')),
+  CONSTRAINT chk_user_preferences_theme_mode
+    CHECK (theme_mode IN ('system', 'dark', 'light'))
+);
+
 CREATE TABLE IF NOT EXISTS silver.saved_routes (
   saved_route_id SERIAL PRIMARY KEY,
   cognito_user_sub VARCHAR(255) NOT NULL,

@@ -5,6 +5,7 @@ import {
   DriveOverviewResponse,
   HealthResponse,
   MapEventRecord,
+  PreferencesResponse,
   RideHistoryRecord,
   RouteHourlyRecord,
   RoutePreviewResponse,
@@ -13,13 +14,15 @@ import {
   SaveRouteResponse,
   TopCongestedStreetRecord,
   TrafficRecord,
+  UpdatePreferencesResponse,
+  UserPreferencesRecord,
   WeatherImpactRecord,
 } from '../types/api';
 
 type FetchOptions = {
   accessToken?: string;
   body?: unknown;
-  method?: 'DELETE' | 'GET' | 'POST';
+  method?: 'DELETE' | 'GET' | 'POST' | 'PUT';
 };
 
 type KnownRouteLocation = {
@@ -274,6 +277,26 @@ export async function saveRoute(routePreview: RoutePreviewResponse, accessToken:
       route_name: `${routePreview.origin.name} to ${routePreview.destination.name}`,
     },
     method: 'POST',
+  });
+}
+
+export async function getUserPreferences(accessToken: string) {
+  return fetchFromApi<PreferencesResponse>('/preferences', {
+    accessToken,
+  });
+}
+
+export async function updateUserPreferences(
+  preferences: Pick<
+    UserPreferencesRecord,
+    'distance_unit' | 'preferred_route_type' | 'theme_mode'
+  >,
+  accessToken: string
+) {
+  return fetchFromApi<UpdatePreferencesResponse>('/preferences', {
+    accessToken,
+    body: preferences,
+    method: 'PUT',
   });
 }
 

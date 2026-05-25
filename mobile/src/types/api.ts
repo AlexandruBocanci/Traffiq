@@ -87,6 +87,30 @@ export type SaveRouteResponse = {
   data: SavedRouteRecord;
 };
 
+export type DistanceUnit = 'km' | 'mi';
+
+export type PreferredRouteType = 'fastest' | 'balanced' | 'less_congested';
+
+export type ThemeMode = 'system' | 'dark' | 'light';
+
+export type UserPreferencesRecord = {
+  preference_id: number;
+  distance_unit: DistanceUnit;
+  preferred_route_type: PreferredRouteType;
+  theme_mode: ThemeMode;
+  created_at: string;
+  updated_at: string;
+};
+
+export type PreferencesResponse = {
+  data: UserPreferencesRecord;
+};
+
+export type UpdatePreferencesResponse = {
+  updated: boolean;
+  data: UserPreferencesRecord;
+};
+
 export type RideHistoryRecord = {
   ride_id: number;
   started_at: string;

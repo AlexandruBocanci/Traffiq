@@ -624,6 +624,10 @@ Goal:
 
 - make Account screen useful
 
+User preferences document:
+
+- `docs/USER_PREFERENCES.md`
+
 Preferences:
 
 - distance unit

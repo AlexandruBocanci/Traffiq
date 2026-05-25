@@ -105,6 +105,8 @@ Current backend endpoints:
 - `GET /saved-routes`
 - `POST /saved-routes`
 - `DELETE /saved-routes/{saved_route_id}`
+- `GET /preferences`
+- `PUT /preferences`
 - `GET /reports/overview`
 - `GET /mobile/drive-overview`
 
@@ -128,6 +130,7 @@ Route previews also include a Suceava condition summary that combines ETA, weath
 Controlled Suceava traffic alerts now include coordinates and render as severity-coded map markers.
 Authenticated users can save route previews and view their personal saved routes from Account.
 Authenticated users can also add route previews to personal ride history and view those rides from History.
+Authenticated users can manage personal preferences from Account.
 
 ## Tech Stack
 

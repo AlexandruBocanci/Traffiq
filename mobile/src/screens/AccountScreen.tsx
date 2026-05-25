@@ -14,20 +14,56 @@ import {
 import LoadingState from '../components/LoadingState';
 import { useAuth } from '../context/AuthContext';
 import { COGNITO_REGION, COGNITO_USER_POOL_ID } from '../config/auth';
-import { getSavedRoutes } from '../services/traffiqApi';
+import {
+  getSavedRoutes,
+  getUserPreferences,
+  updateUserPreferences,
+} from '../services/traffiqApi';
 import { colors, radius, shadows, spacing } from '../theme/theme';
-import { SavedRouteRecord } from '../types/api';
+import {
+  DistanceUnit,
+  PreferredRouteType,
+  SavedRouteRecord,
+  ThemeMode,
+  UserPreferencesRecord,
+} from '../types/api';
 import AuthScreen from './AuthScreen';
 
 type AccountScreenProps = {
   onBackToDrive: () => void;
 };
 
+type PreferenceOption<T extends string> = {
+  label: string;
+  value: T;
+};
+
+const DISTANCE_UNIT_OPTIONS: PreferenceOption<DistanceUnit>[] = [
+  { label: 'Kilometers', value: 'km' },
+  { label: 'Miles', value: 'mi' },
+];
+
+const ROUTE_TYPE_OPTIONS: PreferenceOption<PreferredRouteType>[] = [
+  { label: 'Balanced', value: 'balanced' },
+  { label: 'Fastest', value: 'fastest' },
+  { label: 'Less congested', value: 'less_congested' },
+];
+
+const THEME_MODE_OPTIONS: PreferenceOption<ThemeMode>[] = [
+  { label: 'System', value: 'system' },
+  { label: 'Dark', value: 'dark' },
+  { label: 'Light', value: 'light' },
+];
+
 export default function AccountScreen({ onBackToDrive }: AccountScreenProps) {
   const { isAuthenticated, isRestoringSession, session, signOut } = useAuth();
   const [savedRoutes, setSavedRoutes] = useState<SavedRouteRecord[]>([]);
   const [isSavedRoutesLoading, setIsSavedRoutesLoading] = useState(false);
   const [savedRoutesError, setSavedRoutesError] = useState('');
+  const [preferences, setPreferences] = useState<UserPreferencesRecord | null>(null);
+  const [isPreferencesLoading, setIsPreferencesLoading] = useState(false);
+  const [isPreferencesSaving, setIsPreferencesSaving] = useState(false);
+  const [preferencesError, setPreferencesError] = useState('');
 
   useEffect(() => {
     async function loadSavedRoutes() {
@@ -51,6 +87,99 @@ export default function AccountScreen({ onBackToDrive }: AccountScreenProps) {
 
     loadSavedRoutes();
   }, [isAuthenticated, session?.tokens.accessToken]);
+
+  useEffect(() => {
+    async function loadPreferences() {
+      if (!isAuthenticated || !session?.tokens.accessToken) {
+        setPreferences(null);
+        return;
+      }
+
+      try {
+        setIsPreferencesLoading(true);
+        setPreferencesError('');
+
+        const response = await getUserPreferences(session.tokens.accessToken);
+        setPreferences(response.data);
+      } catch {
+        setPreferencesError('Could not load preferences.');
+      } finally {
+        setIsPreferencesLoading(false);
+      }
+    }
+
+    loadPreferences();
+  }, [isAuthenticated, session?.tokens.accessToken]);
+
+  async function handlePreferenceChange(
+    field: 'distance_unit' | 'preferred_route_type' | 'theme_mode',
+    value: DistanceUnit | PreferredRouteType | ThemeMode
+  ) {
+    if (!preferences || !session?.tokens.accessToken) {
+      return;
+    }
+
+    const nextPreferences = {
+      distance_unit: preferences.distance_unit,
+      preferred_route_type: preferences.preferred_route_type,
+      theme_mode: preferences.theme_mode,
+      [field]: value,
+    };
+
+    try {
+      setIsPreferencesSaving(true);
+      setPreferencesError('');
+
+      const response = await updateUserPreferences(
+        nextPreferences,
+        session.tokens.accessToken
+      );
+      setPreferences(response.data);
+    } catch {
+      setPreferencesError('Could not save preferences.');
+    } finally {
+      setIsPreferencesSaving(false);
+    }
+  }
+
+  function renderPreferenceOptions<T extends string>(
+    label: string,
+    options: PreferenceOption<T>[],
+    selectedValue: T | undefined,
+    onSelect: (value: T) => void
+  ) {
+    return (
+      <View style={styles.preferenceGroup}>
+        <Text style={styles.preferenceLabel}>{label}</Text>
+        <View style={styles.preferenceOptions}>
+          {options.map((option) => {
+            const isSelected = option.value === selectedValue;
+
+            return (
+              <Pressable
+                disabled={!preferences || isPreferencesSaving}
+                key={option.value}
+                onPress={() => onSelect(option.value)}
+                style={[
+                  styles.preferenceChip,
+                  isSelected ? styles.preferenceChipSelected : null,
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.preferenceChipText,
+                    isSelected ? styles.preferenceChipTextSelected : null,
+                  ]}
+                >
+                  {option.label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      </View>
+    );
+  }
 
   if (isRestoringSession) {
     return <LoadingState message="Restoring account session..." />;
@@ -94,6 +223,47 @@ export default function AccountScreen({ onBackToDrive }: AccountScreenProps) {
                 <Text style={styles.detailLabel}>User Pool</Text>
                 <Text style={styles.detailValue}>{COGNITO_USER_POOL_ID}</Text>
               </View>
+            </View>
+
+            <View style={styles.preferencesCard}>
+              <Text style={styles.cardLabel}>Preferences</Text>
+              <Text style={styles.preferencesTitle}>Personal settings</Text>
+              <Text style={styles.cardText}>
+                These settings are stored per Cognito user and do not affect guest
+                users.
+              </Text>
+
+              {isPreferencesLoading ? (
+                <Text style={styles.cardText}>Loading preferences...</Text>
+              ) : preferences ? (
+                <>
+                  {renderPreferenceOptions(
+                    'Distance unit',
+                    DISTANCE_UNIT_OPTIONS,
+                    preferences.distance_unit,
+                    (value) => handlePreferenceChange('distance_unit', value)
+                  )}
+                  {renderPreferenceOptions(
+                    'Route type',
+                    ROUTE_TYPE_OPTIONS,
+                    preferences.preferred_route_type,
+                    (value) => handlePreferenceChange('preferred_route_type', value)
+                  )}
+                  {renderPreferenceOptions(
+                    'Theme mode',
+                    THEME_MODE_OPTIONS,
+                    preferences.theme_mode,
+                    (value) => handlePreferenceChange('theme_mode', value)
+                  )}
+                  {isPreferencesSaving ? (
+                    <Text style={styles.cardText}>Saving preferences...</Text>
+                  ) : null}
+                </>
+              ) : null}
+
+              {preferencesError ? (
+                <Text style={styles.errorText}>{preferencesError}</Text>
+              ) : null}
             </View>
 
             <View style={styles.savedRoutesCard}>
@@ -274,6 +444,55 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     gap: 12,
     padding: 18,
+  },
+  preferencesCard: {
+    ...shadows.card,
+    backgroundColor: colors.card,
+    borderColor: colors.border,
+    borderRadius: radius.xl,
+    borderWidth: 1,
+    gap: 12,
+    padding: 18,
+  },
+  preferencesTitle: {
+    color: colors.text,
+    fontSize: 21,
+    fontWeight: '900',
+    marginTop: -4,
+  },
+  preferenceGroup: {
+    gap: 9,
+  },
+  preferenceLabel: {
+    color: colors.textMuted,
+    fontSize: 12,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+  },
+  preferenceOptions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  preferenceChip: {
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: 999,
+    borderWidth: 1,
+    paddingHorizontal: 13,
+    paddingVertical: 9,
+  },
+  preferenceChipSelected: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  preferenceChipText: {
+    color: colors.textMuted,
+    fontSize: 13,
+    fontWeight: '900',
+  },
+  preferenceChipTextSelected: {
+    color: colors.primaryText,
   },
   savedRoutesHeader: {
     alignItems: 'center',

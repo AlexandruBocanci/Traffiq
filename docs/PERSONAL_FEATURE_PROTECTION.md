@@ -25,6 +25,8 @@ POST /rides/history
 GET /saved-routes
 POST /saved-routes
 DELETE /saved-routes/{saved_route_id}
+GET /preferences
+PUT /preferences
 ```
 
 Guest behavior:
@@ -163,11 +165,33 @@ Detailed documentation:
 
 - `docs/USER_RIDE_HISTORY.md`
 
+## Task 25 User Preferences Extension
+
+Task 25 added persisted user preferences.
+
+User preferences are stored with:
+
+```text
+cognito_user_sub
+```
+
+Validated behavior:
+
+```text
+GET /preferences without token -> 401
+PUT /preferences without token -> 401
+GET /preferences with real Cognito access token -> only the current user's preferences
+PUT /preferences with real Cognito access token -> updates only the current user's preferences
+```
+
+Detailed documentation:
+
+- `docs/USER_PREFERENCES.md`
+
 ## What Is Not Done Yet
 
 This task does not:
 
-- add preferences endpoints
 - implement account settings persistence
 
 Those belong to later product feature tasks.
@@ -200,7 +224,7 @@ The backend image was rebuilt and pushed to ECR:
 Current image digest:
 
 ```text
-sha256:e81b6e530deae41bd866ade7e1f5ab4c95ce94d753be51dbefb94a01b8f04f76
+sha256:9aecf3fb15529ee4654f266936569d43599471c4b4453d4cc6b6d3f5bd5beb91
 ```
 
 App Runner was redeployed and returned to:
@@ -217,6 +241,9 @@ GET /mobile/drive-overview rides -> []
 GET /reports/overview -> no recent_rides and no ride_count
 GET /rides/history without token -> 401
 GET /rides/history with real Cognito access token -> 200
+GET /preferences without token -> 401
+GET /preferences with real Cognito access token -> 200
+PUT /preferences with real Cognito access token -> 200
 Cognito users after temporary test cleanup -> 0
 ```
 

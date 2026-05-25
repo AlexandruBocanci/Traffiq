@@ -98,6 +98,17 @@ SELECT
   created_at
 FROM silver.user_ride_history;
 
+CREATE OR REPLACE VIEW serving.vw_user_preferences AS
+SELECT
+  preference_id,
+  cognito_user_sub,
+  distance_unit,
+  preferred_route_type,
+  theme_mode,
+  created_at,
+  updated_at
+FROM silver.user_preferences;
+
 CREATE OR REPLACE VIEW serving.vw_saved_routes AS
 SELECT
   saved_route_id,

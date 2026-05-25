@@ -31,7 +31,7 @@ Pushed image:
 Digest:
 
 ```text
-sha256:33b830a5ba20e3f8582875d30a06ecb9982c5c69b652471cf90e711f62528fd7
+sha256:9aecf3fb15529ee4654f266936569d43599471c4b4453d4cc6b6d3f5bd5beb91
 ```
 
 Image status:
@@ -43,7 +43,7 @@ ACTIVE
 Approximate pushed image size:
 
 ```text
-110,531,199 bytes
+110,565,014 bytes
 ```
 
 ## Commands Used
@@ -93,20 +93,20 @@ Validated result:
 ```text
 repositoryName: traffiq-api
 imageTag: latest
-imageDigest: sha256:33b830a5ba20e3f8582875d30a06ecb9982c5c69b652471cf90e711f62528fd7
+imageDigest: sha256:9aecf3fb15529ee4654f266936569d43599471c4b4453d4cc6b6d3f5bd5beb91
 imageStatus: ACTIVE
 ```
 
 Latest image update:
 
 ```text
-May 25, 2026 - Task 24 user ride history API support
+May 25, 2026 - Task 25 user preferences API support
 ```
 
-Previous Task 23 digest:
+Previous Task 24 digest:
 
 ```text
-sha256:1ce14840d4d88db81d5c953a1754f2638870f181634bce9ab1c1297e02a691e6
+sha256:33b830a5ba20e3f8582875d30a06ecb9982c5c69b652471cf90e711f62528fd7
 ```
 
 ## What This Enables
