@@ -11,46 +11,40 @@ import {
 import EmptyState from '../components/EmptyState';
 import ErrorState from '../components/ErrorState';
 import LoadingState from '../components/LoadingState';
-import {
-  getHealthStatus,
-  getTopCongestedStreets,
-  getTraffic,
-  getWeatherImpact,
-} from '../services/traffiqApi';
+import { getHealthStatus, getPipelineStatus } from '../services/traffiqApi';
 import { colors, radius, shadows, spacing } from '../theme/theme';
+import { PipelineStatusResponse } from '../types/api';
 
 const PIPELINE_STEPS = [
   {
     title: 'Extract',
-    description: 'Traffic CSV ingestion and weather API ingestion.',
+    description: 'Traffic CSV ingestion, Open-Meteo weather ingestion, and controlled Suceava seed data.',
   },
   {
     title: 'Bronze',
-    description: 'Raw traffic and raw weather data loaded into PostgreSQL.',
+    description: 'Raw or near-raw records land in PostgreSQL with minimal shaping.',
   },
   {
     title: 'Silver',
-    description: 'Cleaned traffic records and enriched traffic-weather layer.',
+    description: 'Data is cleaned, standardized, linked to Suceava streets, and prepared for analytics.',
   },
   {
     title: 'Gold',
-    description: 'Street metrics and weather impact analytics for serving.',
+    description: 'Business-level route, congestion, weather, and hourly metrics are calculated.',
+  },
+  {
+    title: 'Serving',
+    description: 'API-ready SQL views expose stable response shapes to FastAPI.',
   },
   {
     title: 'FastAPI',
-    description: 'Backend endpoints expose analytics to the mobile client.',
-  },
-  {
-    title: 'Mobile',
-    description: 'React Native app consumes backend data for the portfolio demo.',
+    description: 'The cloud backend reads RDS and serves mobile and demo endpoints.',
   },
 ];
 
 type PipelineMetrics = {
   apiStatus: string;
-  trafficCount: number;
-  weatherImpactCount: number;
-  topCongestedCount: number;
+  pipelineStatus: PipelineStatusResponse;
 };
 
 type PipelineScreenProps = {
@@ -68,21 +62,16 @@ export default function PipelineScreen({ onBackToDrive }: PipelineScreenProps) {
         setIsLoading(true);
         setErrorMessage('');
 
-        const [healthResponse, trafficResponse, weatherResponse, congestedResponse] =
-          await Promise.all([
-            getHealthStatus(),
-            getTraffic(),
-            getWeatherImpact(),
-            getTopCongestedStreets(),
-          ]);
+        const [healthResponse, pipelineStatusResponse] = await Promise.all([
+          getHealthStatus(),
+          getPipelineStatus(),
+        ]);
 
         setMetrics({
           apiStatus: healthResponse.status,
-          trafficCount: trafficResponse.count,
-          weatherImpactCount: weatherResponse.count,
-          topCongestedCount: congestedResponse.count,
+          pipelineStatus: pipelineStatusResponse,
         });
-      } catch (error) {
+      } catch {
         setErrorMessage('Failed to load pipeline status from the backend.');
       } finally {
         setIsLoading(false);
@@ -108,12 +97,15 @@ export default function PipelineScreen({ onBackToDrive }: PipelineScreenProps) {
     );
   }
 
+  const latestRun = metrics.pipelineStatus.latest_run;
+  const qualityChecks = metrics.pipelineStatus.data_quality_checks;
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView style={styles.container} contentContainerStyle={styles.content}>
         <View style={styles.headerRow}>
           <View>
-            <Text style={styles.eyebrow}>Developer layer</Text>
+            <Text style={styles.eyebrow}>Admin layer</Text>
             <Text style={styles.title}>Pipeline</Text>
           </View>
 
@@ -125,11 +117,12 @@ export default function PipelineScreen({ onBackToDrive }: PipelineScreenProps) {
         </View>
 
         <Text style={styles.subtitle}>
-          Temporary project status surface. This will later become account/settings or admin-only.
+          Admin/demo status surface for the Traffiq ETL pipeline and data quality
+          checks.
         </Text>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Backend status</Text>
+          <Text style={styles.sectionTitle}>Operational status</Text>
 
           <View style={styles.metricsGrid}>
             <View style={styles.metricCard}>
@@ -137,18 +130,100 @@ export default function PipelineScreen({ onBackToDrive }: PipelineScreenProps) {
               <Text style={styles.metricValue}>{metrics.apiStatus}</Text>
             </View>
             <View style={styles.metricCard}>
-              <Text style={styles.metricLabel}>Traffic</Text>
-              <Text style={styles.metricValue}>{metrics.trafficCount}</Text>
+              <Text style={styles.metricLabel}>Pipeline</Text>
+              <Text style={styles.metricValue}>{latestRun?.status ?? 'No run'}</Text>
             </View>
             <View style={styles.metricCard}>
-              <Text style={styles.metricLabel}>Weather</Text>
-              <Text style={styles.metricValue}>{metrics.weatherImpactCount}</Text>
+              <Text style={styles.metricLabel}>Extracted</Text>
+              <Text style={styles.metricValue}>{latestRun?.records_extracted ?? 0}</Text>
             </View>
             <View style={styles.metricCard}>
-              <Text style={styles.metricLabel}>Congestion</Text>
-              <Text style={styles.metricValue}>{metrics.topCongestedCount}</Text>
+              <Text style={styles.metricLabel}>Loaded</Text>
+              <Text style={styles.metricValue}>{latestRun?.records_loaded ?? 0}</Text>
             </View>
           </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Latest pipeline run</Text>
+
+          {latestRun ? (
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>{latestRun.pipeline_name}</Text>
+              <View style={styles.detailGrid}>
+                <View style={styles.detailItem}>
+                  <Text style={styles.detailLabel}>Run ID</Text>
+                  <Text style={styles.detailValue}>{latestRun.run_id}</Text>
+                </View>
+                <View style={styles.detailItem}>
+                  <Text style={styles.detailLabel}>Status</Text>
+                  <Text style={styles.detailValue}>{latestRun.status}</Text>
+                </View>
+                <View style={styles.detailItemFull}>
+                  <Text style={styles.detailLabel}>Started</Text>
+                  <Text style={styles.detailValue}>
+                    {formatTimestamp(latestRun.started_at)}
+                  </Text>
+                </View>
+                <View style={styles.detailItemFull}>
+                  <Text style={styles.detailLabel}>Finished</Text>
+                  <Text style={styles.detailValue}>
+                    {formatTimestamp(latestRun.finished_at)}
+                  </Text>
+                </View>
+              </View>
+
+              {latestRun.error_message ? (
+                <Text style={styles.errorText}>{latestRun.error_message}</Text>
+              ) : (
+                <Text style={styles.cardText}>No pipeline error recorded.</Text>
+              )}
+            </View>
+          ) : (
+            <View style={styles.card}>
+              <Text style={styles.cardText}>
+                No ETL run has been recorded in pipeline metadata yet.
+              </Text>
+            </View>
+          )}
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Data quality checks</Text>
+
+          {qualityChecks.length === 0 ? (
+            <View style={styles.card}>
+              <Text style={styles.cardText}>
+                No data quality checks are linked to the latest run.
+              </Text>
+            </View>
+          ) : (
+            qualityChecks.map((check) => (
+              <View key={check.check_id} style={styles.card}>
+                <View style={styles.checkHeader}>
+                  <Text style={styles.cardTitle}>
+                    {formatCheckName(check.check_name)}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.statusBadge,
+                      check.check_status === 'passed'
+                        ? styles.statusBadgePassed
+                        : styles.statusBadgeFailed,
+                    ]}
+                  >
+                    {check.check_status}
+                  </Text>
+                </View>
+                <Text style={styles.cardText}>
+                  Affected records: {check.affected_records}
+                </Text>
+                {check.details ? (
+                  <Text style={styles.cardText}>{check.details}</Text>
+                ) : null}
+              </View>
+            ))
+          )}
         </View>
 
         <View style={styles.section}>
@@ -164,6 +239,18 @@ export default function PipelineScreen({ onBackToDrive }: PipelineScreenProps) {
       </ScrollView>
     </SafeAreaView>
   );
+}
+
+function formatTimestamp(value: string | null) {
+  if (!value) {
+    return 'Not finished';
+  }
+
+  return new Date(value).toLocaleString();
+}
+
+function formatCheckName(value: string) {
+  return value.replace(/_/g, ' ');
 }
 
 const styles = StyleSheet.create({
@@ -247,7 +334,7 @@ const styles = StyleSheet.create({
   },
   metricValue: {
     color: colors.text,
-    fontSize: 26,
+    fontSize: 25,
     fontWeight: '900',
     marginTop: 8,
     textTransform: 'capitalize',
@@ -259,17 +346,80 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     borderRadius: radius.lg,
     padding: 16,
-    gap: 6,
+    gap: 10,
   },
   cardTitle: {
     color: colors.text,
     fontSize: 17,
     fontWeight: '900',
+    textTransform: 'capitalize',
   },
   cardText: {
     color: colors.textSoft,
     fontSize: 14,
     lineHeight: 21,
+  },
+  detailGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  detailItem: {
+    backgroundColor: colors.card,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    padding: 12,
+    width: '48%',
+  },
+  detailItemFull: {
+    backgroundColor: colors.card,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    padding: 12,
+    width: '100%',
+  },
+  detailLabel: {
+    color: colors.textMuted,
+    fontSize: 11,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+  },
+  detailValue: {
+    color: colors.text,
+    fontSize: 15,
+    fontWeight: '900',
+    marginTop: 6,
+  },
+  checkHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 10,
+    justifyContent: 'space-between',
+  },
+  statusBadge: {
+    borderRadius: 999,
+    fontSize: 11,
+    fontWeight: '900',
+    overflow: 'hidden',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    textTransform: 'uppercase',
+  },
+  statusBadgePassed: {
+    backgroundColor: colors.primary,
+    color: colors.primaryText,
+  },
+  statusBadgeFailed: {
+    backgroundColor: colors.red,
+    color: colors.text,
+  },
+  errorText: {
+    color: colors.red,
+    fontSize: 14,
+    fontWeight: '800',
+    lineHeight: 20,
   },
   emptyStateWrapper: {
     flex: 1,

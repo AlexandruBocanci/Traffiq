@@ -5,6 +5,7 @@ import {
   DriveOverviewResponse,
   HealthResponse,
   MapEventRecord,
+  PipelineStatusResponse,
   PreferencesResponse,
   RideHistoryRecord,
   RouteHourlyRecord,
@@ -306,4 +307,8 @@ export async function getMapEvents() {
 
 export async function getDriveOverview() {
   return fetchFromApi<DriveOverviewResponse>('/mobile/drive-overview');
+}
+
+export async function getPipelineStatus() {
+  return fetchFromApi<PipelineStatusResponse>('/pipeline/status');
 }

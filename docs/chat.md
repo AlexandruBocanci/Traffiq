@@ -3123,6 +3123,61 @@ Notes:
 - App Runner still runs only FastAPI and does not run ETL or seed logic at startup
 - this closes Task 26 from the v3 Notion plan
 - the next task is `Task 27. Add Admin / Pipeline screen`
+
+### Update 101 - Admin Pipeline mobile screen connected to pipeline status
+
+Completed:
+
+- connected the mobile `Pipeline` screen to the deployed `GET /pipeline/status` endpoint
+- added an explicit Drive entry card:
+  - `Admin`
+  - `Pipeline status`
+- added mobile TypeScript models:
+  - `PipelineRunRecord`
+  - `DataQualityCheckRecord`
+  - `PipelineStatusResponse`
+- added `getPipelineStatus()` in the mobile API service
+- replaced the old generic Pipeline metrics with real ETL observability data:
+  - API status
+  - latest pipeline status
+  - `records_extracted`
+  - `records_loaded`
+  - `run_id`
+  - pipeline name
+  - started timestamp
+  - finished timestamp
+  - error message, if present
+  - data quality checks
+- kept the Pipeline screen as an admin/demo surface, not a normal user feature
+- removed reliance on the small unlabeled settings icon because it was not discoverable on the user's device
+- created `docs/MOBILE_ADMIN_PIPELINE_SCREEN.md`
+- updated README, pipeline status endpoint documentation, execution plan, and chat documentation
+
+Backend/AWS behavior:
+
+```text
+backend change -> not required
+App Runner redeploy -> not required
+RDS change -> not required
+pipeline reset -> not run
+seed reload -> not run
+```
+
+Technical validation:
+
+```text
+npx.cmd tsc --noEmit -> passed
+npx.cmd tsc --noEmit after Drive entry correction -> passed
+npx.cmd expo export --platform android --output-dir .expo-export-task27 -> passed
+generated .expo-export-task27 validation artifact -> deleted before commit
+GET /pipeline/status public endpoint -> run_id=4, pipeline_name=events_pipeline, status=success, records_extracted=5, records_loaded=10, checks=1
+```
+
+Notes:
+
+- this closes Task 27 from the v3 Notion plan
+- this is the final planned Traffiq v3 implementation task
+- next phase is post-v3 bugfixing, polish, final validation, and preparation for merge to `main`
 ---
 
 ## 9. Instructions For Any New Chat

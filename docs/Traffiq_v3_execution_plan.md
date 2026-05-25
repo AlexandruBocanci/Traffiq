@@ -666,6 +666,10 @@ Goal:
 
 - keep pipeline visibility for demo and license discussion
 
+Admin pipeline screen document:
+
+- `docs/MOBILE_ADMIN_PIPELINE_SCREEN.md`
+
 Deliverables:
 
 - latest pipeline status

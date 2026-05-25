@@ -427,17 +427,20 @@ export default function DriveScreen({
             >
               <Text style={styles.secondaryButtonText}>H</Text>
             </Pressable>
-
-            <Pressable
-              accessibilityLabel="Open pipeline status"
-              onPress={onOpenPipeline}
-              style={styles.settingsButton}
-            >
-              <View style={styles.settingsLine} />
-              <View style={styles.settingsLineShort} />
-            </Pressable>
           </View>
         </View>
+
+        <Pressable
+          accessibilityLabel="Open admin pipeline status"
+          onPress={onOpenPipeline}
+          style={styles.pipelineStatusButton}
+        >
+          <View>
+            <Text style={styles.pipelineStatusLabel}>Admin</Text>
+            <Text style={styles.pipelineStatusTitle}>Pipeline status</Text>
+          </View>
+          <Text style={styles.pipelineStatusArrow}>View</Text>
+        </Pressable>
 
         <Pressable
           onPress={() => setIsRouteSheetVisible(true)}
@@ -1006,6 +1009,37 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontSize: 16,
     fontWeight: '900',
+  },
+  pipelineStatusButton: {
+    ...shadows.card,
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  pipelineStatusLabel: {
+    color: colors.primary,
+    fontSize: 11,
+    fontWeight: '900',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+  },
+  pipelineStatusTitle: {
+    color: colors.text,
+    fontSize: 17,
+    fontWeight: '900',
+    marginTop: 3,
+  },
+  pipelineStatusArrow: {
+    color: colors.primary,
+    fontSize: 13,
+    fontWeight: '900',
+    textTransform: 'uppercase',
   },
   settingsLine: {
     backgroundColor: colors.text,

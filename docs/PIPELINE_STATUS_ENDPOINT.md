@@ -121,7 +121,7 @@ ECR latest digest -> sha256:d3ae9c92395cfeb4dab1e57494a6558f8df8002fda85ab98aa00
 
 ## What This Enables
 
-Task 27 can now build an Admin / Pipeline mobile screen using one backend call.
+Task 27 built an Admin / Pipeline mobile screen using one backend call.
 
 From a Data Engineering perspective, this demonstrates:
 
@@ -131,6 +131,10 @@ From a Data Engineering perspective, this demonstrates:
 - API serving over ETL metadata
 - separation between pipeline execution and API reading
 
+Mobile screen documentation:
+
+- `docs/MOBILE_ADMIN_PIPELINE_SCREEN.md`
+
 ## What Is Not Done Yet
 
 This task does not:
@@ -138,7 +142,6 @@ This task does not:
 - schedule the pipeline
 - trigger ETL from the API
 - create AWS EventBridge or ECS jobs
-- add a mobile Admin / Pipeline screen
 - add admin authorization
 
 Those belong to later work.

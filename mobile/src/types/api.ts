@@ -141,6 +141,31 @@ export type MapEventRecord = {
   longitude: number | null;
 };
 
+export type PipelineRunRecord = {
+  run_id: number;
+  pipeline_name: string;
+  started_at: string;
+  finished_at: string | null;
+  status: string;
+  records_extracted: number;
+  records_loaded: number;
+  error_message: string | null;
+};
+
+export type DataQualityCheckRecord = {
+  check_id: number;
+  run_id: number;
+  check_name: string;
+  check_status: string;
+  affected_records: number;
+  details: string | null;
+};
+
+export type PipelineStatusResponse = {
+  latest_run: PipelineRunRecord | null;
+  data_quality_checks: DataQualityCheckRecord[];
+};
+
 export type ApiListResponse<T> = {
   count: number;
   data: T[];

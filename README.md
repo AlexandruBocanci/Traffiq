@@ -132,6 +132,7 @@ Controlled Suceava traffic alerts now include coordinates and render as severity
 Authenticated users can save route previews and view their personal saved routes from Account.
 Authenticated users can also add route previews to personal ride history and view those rides from History.
 Authenticated users can manage personal preferences from Account.
+The Pipeline screen now shows backend/API health, the latest ETL run, record counts, and data quality checks for demo observability.
 
 ## Tech Stack
 
