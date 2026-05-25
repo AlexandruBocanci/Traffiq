@@ -44,8 +44,8 @@ const SUCEAVA_ROUTE_LOCATIONS: KnownRouteLocation[] = [
   },
   {
     aliases: ['iulius mall suceava', 'iulius mall', 'mall'],
-    latitude: 47.6703,
-    longitude: 26.2589,
+    latitude: 47.6592,
+    longitude: 26.2698,
     name: 'Iulius Mall Suceava',
   },
   {

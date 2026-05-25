@@ -3234,6 +3234,122 @@ Notes:
 - no RDS change was required
 - no AWS service was created
 - this is a post-v3 bugfix/polish pass before preparing merge to `main`
+
+### Update 103 - Compact map behavior corrected
+
+Completed:
+
+- disabled map gestures in compact/home mode:
+  - no scroll/pan
+  - no zoom
+  - no rotate
+  - no pitch
+- kept full map interaction enabled only in expanded mode
+- updated compact map viewport behavior:
+  - when a route preview exists, the compact map centers and zooms out to fit the full route
+  - when no route exists and location is available, the compact map centers on the current area with closer zoom
+  - when location is unavailable, the compact map falls back to the Suceava overview
+- adjusted compact map labels:
+  - route preview -> `Route overview`
+  - expanded route view -> `Route map`
+  - current location without route -> `Current area`
+  - fallback -> `Suceava overview`
+
+Technical validation:
+
+```text
+npx.cmd tsc --noEmit -> passed
+npx.cmd expo export --platform android --output-dir .expo-export-map-behavior -> passed
+generated .expo-export-map-behavior validation artifact -> deleted before commit
+```
+
+Notes:
+
+- no backend redeploy was required
+- no RDS change was required
+- this is part of the post-v3 mobile bugfix/polish pass
+
+Follow-up correction:
+
+- removed non-route map markers from `SuceavaMap`
+- compact and expanded maps no longer render:
+  - Suceava default marker
+  - mapped alert markers
+  - current-location marker
+  - origin marker
+- the only marker left is the destination marker when a route preview exists
+- the route polyline remains visible
+- this reduces map clutter and avoids popups for selectable/demo locations
+
+Validation:
+
+```text
+npx.cmd tsc --noEmit -> passed
+```
+
+### Update 104 - Iulius Mall Suceava routing coordinate corrected
+
+Completed:
+
+- investigated the incorrect `Current location -> Iulius Mall Suceava` route target
+- confirmed that the project used an inaccurate hardcoded Iulius coordinate:
+  - old: `47.6703, 26.2589`
+  - corrected: `47.6592, 26.2698`
+- updated the coordinate in both routing paths:
+  - backend `src/api/routing_service.py`
+  - mobile fallback `mobile/src/services/traffiqApi.ts`
+- rebuilt and redeployed the backend because `/routes/preview` is public App Runner API behavior
+- updated ECR, App Runner, and routing integration documentation
+
+Validation:
+
+```text
+npx.cmd tsc --noEmit -> passed
+python -m compileall src/api -> passed
+local TestClient POST /routes/preview to Iulius Mall Suceava -> destination.latitude=47.6592, destination.longitude=26.2698
+Docker image build -> passed
+ECR latest digest -> sha256:018af3a16c840f273ddbe12c2a459a3b7959b0aa5cb2c28fb643b96cbd62e1b9
+App Runner deployment -> RUNNING
+public POST /routes/preview to Iulius Mall Suceava -> destination.latitude=47.6592, destination.longitude=26.2698
+```
+
+Notes:
+
+- no RDS change was required
+- this fixes the API and the mobile direct OSRM fallback path
+- if further Suceava POIs feel inaccurate, the next step is to replace the remaining hardcoded points with verified coordinates
+
+### Update 105 - Admin Pipeline entry moved to Account
+
+Completed:
+
+- moved the `Admin / Pipeline status` entry point out of the Drive/Home screen
+- added the pipeline status card to the Account screen
+- kept the existing `PipelineScreen` and `/pipeline/status` API behavior unchanged
+- updated navigation so Account opens the admin/demo pipeline surface
+- removed the now-unused Drive pipeline prop and styles
+
+Weather impact clarification:
+
+- the weather label comes from real Open-Meteo ingestion for Suceava
+- the mobile app reads weather impact through `/mobile/drive-overview`
+- the backend reads that data from `serving.vw_weather_impact`
+- `serving.vw_weather_impact` reads from `gold.weather_traffic_impact`
+- `avg_congestion_score` is calculated by the ETL pipeline from controlled traffic speeds:
+  - formula: `((60 - avg_speed) / 60) * 100`, clipped between `0` and `100`
+- this means the weather data is real, but the congestion score is a portfolio/demo analytical signal, not live Waze/Google-style traffic
+
+Validation:
+
+```text
+npx.cmd tsc --noEmit -> passed
+```
+
+Notes:
+
+- no backend change was required
+- no AWS redeploy was required
+- no RDS pipeline reset was run
 ---
 
 ## 9. Instructions For Any New Chat

@@ -29,6 +29,7 @@ import AuthScreen from './AuthScreen';
 
 type AccountScreenProps = {
   onBackToDrive: () => void;
+  onOpenPipeline: () => void;
 };
 
 type PreferenceOption<T extends string> = {
@@ -49,7 +50,10 @@ function formatDistance(valueKm: number, unit: DistanceUnit | undefined) {
   return `${valueKm} km`;
 }
 
-export default function AccountScreen({ onBackToDrive }: AccountScreenProps) {
+export default function AccountScreen({
+  onBackToDrive,
+  onOpenPipeline,
+}: AccountScreenProps) {
   const {
     getAccessToken,
     isAuthenticated,
@@ -212,6 +216,21 @@ export default function AccountScreen({ onBackToDrive }: AccountScreenProps) {
             <Text style={styles.backButtonText}>Drive</Text>
           </Pressable>
         </View>
+
+        <Pressable
+          accessibilityLabel="Open admin pipeline status"
+          onPress={onOpenPipeline}
+          style={styles.adminCard}
+        >
+          <View style={styles.adminTextBlock}>
+            <Text style={styles.cardLabel}>Admin</Text>
+            <Text style={styles.adminTitle}>Pipeline status</Text>
+            <Text style={styles.cardText}>
+              View latest ETL run status, records loaded, and data quality checks.
+            </Text>
+          </View>
+          <Text style={styles.adminAction}>Open</Text>
+        </Pressable>
 
         {isAuthenticated && session ? (
           <>
@@ -384,6 +403,33 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     gap: 9,
     padding: 18,
+  },
+  adminCard: {
+    ...shadows.card,
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 14,
+    justifyContent: 'space-between',
+    padding: 16,
+  },
+  adminTextBlock: {
+    flex: 1,
+    gap: 5,
+  },
+  adminTitle: {
+    color: colors.text,
+    fontSize: 19,
+    fontWeight: '900',
+  },
+  adminAction: {
+    color: colors.primary,
+    fontSize: 13,
+    fontWeight: '900',
+    textTransform: 'uppercase',
   },
   cardLabel: {
     color: colors.primary,

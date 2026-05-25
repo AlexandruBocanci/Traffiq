@@ -39,7 +39,6 @@ import {
 type DriveScreenProps = {
   onOpenAccount: () => void;
   onOpenHistory: () => void;
-  onOpenPipeline: () => void;
 };
 
 type DriveState = {
@@ -292,7 +291,6 @@ function buildRouteConditionSummary(
 export default function DriveScreen({
   onOpenAccount,
   onOpenHistory,
-  onOpenPipeline,
 }: DriveScreenProps) {
   const { getAccessToken, isAuthenticated, session } = useAuth();
   const [data, setData] = useState<DriveState>({
@@ -577,18 +575,6 @@ export default function DriveScreen({
         </View>
 
         <Pressable
-          accessibilityLabel="Open admin pipeline status"
-          onPress={onOpenPipeline}
-          style={styles.pipelineStatusButton}
-        >
-          <View>
-            <Text style={styles.pipelineStatusLabel}>Admin</Text>
-            <Text style={styles.pipelineStatusTitle}>Pipeline status</Text>
-          </View>
-          <Text style={styles.pipelineStatusArrow}>View</Text>
-        </Pressable>
-
-        <Pressable
           onPress={() => setIsRouteSheetVisible(true)}
           style={styles.destinationButton}
         >
@@ -619,7 +605,6 @@ export default function DriveScreen({
         </View>
 
         <SuceavaMap
-          events={data.events}
           onExpand={() => setIsMapExpandedVisible(true)}
           routePreview={routePreview}
         />
@@ -885,7 +870,6 @@ export default function DriveScreen({
 
           <View style={styles.expandedMapBody}>
             <SuceavaMap
-              events={data.events}
               routePreview={routePreview}
               variant="expanded"
             />
@@ -1206,37 +1190,6 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontSize: 16,
     fontWeight: '900',
-  },
-  pipelineStatusButton: {
-    ...shadows.card,
-    alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-  },
-  pipelineStatusLabel: {
-    color: colors.primary,
-    fontSize: 11,
-    fontWeight: '900',
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-  },
-  pipelineStatusTitle: {
-    color: colors.text,
-    fontSize: 17,
-    fontWeight: '900',
-    marginTop: 3,
-  },
-  pipelineStatusArrow: {
-    color: colors.primary,
-    fontSize: 13,
-    fontWeight: '900',
-    textTransform: 'uppercase',
   },
   settingsLine: {
     backgroundColor: colors.text,

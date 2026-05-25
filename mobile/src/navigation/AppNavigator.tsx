@@ -15,7 +15,12 @@ export default function AppNavigator() {
   }
 
   if (activeScreen === 'account') {
-    return <AccountScreen onBackToDrive={() => setActiveScreen('drive')} />;
+    return (
+      <AccountScreen
+        onBackToDrive={() => setActiveScreen('drive')}
+        onOpenPipeline={() => setActiveScreen('pipeline')}
+      />
+    );
   }
 
   if (activeScreen === 'history') {
@@ -31,7 +36,6 @@ export default function AppNavigator() {
     <DriveScreen
       onOpenAccount={() => setActiveScreen('account')}
       onOpenHistory={() => setActiveScreen('history')}
-      onOpenPipeline={() => setActiveScreen('pipeline')}
     />
   );
 }

@@ -51,8 +51,8 @@ SUCEAVA_LOCATIONS = [
     ),
     SuceavaLocation(
         name="Iulius Mall Suceava",
-        latitude=47.6703,
-        longitude=26.2589,
+        latitude=47.6592,
+        longitude=26.2698,
         aliases=("iulius mall suceava", "iulius mall", "mall"),
     ),
     SuceavaLocation(

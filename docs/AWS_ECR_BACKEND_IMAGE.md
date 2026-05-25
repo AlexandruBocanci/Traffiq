@@ -31,7 +31,7 @@ Pushed image:
 Digest:
 
 ```text
-sha256:d3ae9c92395cfeb4dab1e57494a6558f8df8002fda85ab98aa00295610071865
+sha256:018af3a16c840f273ddbe12c2a459a3b7959b0aa5cb2c28fb643b96cbd62e1b9
 ```
 
 Image status:
@@ -43,7 +43,7 @@ ACTIVE
 Approximate pushed image size:
 
 ```text
-110,570,033 bytes
+110,576,169 bytes
 ```
 
 ## Commands Used
@@ -93,20 +93,20 @@ Validated result:
 ```text
 repositoryName: traffiq-api
 imageTag: latest
-imageDigest: sha256:d3ae9c92395cfeb4dab1e57494a6558f8df8002fda85ab98aa00295610071865
+imageDigest: sha256:018af3a16c840f273ddbe12c2a459a3b7959b0aa5cb2c28fb643b96cbd62e1b9
 imageStatus: ACTIVE
 ```
 
 Latest image update:
 
 ```text
-May 25, 2026 - Task 26 pipeline status endpoint support
+May 25, 2026 - post-v3 Iulius Mall Suceava coordinate correction
 ```
 
-Previous Task 25 digest:
+Previous Task 26 digest:
 
 ```text
-sha256:9aecf3fb15529ee4654f266936569d43599471c4b4453d4cc6b6d3f5bd5beb91
+sha256:d3ae9c92395cfeb4dab1e57494a6558f8df8002fda85ab98aa00295610071865
 ```
 
 ## What This Enables

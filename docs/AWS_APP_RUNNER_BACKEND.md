@@ -359,6 +359,19 @@ GET /pipeline/status -> run_id=4, pipeline_name=events_pipeline, status=success,
 
 The endpoint is read-only. It reads ETL metadata from RDS and does not run or reset the pipeline.
 
+Iulius Mall Suceava routing coordinate correction after v3:
+
+```text
+App Runner status -> RUNNING
+Backend ECR digest -> sha256:018af3a16c840f273ddbe12c2a459a3b7959b0aa5cb2c28fb643b96cbd62e1b9
+POST /routes/preview with Current location coordinates to Iulius Mall Suceava -> 200
+destination.latitude -> 47.6592
+destination.longitude -> 26.2698
+provider -> local_suceava_fallback
+```
+
+The corrected Iulius Mall coordinate was aligned between backend and mobile fallback routing.
+
 ## What This Enables
 
 The Traffiq backend is now reachable through a public AWS URL.

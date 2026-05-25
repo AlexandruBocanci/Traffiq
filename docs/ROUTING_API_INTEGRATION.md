@@ -70,8 +70,8 @@ Response shape:
   },
   "destination": {
     "name": "Iulius Mall Suceava",
-    "latitude": 47.6703,
-    "longitude": 26.2589
+    "latitude": 47.6592,
+    "longitude": 26.2698
   },
   "distance_km": 4.02,
   "duration_minutes": 7.1,

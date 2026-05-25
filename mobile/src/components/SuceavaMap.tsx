@@ -10,7 +10,7 @@ import MapView, {
 } from 'react-native-maps';
 
 import { colors, radius, shadows } from '../theme/theme';
-import { MapEventRecord, RoutePreviewResponse } from '../types/api';
+import { RoutePreviewResponse } from '../types/api';
 
 const SUCEAVA_REGION: Region = {
   latitude: 47.6514,
@@ -19,21 +19,23 @@ const SUCEAVA_REGION: Region = {
   longitudeDelta: 0.055,
 };
 
+const USER_LOCATION_REGION_DELTA = 0.012;
+const MIN_ROUTE_REGION_DELTA = 0.015;
+
 type LocationStatus = 'checking' | 'granted' | 'denied';
 
 type SuceavaMapProps = {
-  events?: MapEventRecord[];
   onExpand?: () => void;
   routePreview?: RoutePreviewResponse | null;
   variant?: 'compact' | 'expanded';
 };
 
 export default function SuceavaMap({
-  events = [],
   onExpand,
   routePreview,
   variant = 'compact',
 }: SuceavaMapProps) {
+  const isExpanded = variant === 'expanded';
   const [currentRegion, setCurrentRegion] = useState<Region>(SUCEAVA_REGION);
   const [currentLocation, setCurrentLocation] = useState<{
     latitude: number;
@@ -73,7 +75,8 @@ export default function SuceavaMap({
 
         setCurrentLocation(userLocation);
         setCurrentRegion({
-          ...SUCEAVA_REGION,
+          latitudeDelta: USER_LOCATION_REGION_DELTA,
+          longitudeDelta: USER_LOCATION_REGION_DELTA,
           ...userLocation,
         });
         setLocationStatus('granted');
@@ -92,67 +95,40 @@ export default function SuceavaMap({
     };
   }, []);
 
-  const locationLabel =
-    locationStatus === 'checking'
-      ? 'Checking location'
-      : locationStatus === 'granted'
-        ? 'Current location enabled'
-        : 'Default Suceava view';
   const routeCoordinates: LatLng[] =
     routePreview?.geometry.coordinates.map(([longitude, latitude]) => ({
       latitude,
       longitude,
     })) ?? [];
   const activeRoute = routePreview && routeCoordinates.length >= 2 ? routePreview : null;
-  const geolocatedEvents = events.filter(
-    (event) => event.latitude !== null && event.longitude !== null
-  );
-
-  function getEventMarkerColor(severity: string) {
-    if (severity === 'high') {
-      return colors.red;
-    }
-
-    if (severity === 'medium') {
-      return colors.amber;
-    }
-
-    return colors.accent;
-  }
+  const displayRegion = activeRoute
+    ? getRouteRegion(routeCoordinates)
+    : currentRegion;
+  const locationLabel = activeRoute
+    ? isExpanded
+      ? 'Route map'
+      : 'Route overview'
+    : locationStatus === 'checking'
+      ? 'Checking location'
+      : locationStatus === 'granted'
+        ? 'Current area'
+        : 'Suceava overview';
 
   return (
-    <View style={[styles.mapPanel, variant === 'expanded' && styles.mapPanelExpanded]}>
+    <View style={[styles.mapPanel, isExpanded && styles.mapPanelExpanded]}>
       <MapView
         initialRegion={SUCEAVA_REGION}
+        pitchEnabled={isExpanded}
         provider={PROVIDER_DEFAULT}
-        region={currentRegion}
-        showsCompass
-        showsMyLocationButton
+        region={displayRegion}
+        rotateEnabled={isExpanded}
+        scrollEnabled={isExpanded}
+        showsCompass={isExpanded}
+        showsMyLocationButton={isExpanded}
         showsUserLocation={locationStatus === 'granted'}
         style={styles.map}
+        zoomEnabled={isExpanded}
       >
-        <Marker
-          coordinate={{
-            latitude: SUCEAVA_REGION.latitude,
-            longitude: SUCEAVA_REGION.longitude,
-          }}
-          description="Default Traffiq city area"
-          title="Suceava"
-        />
-
-        {geolocatedEvents.map((event) => (
-          <Marker
-            coordinate={{
-              latitude: event.latitude as number,
-              longitude: event.longitude as number,
-            }}
-            description={`${event.event_type}: ${event.event_description}`}
-            key={`event-${event.event_id}`}
-            pinColor={getEventMarkerColor(event.severity)}
-            title={event.street_name}
-          />
-        ))}
-
         {activeRoute ? (
           <>
             <Polyline
@@ -165,16 +141,6 @@ export default function SuceavaMap({
 
             <Marker
               coordinate={{
-                latitude: activeRoute.origin.latitude,
-                longitude: activeRoute.origin.longitude,
-              }}
-              description="Route start"
-              pinColor={colors.accent}
-              title={activeRoute.origin.name}
-            />
-
-            <Marker
-              coordinate={{
                 latitude: activeRoute.destination.latitude,
                 longitude: activeRoute.destination.longitude,
               }}
@@ -183,15 +149,6 @@ export default function SuceavaMap({
               title={activeRoute.destination.name}
             />
           </>
-        ) : null}
-
-        {currentLocation ? (
-          <Marker
-            coordinate={currentLocation}
-            description="Your current position"
-            pinColor={colors.primary}
-            title="Current location"
-          />
         ) : null}
       </MapView>
 
@@ -206,6 +163,30 @@ export default function SuceavaMap({
       ) : null}
     </View>
   );
+}
+
+function getRouteRegion(routeCoordinates: LatLng[]): Region {
+  const latitudes = routeCoordinates.map((coordinate) => coordinate.latitude);
+  const longitudes = routeCoordinates.map((coordinate) => coordinate.longitude);
+  const minLatitude = Math.min(...latitudes);
+  const maxLatitude = Math.max(...latitudes);
+  const minLongitude = Math.min(...longitudes);
+  const maxLongitude = Math.max(...longitudes);
+  const latitudeDelta = Math.max(
+    (maxLatitude - minLatitude) * 1.6,
+    MIN_ROUTE_REGION_DELTA
+  );
+  const longitudeDelta = Math.max(
+    (maxLongitude - minLongitude) * 1.6,
+    MIN_ROUTE_REGION_DELTA
+  );
+
+  return {
+    latitude: (minLatitude + maxLatitude) / 2,
+    latitudeDelta,
+    longitude: (minLongitude + maxLongitude) / 2,
+    longitudeDelta,
+  };
 }
 
 const styles = StyleSheet.create({
