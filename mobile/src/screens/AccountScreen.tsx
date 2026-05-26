@@ -356,7 +356,7 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: spacing.screenX,
-    paddingTop: 54,
+    paddingTop: spacing.screenTop,
     paddingBottom: 42,
     gap: 18,
   },
@@ -376,7 +376,7 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontSize: 32,
     fontWeight: '900',
-    letterSpacing: -0.8,
+    letterSpacing: 0,
     marginTop: 4,
   },
   backButton: {

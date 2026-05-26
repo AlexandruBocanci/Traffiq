@@ -330,6 +330,7 @@ export default function DriveScreen({
   const [isDriveDataCached, setIsDriveDataCached] = useState(false);
   const [driveCacheSavedAt, setDriveCacheSavedAt] = useState<string | null>(null);
   const [isRouteSheetVisible, setIsRouteSheetVisible] = useState(false);
+  const [isRouteConfirmationVisible, setIsRouteConfirmationVisible] = useState(false);
   const [isMapExpandedVisible, setIsMapExpandedVisible] = useState(false);
   const [isRideSheetVisible, setIsRideSheetVisible] = useState(false);
   const [routeOriginMode, setRouteOriginMode] = useState<RouteOriginMode>('current');
@@ -345,6 +346,7 @@ export default function DriveScreen({
   const [isAddingRideHistory, setIsAddingRideHistory] = useState(false);
   const [rideHistoryMessage, setRideHistoryMessage] = useState('');
   const [isSavingRoute, setIsSavingRoute] = useState(false);
+  const [isCurrentRouteSaved, setIsCurrentRouteSaved] = useState(false);
   const [savedRouteMessage, setSavedRouteMessage] = useState('');
   const [currentLocationMessage, setCurrentLocationMessage] = useState('');
   const [distanceUnit, setDistanceUnit] = useState<DistanceUnit>('km');
@@ -500,9 +502,11 @@ export default function DriveScreen({
       });
       setRoutePreview(preview);
       setRoutePreviewCacheSavedAt(null);
+      setIsCurrentRouteSaved(false);
       setSavedRouteMessage('');
       setRideHistoryMessage('');
       setIsRouteSheetVisible(false);
+      setIsRouteConfirmationVisible(true);
 
       try {
         await saveCachedRoutePreview(preview);
@@ -521,17 +525,20 @@ export default function DriveScreen({
         });
         setRoutePreview(preview);
         setRoutePreviewCacheSavedAt(cachedRoutePreview.savedAt);
+        setIsCurrentRouteSaved(false);
         setRoutePreviewCacheMessage(
           'Could not calculate a fresh route. Showing your last successful route preview.'
         );
         setSavedRouteMessage('');
         setRideHistoryMessage('');
         setIsRouteSheetVisible(false);
+        setIsRouteConfirmationVisible(true);
         return;
       }
 
       setRoutePreview(null);
       setRoutePreviewCacheSavedAt(null);
+      setIsCurrentRouteSaved(false);
       setRoutePreviewError(
         'Could not calculate this Suceava route. Choose one of the supported suggestions.'
       );
@@ -541,7 +548,7 @@ export default function DriveScreen({
   }
 
   async function handleSaveRoute() {
-    if (!routePreview) {
+    if (!routePreview || isCurrentRouteSaved) {
       return;
     }
 
@@ -562,6 +569,7 @@ export default function DriveScreen({
       }
 
       await saveRoute(routePreview, accessToken);
+      setIsCurrentRouteSaved(true);
       setSavedRouteMessage('Route saved to your account.');
     } catch {
       setSavedRouteMessage('Could not save this route. Try again.');
@@ -570,13 +578,16 @@ export default function DriveScreen({
     }
   }
 
-  async function handleAddRideHistory() {
+  async function handleStartDrive() {
     if (!routePreview) {
       return;
     }
 
+    setIsMapExpandedVisible(true);
+    setIsRouteConfirmationVisible(false);
+
     if (!isAuthenticated || !session?.tokens.accessToken) {
-      onOpenAccount();
+      setRideHistoryMessage('Drive started. Sign in to save this trip to history.');
       return;
     }
 
@@ -587,7 +598,6 @@ export default function DriveScreen({
 
       if (!accessToken) {
         setRideHistoryMessage('Your session expired. Please sign in again.');
-        onOpenAccount();
         return;
       }
 
@@ -596,9 +606,9 @@ export default function DriveScreen({
         accessToken,
         topCongestedSegment?.congestion_score ?? weatherImpact?.avg_congestion_score
       );
-      setRideHistoryMessage('Ride added to your personal history.');
+      setRideHistoryMessage('Drive started and saved to your personal history.');
     } catch {
-      setRideHistoryMessage('Could not add this ride to history. Try again.');
+      setRideHistoryMessage('Drive started, but history could not be saved.');
     } finally {
       setIsAddingRideHistory(false);
     }
@@ -634,6 +644,8 @@ export default function DriveScreen({
   );
   const driveCacheTimestamp = formatCacheTimestamp(driveCacheSavedAt);
   const routePreviewCacheTimestamp = formatCacheTimestamp(routePreviewCacheSavedAt);
+  const shouldShowInlineRouteConfirmation =
+    !!plannedRoute && !isRouteConfirmationVisible && !isMapExpandedVisible;
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -708,7 +720,7 @@ export default function DriveScreen({
           routePreview={routePreview}
         />
 
-        {plannedRoute ? (
+        {shouldShowInlineRouteConfirmation ? (
           <View style={styles.routeDraftCard}>
             <View style={styles.cardTopRow}>
               <View style={styles.routeDraftTextWrap}>
@@ -717,44 +729,22 @@ export default function DriveScreen({
                   {plannedRoute.origin} to {plannedRoute.destination}
                 </Text>
               </View>
-              <View style={styles.routeDraftActions}>
-                <Pressable
-                  accessibilityLabel="Save planned route"
-                  disabled={!routePreview || isSavingRoute}
-                  onPress={handleSaveRoute}
-                  style={[
-                    styles.routeDraftSaveButton,
-                    (!routePreview || isSavingRoute) && styles.routeDraftButtonDisabled,
-                  ]}
-                >
-                  <Text style={styles.routeDraftSaveText}>
-                    {isSavingRoute ? 'Saving' : isAuthenticated ? 'Save' : 'Sign in'}
-                  </Text>
-                </Pressable>
-
-                <Pressable
-                  accessibilityLabel="Add planned route to ride history"
-                  disabled={!routePreview || isAddingRideHistory}
-                  onPress={handleAddRideHistory}
-                  style={[
-                    styles.routeDraftSecondaryButton,
-                    (!routePreview || isAddingRideHistory) && styles.routeDraftButtonDisabled,
-                  ]}
-                >
-                  <Text style={styles.routeDraftSecondaryText}>
-                    {isAddingRideHistory ? 'Adding' : 'History'}
-                  </Text>
-                </Pressable>
-
-                <Pressable
-                  accessibilityLabel="Edit planned route"
-                  onPress={() => setIsRouteSheetVisible(true)}
-                  style={styles.routeDraftEditButton}
-                >
-                  <Text style={styles.routeDraftEditText}>Edit</Text>
-                </Pressable>
-              </View>
+              <Pressable
+                accessibilityLabel="Remove route preview"
+                onPress={() => {
+                  setPlannedRoute(null);
+                  setRoutePreview(null);
+                  setRoutePreviewCacheMessage('');
+                  setIsCurrentRouteSaved(false);
+                  setSavedRouteMessage('');
+                  setRideHistoryMessage('');
+                }}
+                style={styles.routeDraftRemoveButton}
+              >
+                <Text style={styles.routeDraftRemoveText}>Remove route</Text>
+              </Pressable>
             </View>
+
             <Text style={styles.cardText}>
               {routePreview
                 ? `${formatValue(routePreview.duration_minutes, ' min')} ETA · ${formatDistance(
@@ -794,29 +784,6 @@ export default function DriveScreen({
                   </Text>
                 </View>
               </View>
-            ) : null}
-
-            {savedRouteMessage ? (
-              <Text
-                style={[
-                  styles.savedRouteMessage,
-                  savedRouteMessage.startsWith('Could not') && styles.savedRouteMessageError,
-                ]}
-              >
-                {savedRouteMessage}
-              </Text>
-            ) : null}
-
-            {rideHistoryMessage ? (
-              <Text
-                style={[
-                  styles.savedRouteMessage,
-                  rideHistoryMessage.startsWith('Could not') &&
-                    styles.savedRouteMessageError,
-                ]}
-              >
-                {rideHistoryMessage}
-              </Text>
             ) : null}
 
             {routeCondition ? (
@@ -860,6 +827,60 @@ export default function DriveScreen({
                 </View>
               </View>
             ) : null}
+
+            <View style={styles.routeDraftSecondaryActions}>
+              <Pressable
+                accessibilityLabel="Save route"
+                disabled={!routePreview || isSavingRoute || isCurrentRouteSaved}
+                onPress={handleSaveRoute}
+                style={[
+                  styles.routeDraftSaveButton,
+                  isCurrentRouteSaved && styles.routeDraftSaveButtonSaved,
+                  (!routePreview || isSavingRoute) && styles.routeDraftButtonDisabled,
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.routeDraftSaveText,
+                    isCurrentRouteSaved && styles.routeDraftSaveTextSaved,
+                  ]}
+                >
+                  {isCurrentRouteSaved
+                    ? 'Route saved'
+                    : isSavingRoute
+                      ? 'Saving'
+                      : isAuthenticated
+                        ? 'Save route'
+                        : 'Sign in to save'}
+                </Text>
+              </Pressable>
+
+              <Pressable
+                accessibilityLabel="Change planned route"
+                onPress={() => setIsRouteSheetVisible(true)}
+                style={styles.routeDraftEditButton}
+              >
+                <Text style={styles.routeDraftEditText}>Change route</Text>
+              </Pressable>
+            </View>
+
+            <Pressable
+              accessibilityLabel="Start driving with this route"
+              disabled={!routePreview || isAddingRideHistory}
+              onPress={handleStartDrive}
+              style={[
+                styles.driveButton,
+                (!routePreview || isAddingRideHistory) && styles.routeDraftButtonDisabled,
+              ]}
+            >
+              <Text style={styles.driveButtonText}>
+                {isAddingRideHistory ? 'Starting drive...' : 'Drive'}
+              </Text>
+            </Pressable>
+
+            <Text style={styles.driveHelpText}>
+              Drive opens the route map and saves the trip to History when signed in.
+            </Text>
           </View>
         ) : null}
 
@@ -987,22 +1008,207 @@ export default function DriveScreen({
             />
           </View>
 
-          <Pressable
-            onPress={() => {
-              setIsMapExpandedVisible(false);
-              setIsRouteSheetVisible(true);
-            }}
-            style={styles.expandedRouteButton}
-          >
-            <View>
-              <Text style={styles.destinationLabel}>Plan a route</Text>
-              <Text style={styles.destinationText}>
-                {plannedRoute ? plannedRoute.destination : 'Where to?'}
-              </Text>
-            </View>
-            <Text style={styles.expandedRouteButtonText}>Choose</Text>
-          </Pressable>
+          {!routePreview ? (
+            <Pressable
+              onPress={() => {
+                setIsMapExpandedVisible(false);
+                setIsRouteSheetVisible(true);
+              }}
+              style={styles.expandedRouteButton}
+            >
+              <View>
+                <Text style={styles.destinationLabel}>Plan a route</Text>
+                <Text style={styles.destinationText}>Where to?</Text>
+              </View>
+              <Text style={styles.expandedRouteButtonText}>Choose</Text>
+            </Pressable>
+          ) : null}
         </SafeAreaView>
+      </Modal>
+
+      <Modal
+        animationType="slide"
+        transparent
+        visible={isRouteConfirmationVisible && !!plannedRoute}
+        onRequestClose={() => setIsRouteConfirmationVisible(false)}
+      >
+        <Pressable
+          style={styles.sheetBackdrop}
+          onPress={() => setIsRouteConfirmationVisible(false)}
+        >
+          <Pressable style={styles.bottomSheet}>
+            <View style={styles.sheetHandle} />
+            <View style={styles.cardTopRow}>
+              <View style={styles.routeDraftTextWrap}>
+                <Text style={styles.routeDraftLabel}>Route preview ready</Text>
+                <Text style={styles.routeDraftTitle}>
+                  {plannedRoute?.origin} to {plannedRoute?.destination}
+                </Text>
+              </View>
+            </View>
+
+            <Text style={styles.cardText}>
+              {routePreview
+                ? `${formatValue(routePreview.duration_minutes, ' min')} ETA · ${formatDistance(
+                    routePreview.distance_km,
+                    distanceUnit
+                  )} · ${routePreview.provider}`
+                : 'Route calculation is waiting for a provider response.'}
+            </Text>
+
+            {routePreviewCacheMessage ? (
+              <Text style={styles.cacheInlineText}>
+                {routePreviewCacheMessage}
+                {routePreviewCacheTimestamp ? ` Saved ${routePreviewCacheTimestamp}.` : ''}
+              </Text>
+            ) : null}
+
+            {routePreview ? (
+              <View style={styles.routeSummaryGrid}>
+                <View style={styles.routeSummaryItem}>
+                  <Text style={styles.routeSummaryLabel}>From</Text>
+                  <Text style={styles.routeSummaryValue}>{routePreview.origin.name}</Text>
+                </View>
+                <View style={styles.routeSummaryItem}>
+                  <Text style={styles.routeSummaryLabel}>To</Text>
+                  <Text style={styles.routeSummaryValue}>{routePreview.destination.name}</Text>
+                </View>
+                <View style={styles.routeSummaryItem}>
+                  <Text style={styles.routeSummaryLabel}>Distance</Text>
+                  <Text style={styles.routeSummaryValue}>
+                    {formatDistance(routePreview.distance_km, distanceUnit)}
+                  </Text>
+                </View>
+                <View style={styles.routeSummaryItem}>
+                  <Text style={styles.routeSummaryLabel}>ETA</Text>
+                  <Text style={styles.routeSummaryValue}>
+                    {formatValue(routePreview.duration_minutes, ' min')}
+                  </Text>
+                </View>
+              </View>
+            ) : null}
+
+            {savedRouteMessage ? (
+              <Text
+                style={[
+                  styles.savedRouteMessage,
+                  savedRouteMessage.startsWith('Could not') && styles.savedRouteMessageError,
+                ]}
+              >
+                {savedRouteMessage}
+              </Text>
+            ) : null}
+
+            {rideHistoryMessage ? (
+              <Text
+                style={[
+                  styles.savedRouteMessage,
+                  rideHistoryMessage.startsWith('Drive started') ||
+                  rideHistoryMessage.startsWith('Your session')
+                    ? null
+                    : styles.savedRouteMessageError,
+                ]}
+              >
+                {rideHistoryMessage}
+              </Text>
+            ) : null}
+
+            {routeCondition ? (
+              <View style={styles.conditionPanel}>
+                <View style={styles.conditionHeader}>
+                  <View
+                    style={[
+                      styles.conditionIndicator,
+                      { backgroundColor: getConditionColor(routeCondition.tone) },
+                    ]}
+                  />
+                  <View style={styles.conditionTitleWrap}>
+                    <Text style={styles.conditionLabel}>Route condition</Text>
+                    <Text style={styles.conditionTitle}>{routeCondition.label}</Text>
+                  </View>
+                </View>
+
+                <Text style={styles.conditionDescription}>{routeCondition.description}</Text>
+
+                <View style={styles.conditionMetrics}>
+                  <View style={styles.conditionMetric}>
+                    <Text style={styles.conditionMetricLabel}>ETA</Text>
+                    <Text style={styles.conditionMetricValue}>{routeCondition.etaContext}</Text>
+                  </View>
+                  <View style={styles.conditionMetric}>
+                    <Text style={styles.conditionMetricLabel}>Weather</Text>
+                    <Text style={styles.conditionMetricValue}>
+                      {routeCondition.weatherContext}
+                    </Text>
+                  </View>
+                  <View style={styles.conditionMetric}>
+                    <Text style={styles.conditionMetricLabel}>Congestion</Text>
+                    <Text style={styles.conditionMetricValue}>
+                      {routeCondition.congestionContext}
+                    </Text>
+                  </View>
+                  <View style={styles.conditionMetric}>
+                    <Text style={styles.conditionMetricLabel}>Alerts</Text>
+                    <Text style={styles.conditionMetricValue}>{routeCondition.alertContext}</Text>
+                  </View>
+                </View>
+              </View>
+            ) : null}
+
+            <View style={styles.routeDraftSecondaryActions}>
+              <Pressable
+                accessibilityLabel="Save planned route"
+                disabled={!routePreview || isSavingRoute || isCurrentRouteSaved}
+                onPress={handleSaveRoute}
+                style={[
+                  styles.routeDraftSaveButton,
+                  isCurrentRouteSaved && styles.routeDraftSaveButtonSaved,
+                  (!routePreview || isSavingRoute) && styles.routeDraftButtonDisabled,
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.routeDraftSaveText,
+                    isCurrentRouteSaved && styles.routeDraftSaveTextSaved,
+                  ]}
+                >
+                  {isCurrentRouteSaved
+                    ? 'Route saved'
+                    : isSavingRoute
+                      ? 'Saving'
+                      : isAuthenticated
+                        ? 'Save route'
+                        : 'Sign in to save'}
+                </Text>
+              </Pressable>
+
+              <Pressable
+                accessibilityLabel="Change planned route"
+                onPress={() => {
+                  setIsRouteConfirmationVisible(false);
+                  setIsRouteSheetVisible(true);
+                }}
+                style={styles.routeDraftEditButton}
+              >
+                <Text style={styles.routeDraftEditText}>Change route</Text>
+              </Pressable>
+            </View>
+
+            <Pressable
+              accessibilityLabel="Start driving with this route"
+              disabled={!routePreview || isAddingRideHistory}
+              onPress={handleStartDrive}
+              style={[
+                styles.driveButton,
+                (!routePreview || isAddingRideHistory) && styles.routeDraftButtonDisabled,
+              ]}
+            >
+              <Text style={styles.driveButtonText}>
+                {isAddingRideHistory ? 'Starting drive...' : 'Drive'}
+              </Text>
+            </Pressable>
+          </Pressable>
+        </Pressable>
       </Modal>
 
       <Modal
@@ -1231,7 +1437,7 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: spacing.screenX,
-    paddingTop: 54,
+    paddingTop: spacing.screenTop,
     paddingBottom: 42,
     gap: 18,
   },
@@ -1261,7 +1467,7 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontSize: 30,
     fontWeight: '900',
-    letterSpacing: -0.8,
+    letterSpacing: 0,
     marginTop: 4,
   },
   settingsButton: {
@@ -1500,9 +1706,11 @@ const styles = StyleSheet.create({
   routeDraftTextWrap: {
     flex: 1,
   },
-  routeDraftActions: {
-    alignItems: 'flex-end',
-    gap: 8,
+  routeDraftSecondaryActions: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 10,
+    justifyContent: 'space-between',
   },
   routeDraftLabel: {
     color: colors.primary,
@@ -1517,29 +1725,47 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     marginTop: 4,
   },
+  routeDraftRemoveButton: {
+    backgroundColor: colors.red,
+    borderColor: colors.red,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+  },
+  routeDraftRemoveText: {
+    color: colors.text,
+    fontSize: 11,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+  },
   routeDraftEditButton: {
+    alignItems: 'center',
     backgroundColor: colors.surface,
     borderColor: colors.border,
-    borderRadius: 999,
+    borderRadius: radius.md,
     borderWidth: 1,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
+    flex: 1,
+    minHeight: 44,
+    justifyContent: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 11,
   },
   routeDraftSaveButton: {
+    alignItems: 'center',
     backgroundColor: colors.primary,
     borderColor: colors.primary,
-    borderRadius: 999,
+    borderRadius: radius.md,
     borderWidth: 1,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
+    flex: 1,
+    minHeight: 44,
+    justifyContent: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 11,
   },
-  routeDraftSecondaryButton: {
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
-    borderRadius: 999,
-    borderWidth: 1,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
+  routeDraftSaveButtonSaved: {
+    backgroundColor: 'rgba(34, 197, 94, 0.18)',
+    borderColor: 'rgba(34, 197, 94, 0.55)',
   },
   routeDraftButtonDisabled: {
     opacity: 0.5,
@@ -1556,11 +1782,33 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     textTransform: 'uppercase',
   },
-  routeDraftSecondaryText: {
-    color: colors.text,
-    fontSize: 12,
+  routeDraftSaveTextSaved: {
+    color: colors.accent,
+  },
+  driveButton: {
+    alignItems: 'center',
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    justifyContent: 'center',
+    marginTop: 2,
+    minHeight: 54,
+    paddingHorizontal: 18,
+    paddingVertical: 16,
+  },
+  driveButtonText: {
+    color: colors.primaryText,
+    fontSize: 16,
     fontWeight: '900',
     textTransform: 'uppercase',
+  },
+  driveHelpText: {
+    color: colors.textMuted,
+    fontSize: 12,
+    fontWeight: '700',
+    lineHeight: 18,
+    textAlign: 'center',
   },
   savedRouteMessage: {
     color: colors.accent,
@@ -1685,7 +1933,7 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontSize: 20,
     fontWeight: '900',
-    letterSpacing: -0.3,
+    letterSpacing: 0,
   },
   sectionAction: {
     color: colors.primary,

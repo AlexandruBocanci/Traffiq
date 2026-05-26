@@ -207,48 +207,58 @@ If detailed v1 task history is needed, read:
 
 ### Current task
 
-Add graceful error and empty states everywhere.
+Finalize mobile visual consistency.
 
 ### Current status
 
-Task 29 is completed.
+Task 30 is completed.
 
 ### Files changed by the task
 
-- `mobile/src/components/EmptyState.tsx`
-- `mobile/src/components/ErrorState.tsx`
-- `mobile/src/components/SuceavaMap.tsx`
-- `mobile/src/screens/AccountScreen.tsx`
-- `mobile/src/screens/AuthScreen.tsx`
+- `mobile/src/theme/theme.ts`
 - `mobile/src/screens/DriveScreen.tsx`
+- `mobile/src/screens/AccountScreen.tsx`
 - `mobile/src/screens/HistoryScreen.tsx`
 - `mobile/src/screens/PipelineScreen.tsx`
 - `docs/chat.md`
 
 ### Goal
 
-Make the mobile app fail gracefully when data, auth, map location, or pipeline status is unavailable.
+Make the mobile UI feel visually consistent across Drive, Account, History, and Pipeline.
 
 ### Validation result
 
-- `EmptyState` now supports title and optional action button
-- `ErrorState` now supports a custom label and action button
-- auth errors are mapped from Cognito technical exceptions to user-safe product messages
-- map shows a clear fallback notice when current location is unavailable and the Suceava viewport is used
-- Drive cloud-error state has a retry action
-- Drive empty route insight and alert states explain what data is missing
-- History empty state sends the user back to Drive to plan a route
-- Account saved routes empty state sends the user back to Drive
-- Pipeline unavailable state has a retry action
-- Pipeline empty metadata and data quality states use explicit empty-state UI
-- no backend change, AWS redeploy, or RDS change was required
+- shared radius tokens now use restrained card radii up to 8px
+- shared shadow token is less heavy and more consistent with an operational app UI
+- loading/info accent moved from green to blue so the palette is not only green-on-dark
+- screen top spacing now uses `spacing.screenTop` consistently
+- negative letter spacing was removed from main screen titles and compact section titles
+- route preview confirmation card now uses clearer actions:
+  - `Save route`
+  - `Change route`
+  - primary `Drive` button
+- old separate `History` action was removed from the route confirmation card
+- route preview confirmation now opens as a bottom sheet popup after route calculation instead of staying inline under the compact map
+- if the user closes the route confirmation popup before pressing `Drive`, the confirmation card remains available inline under the compact map
+- the inline confirmation card now mirrors the popup content with route summary and condition details
+- the inline confirmation card includes a red `Remove route` action to dismiss the selected route
+- route confirmation secondary actions are now aligned as two equal-width buttons:
+  - `Save route`
+  - `Change route`
+- `Drive` remains the full-width primary action below the secondary actions
+- `Remove route` now uses the shared 8px button radius instead of a pill shape
+- pressing `Drive` opens the expanded map
+- for authenticated users, pressing `Drive` also saves the trip directly to personal ride history
+- for guest users, pressing `Drive` opens the expanded map but does not save history because ride history is protected personal data
+- the expanded map `Plan a route` bottom CTA is hidden when a route preview already exists
+- no API, backend, AWS, RDS, Cognito, or pipeline behavior changed
 - `npx.cmd tsc --noEmit` passed
-- `npx.cmd expo export --platform android --output-dir .expo-export-task29` passed
-- generated `.expo-export-task29` validation artifact was deleted before commit
+- `npx.cmd expo export --platform android --output-dir .expo-export-task30` passed
+- generated `.expo-export-task30` validation artifact was deleted before commit
 
 ### Next task after commit
 
-Do not move forward until the user confirms. Next implementation task is `Task 30. Finalize mobile visual consistency`.
+Do not move forward until the user confirms. Next implementation task is `Task 31. Polish map-oriented presentation layer`.
 ---
 
 ## 8. Latest Update
@@ -3433,6 +3443,57 @@ Notes:
 - no AWS redeploy was required
 - no RDS change was required
 - the goal was to prevent broken-looking screens and technical raw errors during demo flows
+
+### Update 109 - Mobile visual consistency finalized
+
+Completed:
+
+- tightened the shared mobile radius scale:
+  - `sm=4`
+  - `md=6`
+  - `lg=8`
+  - `xl=8`
+- reduced the shared card shadow so cards look less inflated and more product-like
+- added a distinct `info`/`cyan` blue accent for loading/info UI
+- kept traffic semantics intact:
+  - green for primary/positive traffic actions
+  - amber for warning/cache/moderate traffic
+  - red for danger/high traffic/error
+- switched Drive, Account, History, and Pipeline screen top padding to `spacing.screenTop`
+- removed negative letter spacing from major mobile titles and Drive section title
+- updated the post-calculation route card into a clearer route confirmation step
+- renamed `Save` to `Save route`
+- renamed `Edit` to `Change route`
+- removed the separate `History` button from the route card
+- added a large primary `Drive` action at the bottom of the route confirmation card
+- moved the route confirmation card into a bottom sheet popup, matching the `Where to?` interaction pattern
+- kept the same route confirmation available inline under the compact map if the popup is dismissed without starting the drive
+- expanded the inline confirmation card so it includes the same route summary and route condition context as the popup
+- replaced the old `Clear` action with a red `Remove route` action
+- refined route confirmation button hierarchy so secondary actions are aligned side by side and `Drive` is visually dominant
+- adjusted `Remove route` to match the shared 8px radius used by the polished card UI
+- moved popup `Save route` and `Change route` actions out of the route title header into an equal-width secondary action row
+- added a saved state for the current route so successful saves switch `Save route` to `Route saved`, use a transparent green confirmation style, and prevent duplicate taps
+- made `Drive` open the expanded map and save the trip to personal history for authenticated users
+- kept guest behavior safe: guests can open the expanded map, but cannot write personal history without login
+- hid the expanded-map `Plan a route` CTA when a route is already selected
+
+Validation:
+
+```text
+npx.cmd tsc --noEmit -> passed
+npx.cmd expo export --platform android --output-dir .expo-export-task30 -> passed
+generated .expo-export-task30 validation artifact -> deleted before commit
+git diff --check -> passed with only expected Windows CRLF/LF warnings
+```
+
+Notes:
+
+- this was a visual consistency task only
+- no backend change was required
+- no AWS redeploy was required
+- no RDS change was required
+- this prepares the app for the next map-focused presentation polish task
 ---
 
 ## 9. Instructions For Any New Chat
