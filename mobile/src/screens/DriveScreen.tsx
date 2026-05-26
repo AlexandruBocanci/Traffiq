@@ -25,6 +25,12 @@ import {
   previewRoute,
   saveRoute,
 } from '../services/traffiqApi';
+import {
+  getCachedDriveOverview,
+  getCachedRoutePreview,
+  saveCachedDriveOverview,
+  saveCachedRoutePreview,
+} from '../services/mobileCache';
 import { colors, radius, shadows, spacing } from '../theme/theme';
 import {
   DistanceUnit,
@@ -119,6 +125,25 @@ function formatDistance(valueKm: number | null | undefined, unit: DistanceUnit) 
   }
 
   return `${valueKm} km`;
+}
+
+function formatCacheTimestamp(value: string | null) {
+  if (!value) {
+    return '';
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+
+  return date.toLocaleString(undefined, {
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    month: 'short',
+  });
 }
 
 function roundValue(value: number | null | undefined) {
@@ -302,6 +327,8 @@ export default function DriveScreen({
   });
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
+  const [isDriveDataCached, setIsDriveDataCached] = useState(false);
+  const [driveCacheSavedAt, setDriveCacheSavedAt] = useState<string | null>(null);
   const [isRouteSheetVisible, setIsRouteSheetVisible] = useState(false);
   const [isMapExpandedVisible, setIsMapExpandedVisible] = useState(false);
   const [isRideSheetVisible, setIsRideSheetVisible] = useState(false);
@@ -310,8 +337,11 @@ export default function DriveScreen({
   const [routeDestination, setRouteDestination] = useState('');
   const [plannedRoute, setPlannedRoute] = useState<PlannedRoute | null>(null);
   const [routePreview, setRoutePreview] = useState<RoutePreviewResponse | null>(null);
+  const [routePreviewCacheSavedAt, setRoutePreviewCacheSavedAt] =
+    useState<string | null>(null);
   const [isRoutePreviewLoading, setIsRoutePreviewLoading] = useState(false);
   const [routePreviewError, setRoutePreviewError] = useState('');
+  const [routePreviewCacheMessage, setRoutePreviewCacheMessage] = useState('');
   const [isAddingRideHistory, setIsAddingRideHistory] = useState(false);
   const [rideHistoryMessage, setRideHistoryMessage] = useState('');
   const [isSavingRoute, setIsSavingRoute] = useState(false);
@@ -330,8 +360,28 @@ export default function DriveScreen({
         const driveOverview = await getDriveOverview();
 
         setData(driveOverview);
+        setIsDriveDataCached(false);
+        setDriveCacheSavedAt(null);
+
+        try {
+          await saveCachedDriveOverview(driveOverview);
+        } catch {
+          // Cache writes should not block the live Drive experience.
+        }
       } catch (error) {
-        setErrorMessage('Could not connect to the Traffiq backend from the mobile app.');
+        const cachedDriveOverview = await getCachedDriveOverview();
+
+        if (cachedDriveOverview) {
+          setData(cachedDriveOverview.data);
+          setIsDriveDataCached(true);
+          setDriveCacheSavedAt(cachedDriveOverview.savedAt);
+          setErrorMessage('');
+          return;
+        }
+
+        setErrorMessage(
+          'Could not connect to the Traffiq backend and no cached Drive data is available yet.'
+        );
       } finally {
         setIsLoading(false);
       }
@@ -425,6 +475,7 @@ export default function DriveScreen({
     try {
       setIsRoutePreviewLoading(true);
       setRoutePreviewError('');
+      setRoutePreviewCacheMessage('');
 
       const liveOrigin = routeOriginMode === 'current'
         ? currentRouteLocation ?? (await getCurrentRouteLocation())
@@ -448,11 +499,39 @@ export default function DriveScreen({
         origin: preview.origin.name,
       });
       setRoutePreview(preview);
+      setRoutePreviewCacheSavedAt(null);
       setSavedRouteMessage('');
       setRideHistoryMessage('');
       setIsRouteSheetVisible(false);
+
+      try {
+        await saveCachedRoutePreview(preview);
+      } catch {
+        // Cache writes should not block a successful route preview.
+      }
     } catch {
+      const cachedRoutePreview = await getCachedRoutePreview();
+
+      if (cachedRoutePreview) {
+        const preview = cachedRoutePreview.data;
+
+        setPlannedRoute({
+          destination: preview.destination.name,
+          origin: preview.origin.name,
+        });
+        setRoutePreview(preview);
+        setRoutePreviewCacheSavedAt(cachedRoutePreview.savedAt);
+        setRoutePreviewCacheMessage(
+          'Could not calculate a fresh route. Showing your last successful route preview.'
+        );
+        setSavedRouteMessage('');
+        setRideHistoryMessage('');
+        setIsRouteSheetVisible(false);
+        return;
+      }
+
       setRoutePreview(null);
+      setRoutePreviewCacheSavedAt(null);
       setRoutePreviewError(
         'Could not calculate this Suceava route. Choose one of the supported suggestions.'
       );
@@ -545,6 +624,8 @@ export default function DriveScreen({
     topCongestedSegment,
     data.events
   );
+  const driveCacheTimestamp = formatCacheTimestamp(driveCacheSavedAt);
+  const routePreviewCacheTimestamp = formatCacheTimestamp(routePreviewCacheSavedAt);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -589,6 +670,16 @@ export default function DriveScreen({
           </View>
           <Text style={styles.destinationArrow}>›</Text>
         </Pressable>
+
+        {isDriveDataCached ? (
+          <View style={styles.cacheNotice}>
+            <Text style={styles.cacheNoticeLabel}>Cached data</Text>
+            <Text style={styles.cacheNoticeText}>
+              Showing the last successful Drive snapshot
+              {driveCacheTimestamp ? ` from ${driveCacheTimestamp}` : ''}.
+            </Text>
+          </View>
+        ) : null}
 
         <View style={styles.weatherStrip}>
           <View style={styles.weatherTextBlock}>
@@ -664,6 +755,13 @@ export default function DriveScreen({
                   )} · ${routePreview.provider}`
                 : 'Route calculation is waiting for a provider response.'}
             </Text>
+
+            {routePreviewCacheMessage ? (
+              <Text style={styles.cacheInlineText}>
+                {routePreviewCacheMessage}
+                {routePreviewCacheTimestamp ? ` Saved ${routePreviewCacheTimestamp}.` : ''}
+              </Text>
+            ) : null}
 
             {routePreview ? (
               <View style={styles.routeSummaryGrid}>
@@ -1248,6 +1346,27 @@ const styles = StyleSheet.create({
     fontSize: 30,
     fontWeight: '300',
   },
+  cacheNotice: {
+    backgroundColor: colors.surface,
+    borderColor: colors.amber,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    gap: 5,
+    padding: 14,
+  },
+  cacheNoticeLabel: {
+    color: colors.amber,
+    fontSize: 11,
+    fontWeight: '900',
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+  },
+  cacheNoticeText: {
+    color: colors.textSoft,
+    fontSize: 13,
+    fontWeight: '700',
+    lineHeight: 19,
+  },
   weatherStrip: {
     alignItems: 'center',
     backgroundColor: colors.surface,
@@ -1437,6 +1556,12 @@ const styles = StyleSheet.create({
   },
   savedRouteMessageError: {
     color: colors.red,
+  },
+  cacheInlineText: {
+    color: colors.amber,
+    fontSize: 13,
+    fontWeight: '800',
+    lineHeight: 19,
   },
   routeSummaryGrid: {
     flexDirection: 'row',

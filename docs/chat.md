@@ -207,31 +207,40 @@ If detailed v1 task history is needed, read:
 
 ### Current task
 
-Start Traffiq v4 and prepare the first v4 implementation task.
+Add mobile cache for last successful API response.
 
 ### Current status
 
-v4 planning handoff is active. The first proposed implementation task is `Task 28. Add mobile cache for last successful API response`.
+Task 28 is completed.
 
 ### Files changed by the task
 
-- `docs/Traffiq_v4_execution_plan.md`
+- `mobile/package.json`
+- `mobile/package-lock.json`
+- `mobile/src/services/mobileCache.ts`
+- `mobile/src/screens/DriveScreen.tsx`
 - `docs/chat.md`
 
 ### Goal
 
-Keep the v4 plan aligned with the final delivery goal: stable demo behavior, polished mobile UX, accurate documentation, installable Android APK, and final validation.
+Make the mobile demo safer when the AWS backend, RDS, OSRM, or the phone network is temporarily unavailable.
 
 ### Validation result
 
-- branch confirmed as `feature/traffiq-v4`
-- working tree confirmed clean before the v4 planning update
-- latest commit confirmed as `b4b9a12 polish mobile ux and routing coordinates`
-- `Task 36A. Build installable Android APK for demo` added to Epic 10
+- `@react-native-async-storage/async-storage` added through Expo-compatible install
+- Drive screen caches the latest successful public `/mobile/drive-overview` response
+- Drive screen shows cached Drive data if the live backend request fails and cache exists
+- route preview caches the latest successful route preview
+- route preview can fall back to the latest cached route if fresh backend/direct OSRM calculation fails
+- cached-data labels are shown clearly in the UI
+- no Cognito tokens, passwords, AWS credentials, or personal protected data are cached by this task
+- `npx.cmd tsc --noEmit` passed
+- `npx.cmd expo export --platform android --output-dir .expo-export-task28` passed
+- generated `.expo-export-task28` validation artifact was deleted before commit
 
 ### Next task after commit
 
-Do not move forward until the user confirms. Next implementation task is `Task 28. Add mobile cache for last successful API response`.
+Do not move forward until the user confirms. Next implementation task is `Task 29. Add graceful error and empty states everywhere`.
 ---
 
 ## 8. Latest Update
@@ -3354,6 +3363,37 @@ Notes:
 - this task is about packaging and delivery, not runtime fallback behavior
 - the APK target is an Android app installed directly on the phone, without Expo Go, `npx expo start`, or the development PC
 - the installed app will still depend on phone internet, AWS App Runner, and Amazon RDS being available
+
+### Update 107 - Mobile last successful response cache added
+
+Completed:
+
+- added Expo-compatible `@react-native-async-storage/async-storage`
+- created `mobile/src/services/mobileCache.ts`
+- added cache envelopes with `data` and `savedAt`
+- cached only public/non-secret mobile data:
+  - `/mobile/drive-overview`
+  - latest successful route preview
+- updated `DriveScreen` so live API success refreshes the cache
+- updated `DriveScreen` so backend failure can show the last successful Drive snapshot
+- updated route preview flow so fresh route calculation failure can show the last successful route preview
+- added visible cached-data labels for Drive and route preview fallback states
+
+Validation:
+
+```text
+npx.cmd tsc --noEmit -> passed
+npx.cmd expo export --platform android --output-dir .expo-export-task28 -> passed
+generated .expo-export-task28 validation artifact -> deleted before commit
+```
+
+Notes:
+
+- no backend change was required
+- no AWS redeploy was required
+- no RDS change was required
+- no Cognito token, password, AWS credential, or personal protected data is cached by this task
+- npm reported existing moderate dependency audit findings during package installation; no forced audit fix was applied because it can introduce broad dependency changes
 ---
 
 ## 9. Instructions For Any New Chat
