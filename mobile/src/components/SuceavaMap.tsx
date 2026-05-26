@@ -10,7 +10,7 @@ import MapView, {
 } from 'react-native-maps';
 
 import { colors, radius, shadows } from '../theme/theme';
-import { RoutePreviewResponse } from '../types/api';
+import { MapEventRecord, RoutePreviewResponse } from '../types/api';
 
 const SUCEAVA_REGION: Region = {
   latitude: 47.6514,
@@ -25,12 +25,14 @@ const MIN_ROUTE_REGION_DELTA = 0.015;
 type LocationStatus = 'checking' | 'granted' | 'denied';
 
 type SuceavaMapProps = {
+  events?: MapEventRecord[];
   onExpand?: () => void;
   routePreview?: RoutePreviewResponse | null;
   variant?: 'compact' | 'expanded';
 };
 
 export default function SuceavaMap({
+  events = [],
   onExpand,
   routePreview,
   variant = 'compact',
@@ -104,19 +106,13 @@ export default function SuceavaMap({
   const displayRegion = activeRoute
     ? getRouteRegion(routeCoordinates)
     : currentRegion;
-  const locationLabel = activeRoute
-    ? isExpanded
-      ? 'Route map'
-      : 'Route overview'
-    : locationStatus === 'checking'
-      ? 'Checking location'
-      : locationStatus === 'granted'
-        ? 'Current area'
-        : 'Suceava overview';
   const locationNotice =
     !activeRoute && locationStatus === 'denied'
       ? 'Location unavailable. Showing the Suceava demo viewport.'
       : '';
+  const visibleEvents = events
+    .filter((event) => event.latitude !== null && event.longitude !== null)
+    .slice(0, isExpanded ? 8 : 4);
 
   return (
     <View style={[styles.mapPanel, isExpanded && styles.mapPanelExpanded]}>
@@ -149,16 +145,46 @@ export default function SuceavaMap({
                 longitude: activeRoute.destination.longitude,
               }}
               description="Route destination"
-              pinColor={colors.red}
               title={activeRoute.destination.name}
-            />
+            >
+              <View style={[styles.routeMarker, styles.routeMarkerDestination]}>
+                <Text style={styles.routeMarkerText}>B</Text>
+              </View>
+            </Marker>
           </>
         ) : null}
+
+        {visibleEvents.map((event) => (
+          <Marker
+            coordinate={{
+              latitude: event.latitude as number,
+              longitude: event.longitude as number,
+            }}
+            description={event.event_description}
+            key={event.event_id}
+            title={`${event.street_name} - ${event.severity}`}
+          >
+            <View
+              style={[
+                styles.alertMarker,
+                { borderColor: getSeverityColor(event.severity) },
+                { backgroundColor: getSeverityBackground(event.severity) },
+              ]}
+            >
+              <Text style={styles.alertMarkerText}>!</Text>
+            </View>
+          </Marker>
+        ))}
       </MapView>
 
-      <View style={styles.locationBadge}>
-        <Text style={styles.locationBadgeText}>{locationLabel}</Text>
-      </View>
+      {activeRoute && isExpanded ? (
+        <View style={styles.routeInfoCard}>
+          <Text style={styles.routeInfoTitle}>{activeRoute.destination.name}</Text>
+          <Text style={styles.routeInfoText}>
+            {activeRoute.duration_minutes} min - {activeRoute.distance_km} km
+          </Text>
+        </View>
+      ) : null}
 
       {locationNotice ? (
         <View style={styles.mapNotice}>
@@ -199,6 +225,30 @@ function getRouteRegion(routeCoordinates: LatLng[]): Region {
   };
 }
 
+function getSeverityColor(severity: string) {
+  if (severity === 'high') {
+    return colors.red;
+  }
+
+  if (severity === 'medium') {
+    return colors.amber;
+  }
+
+  return colors.accent;
+}
+
+function getSeverityBackground(severity: string) {
+  if (severity === 'high') {
+    return 'rgba(244, 63, 94, 0.9)';
+  }
+
+  if (severity === 'medium') {
+    return 'rgba(234, 179, 8, 0.9)';
+  }
+
+  return 'rgba(34, 197, 94, 0.9)';
+}
+
 const styles = StyleSheet.create({
   mapPanel: {
     ...shadows.card,
@@ -219,26 +269,64 @@ const styles = StyleSheet.create({
     height: '100%',
     width: '100%',
   },
-  locationBadge: {
-    backgroundColor: 'rgba(9, 11, 10, 0.82)',
+  routeInfoCard: {
+    backgroundColor: 'rgba(9, 11, 10, 0.88)',
     borderColor: 'rgba(248, 250, 248, 0.14)',
-    borderRadius: 999,
+    borderRadius: radius.lg,
     borderWidth: 1,
+    left: 12,
+    maxWidth: '62%',
     paddingHorizontal: 12,
-    paddingVertical: 7,
+    paddingVertical: 10,
     position: 'absolute',
-    right: 12,
     top: 12,
   },
-  locationBadgeText: {
+  routeInfoTitle: {
     color: colors.text,
-    fontSize: 11,
+    fontSize: 15,
     fontWeight: '900',
-    textTransform: 'uppercase',
+    lineHeight: 19,
+  },
+  routeInfoText: {
+    color: colors.textSoft,
+    fontSize: 12,
+    fontWeight: '800',
+    lineHeight: 17,
+    marginTop: 4,
+  },
+  routeMarker: {
+    alignItems: 'center',
+    borderColor: colors.text,
+    borderRadius: radius.md,
+    borderWidth: 2,
+    height: 30,
+    justifyContent: 'center',
+    width: 30,
+  },
+  routeMarkerDestination: {
+    backgroundColor: colors.red,
+  },
+  routeMarkerText: {
+    color: colors.text,
+    fontSize: 13,
+    fontWeight: '900',
+  },
+  alertMarker: {
+    alignItems: 'center',
+    borderRadius: radius.md,
+    borderWidth: 2,
+    height: 28,
+    justifyContent: 'center',
+    width: 28,
+  },
+  alertMarkerText: {
+    color: colors.text,
+    fontSize: 16,
+    fontWeight: '900',
   },
   expandButton: {
     backgroundColor: colors.primary,
-    borderRadius: 999,
+    borderRadius: radius.md,
     bottom: 12,
     paddingHorizontal: 14,
     paddingVertical: 9,

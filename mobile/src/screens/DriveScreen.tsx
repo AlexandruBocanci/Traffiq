@@ -716,6 +716,7 @@ export default function DriveScreen({
         </View>
 
         <SuceavaMap
+          events={data.events}
           onExpand={() => setIsMapExpandedVisible(true)}
           routePreview={routePreview}
         />
@@ -730,7 +731,7 @@ export default function DriveScreen({
                 </Text>
               </View>
               <Pressable
-                accessibilityLabel="Remove route preview"
+                accessibilityLabel="End route preview"
                 onPress={() => {
                   setPlannedRoute(null);
                   setRoutePreview(null);
@@ -741,7 +742,7 @@ export default function DriveScreen({
                 }}
                 style={styles.routeDraftRemoveButton}
               >
-                <Text style={styles.routeDraftRemoveText}>Remove route</Text>
+                <Text style={styles.routeDraftRemoveText}>End route</Text>
               </Pressable>
             </View>
 
@@ -1003,6 +1004,7 @@ export default function DriveScreen({
 
           <View style={styles.expandedMapBody}>
             <SuceavaMap
+              events={data.events}
               routePreview={routePreview}
               variant="expanded"
             />

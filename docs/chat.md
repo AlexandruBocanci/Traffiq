@@ -207,58 +207,46 @@ If detailed v1 task history is needed, read:
 
 ### Current task
 
-Finalize mobile visual consistency.
+Polish map-oriented presentation layer.
 
 ### Current status
 
-Task 30 is completed.
+Task 31 is completed.
 
 ### Files changed by the task
 
-- `mobile/src/theme/theme.ts`
+- `mobile/src/components/SuceavaMap.tsx`
 - `mobile/src/screens/DriveScreen.tsx`
-- `mobile/src/screens/AccountScreen.tsx`
-- `mobile/src/screens/HistoryScreen.tsx`
-- `mobile/src/screens/PipelineScreen.tsx`
 - `docs/chat.md`
 
 ### Goal
 
-Make the mobile UI feel visually consistent across Drive, Account, History, and Pipeline.
+Make Map / Drive the strongest presentation screen in the app.
 
 ### Validation result
 
-- shared radius tokens now use restrained card radii up to 8px
-- shared shadow token is less heavy and more consistent with an operational app UI
-- loading/info accent moved from green to blue so the palette is not only green-on-dark
-- screen top spacing now uses `spacing.screenTop` consistently
-- negative letter spacing was removed from main screen titles and compact section titles
-- route preview confirmation card now uses clearer actions:
-  - `Save route`
-  - `Change route`
-  - primary `Drive` button
-- old separate `History` action was removed from the route confirmation card
-- route preview confirmation now opens as a bottom sheet popup after route calculation instead of staying inline under the compact map
-- if the user closes the route confirmation popup before pressing `Drive`, the confirmation card remains available inline under the compact map
-- the inline confirmation card now mirrors the popup content with route summary and condition details
-- the inline confirmation card includes a red `Remove route` action to dismiss the selected route
-- route confirmation secondary actions are now aligned as two equal-width buttons:
-  - `Save route`
-  - `Change route`
-- `Drive` remains the full-width primary action below the secondary actions
-- `Remove route` now uses the shared 8px button radius instead of a pill shape
-- pressing `Drive` opens the expanded map
-- for authenticated users, pressing `Drive` also saves the trip directly to personal ride history
-- for guest users, pressing `Drive` opens the expanded map but does not save history because ride history is protected personal data
-- the expanded map `Plan a route` bottom CTA is hidden when a route preview already exists
+- `SuceavaMap` now accepts mapped Suceava alert events
+- compact map shows up to 4 alert markers
+- expanded map shows up to 8 alert markers
+- alert markers use severity color semantics:
+  - red for high
+  - amber for medium
+  - green for low
+- active route map now shows the destination marker without drawing a separate origin marker over the user's location
+- expanded active route map now has a focused overlay with only destination, ETA, and distance
+- compact map does not show the active route overlay, keeping the small map readable
+- weather impact remains in the separate Drive card above the map
+- the old `Route overview` / `Route map` status badge was removed from the map
+- Drive passes alert events into the map component
 - no API, backend, AWS, RDS, Cognito, or pipeline behavior changed
 - `npx.cmd tsc --noEmit` passed
-- `npx.cmd expo export --platform android --output-dir .expo-export-task30` passed
-- generated `.expo-export-task30` validation artifact was deleted before commit
+- `npx.cmd expo export --platform android --output-dir .expo-export-task31` passed
+- generated `.expo-export-task31` validation artifact was deleted before commit
+- `git diff --check` passed with only expected Windows CRLF/LF warnings
 
 ### Next task after commit
 
-Do not move forward until the user confirms. Next implementation task is `Task 31. Polish map-oriented presentation layer`.
+Do not move forward until the user confirms. Next implementation task is `Task 32. Update final architecture docs`.
 ---
 
 ## 8. Latest Update
@@ -3469,9 +3457,9 @@ Completed:
 - moved the route confirmation card into a bottom sheet popup, matching the `Where to?` interaction pattern
 - kept the same route confirmation available inline under the compact map if the popup is dismissed without starting the drive
 - expanded the inline confirmation card so it includes the same route summary and route condition context as the popup
-- replaced the old `Clear` action with a red `Remove route` action
+- replaced the old `Clear` action with a red `End route` action
 - refined route confirmation button hierarchy so secondary actions are aligned side by side and `Drive` is visually dominant
-- adjusted `Remove route` to match the shared 8px radius used by the polished card UI
+- adjusted `End route` to match the shared 8px radius used by the polished card UI
 - moved popup `Save route` and `Change route` actions out of the route title header into an equal-width secondary action row
 - added a saved state for the current route so successful saves switch `Save route` to `Route saved`, use a transparent green confirmation style, and prevent duplicate taps
 - made `Drive` open the expanded map and save the trip to personal history for authenticated users
@@ -3494,6 +3482,41 @@ Notes:
 - no AWS redeploy was required
 - no RDS change was required
 - this prepares the app for the next map-focused presentation polish task
+
+### Update 110 - Map-oriented presentation layer polished
+
+Completed:
+
+- extended `SuceavaMap` so it can render mapped Suceava alert events from `/mobile/drive-overview`
+- added severity-colored alert markers on the compact and expanded map
+- kept alert semantics consistent:
+  - red for high severity
+  - amber for medium severity
+  - green for low severity
+- added a custom destination marker for active route previews
+- removed the separate origin marker so it does not cover the user's current location
+- added a focused active route overlay with destination, ETA, and distance only on the expanded map
+- kept the compact map free of the route info overlay to avoid covering too much of the map
+- removed the `Route overview` / `Route map` status badge from the map
+- kept weather impact in the separate Drive card above the map
+- passed alert events from `DriveScreen` into the map component
+
+Validation:
+
+```text
+npx.cmd tsc --noEmit -> passed
+npx.cmd expo export --platform android --output-dir .expo-export-task31 -> passed
+generated .expo-export-task31 validation artifact -> deleted before commit
+git diff --check -> passed with only expected Windows CRLF/LF warnings
+```
+
+Notes:
+
+- this was a mobile presentation task only
+- no backend change was required
+- no AWS redeploy was required
+- no RDS change was required
+- map markers use existing controlled Suceava event data, not live traffic reports
 ---
 
 ## 9. Instructions For Any New Chat
