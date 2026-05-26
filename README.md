@@ -224,6 +224,10 @@ The final pre-demo checklist is documented in:
 
 - `docs/FINAL_DEMO_CHECKLIST.md`
 
+The final project summary for license presentation is documented in:
+
+- `docs/FINAL_PROJECT_SUMMARY.md`
+
 The recommended demo flow is documented in:
 
 - `docs/DEMO_FLOW.md`
@@ -238,6 +242,7 @@ Start here:
 
 - `docs/ARCHITECTURE_WALKTHROUGH.md`
 - `docs/FINAL_DEMO_CHECKLIST.md`
+- `docs/FINAL_PROJECT_SUMMARY.md`
 - `docs/DEMO_FLOW.md`
 - `docs/DEMO_NARRATIVE.md`
 - `docs/LOCAL_SETUP.md`

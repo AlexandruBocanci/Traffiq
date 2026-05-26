@@ -6,6 +6,10 @@ This document explains how to present Traffiq to a recruiter, interviewer, or te
 
 The goal is not to oversell the project as a production navigation app. The goal is to explain it correctly as a serious data engineering portfolio project with a product-oriented mobile interface.
 
+For a license-ready project summary with problem statement, architecture, data model, implementation, limitations, and future work, use:
+
+- `docs/FINAL_PROJECT_SUMMARY.md`
+
 ## 30-Second Pitch
 
 ```text

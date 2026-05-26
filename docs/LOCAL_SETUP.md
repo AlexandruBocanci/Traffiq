@@ -456,7 +456,15 @@ The final startup, fallback, and AWS shutdown checklist is documented in:
 
 Use that file immediately before a license presentation or portfolio demo.
 
-## 24. Historical Planning Docs
+## 24. Final Project Summary
+
+The final project summary for license presentation is documented in:
+
+- `docs/FINAL_PROJECT_SUMMARY.md`
+
+Use that file when preparing slides, academic explanations, or interview answers.
+
+## 25. Historical Planning Docs
 
 Historical v2/v3 planning is documented in:
 
