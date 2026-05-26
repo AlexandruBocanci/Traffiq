@@ -207,45 +207,43 @@ If detailed v1 task history is needed, read:
 
 ### Current task
 
-Create final project summary for license presentation.
+Run full backend validation.
 
 ### Current status
 
-Task 34 is completed.
+Task 35 is completed.
 
 ### Files changed by the task
 
-- `docs/FINAL_PROJECT_SUMMARY.md`
+- `docs/BACKEND_VALIDATION_RESULTS.md`
 - `README.md`
-- `docs/DEMO_NARRATIVE.md`
-- `docs/LOCAL_SETUP.md`
 - `docs/chat.md`
 
 ### Goal
 
-Create a reusable academic and technical project summary for the license presentation.
+Confirm that backend critical flows work locally and in cloud.
 
 ### Validation result
 
-- created `docs/FINAL_PROJECT_SUMMARY.md`
-- summary includes problem statement
-- summary includes project objectives
-- summary includes architecture summary
-- summary includes cloud architecture summary
-- summary includes data model summary
-- summary includes implementation summary
-- summary includes security/privacy notes
-- summary includes limitations
-- summary includes future work
-- summary includes academic positioning and final presentation text
-- linked the summary from README, Demo Narrative, and Local Setup
-- no code, API, AWS resource, RDS data, Cognito config, or secrets changed
-- documentation summary/link scan was performed
+- created `docs/BACKEND_VALIDATION_RESULTS.md`
+- cloud `GET /health` passed
+- cloud `GET /mobile/drive-overview` passed with Suceava data and public `rides=0`
+- cloud `POST /routes/preview` passed with expected `local_suceava_fallback`
+- cloud `GET /reports/overview` passed and did not expose `recent_rides` or `ride_count`
+- cloud `GET /pipeline/status` passed with latest `events_pipeline` success run
+- cloud personal endpoints without token returned `401`
+- local Python compile validation passed for API and relevant tests
+- local routing unit test passed
+- local FastAPI `TestClient` validation passed without running seed/reset
+- personal feature integration tests passed and test data cleanup left no rows
+- seed-dependent integration tests were intentionally blocked by the RDS reset guard
+- no `--confirm-cloud-reset` command was run
+- no AWS resource, RDS dataset, Cognito config, or secrets changed
 - `git diff --check` passed with only expected Windows CRLF/LF warnings
 
 ### Next task after commit
 
-Do not move forward until the user confirms. Next implementation task is `Task 35. Run full backend validation`.
+Do not move forward until the user confirms. Next implementation task is `Task 36. Run final mobile validation`.
 ---
 
 ## 8. Latest Update
@@ -3643,6 +3641,57 @@ Notes:
 - no RDS data changed
 - no Cognito config changed
 - no secrets were added or exposed
+
+### Update 114 - Full backend validation completed
+
+Completed:
+
+- created `docs/BACKEND_VALIDATION_RESULTS.md`
+- validated cloud App Runner backend:
+  - `GET /health -> status ok`
+  - `GET /mobile/drive-overview -> routes=5, events=5, rides=0, congested=5, weather=2`
+  - `GET /reports/overview -> route_count=6, event_count=5, no recent_rides, no ride_count`
+  - `GET /pipeline/status -> latest run events_pipeline success`
+  - `POST /routes/preview -> 200 with local_suceava_fallback`
+- validated cloud personal endpoint protection without token:
+  - `/auth/me -> 401`
+  - `/rides/history -> 401`
+  - `/saved-routes -> 401`
+  - `/preferences -> 401`
+- validated local backend code:
+  - Python compileall passed for API and relevant tests
+  - routing unit test passed
+  - FastAPI `TestClient` endpoint validation passed without seed/reset
+- validated personal feature integration tests:
+  - auth endpoint
+  - pipeline status endpoint
+  - rides history endpoint
+  - saved routes endpoint
+  - preferences endpoint
+- confirmed targeted cleanup left no temporary personal test rows
+- confirmed seed-dependent integration tests were correctly blocked by the RDS reset guard
+
+Validation:
+
+```text
+cloud public endpoint validation -> passed
+cloud guest protection validation -> passed
+local compileall -> passed
+local routing unit test -> passed
+local TestClient validation -> passed
+selected personal feature integration tests -> passed
+RDS reset guard for seed-dependent tests -> passed by blocking destructive reset
+git diff --check -> passed with only expected Windows CRLF/LF warnings
+```
+
+Notes:
+
+- no backend code changed
+- no mobile code changed
+- no AWS resource changed
+- no Cognito config changed
+- no `--confirm-cloud-reset` command was run
+- no secrets or tokens were added or exposed
 ---
 
 ## 9. Instructions For Any New Chat
