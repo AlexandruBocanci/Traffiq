@@ -220,6 +220,10 @@ Full setup instructions are documented in:
 
 ## Demo Flow
 
+The final pre-demo checklist is documented in:
+
+- `docs/FINAL_DEMO_CHECKLIST.md`
+
 The recommended demo flow is documented in:
 
 - `docs/DEMO_FLOW.md`
@@ -233,6 +237,7 @@ The recruiter-facing explanation is documented in:
 Start here:
 
 - `docs/ARCHITECTURE_WALKTHROUGH.md`
+- `docs/FINAL_DEMO_CHECKLIST.md`
 - `docs/DEMO_FLOW.md`
 - `docs/DEMO_NARRATIVE.md`
 - `docs/LOCAL_SETUP.md`

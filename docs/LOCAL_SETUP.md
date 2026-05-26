@@ -448,7 +448,15 @@ The exact demo flow is documented in:
 
 That file explains what to start, what to validate, what screens to show, what API responses to open, and how to sequence the technical explanation.
 
-## 23. Historical Planning Docs
+## 23. Final Demo Checklist
+
+The final startup, fallback, and AWS shutdown checklist is documented in:
+
+- `docs/FINAL_DEMO_CHECKLIST.md`
+
+Use that file immediately before a license presentation or portfolio demo.
+
+## 24. Historical Planning Docs
 
 Historical v2/v3 planning is documented in:
 

@@ -207,43 +207,40 @@ If detailed v1 task history is needed, read:
 
 ### Current task
 
-Update final architecture docs.
+Create final license/demo checklist.
 
 ### Current status
 
-Task 32 is completed.
+Task 33 is completed.
 
 ### Files changed by the task
 
+- `docs/FINAL_DEMO_CHECKLIST.md`
 - `README.md`
-- `docs/ARCHITECTURE_WALKTHROUGH.md`
-- `docs/CLOUD_WORKFLOW.md`
 - `docs/DEMO_FLOW.md`
-- `docs/ENVIRONMENTS.md`
 - `docs/LOCAL_SETUP.md`
-- `docs/MOBILE_CLOUD_API_CONFIG.md`
 - `docs/chat.md`
 
 ### Goal
 
-Make the final documentation match the implemented Traffiq v4 system.
+Make license/demo preparation repeatable without guessing commands.
 
 ### Validation result
 
-- README now describes the final v4 scope instead of the closed v2 scope
-- architecture walkthrough now describes the implemented App Runner, RDS, ECR, and Cognito cloud architecture
-- cloud workflow now separates current low-cost controlled RDS loads from later scheduled ETL
-- local setup now explains that mobile uses the cloud API by default and needs same-Wi-Fi only for local backend override
-- environment separation now reflects current cloud behavior and avoids claiming scheduled ETL is already implemented
-- demo flow now starts from the cloud-backed mobile app and includes Cognito-protected personal features
-- mobile cloud API config now expects loaded Suceava cloud data, with public `rides=[]` by design
+- created `docs/FINAL_DEMO_CHECKLIST.md`
+- checklist includes pre-demo startup validation
+- checklist includes main demo order and what to show
+- checklist includes cloud/API/mobile/auth/data engineering talking points
+- checklist includes App Runner, local Docker, routing, and Cognito fallback steps
+- checklist includes AWS cost shutdown steps for App Runner, RDS, ECR, Cognito, and Billing
+- linked the checklist from README, Demo Flow, and Local Setup
 - no code, API, AWS resource, RDS data, Cognito config, or secrets changed
-- documentation scan for stale architecture wording was performed
+- documentation checklist scan was performed
 - `git diff --check` passed with only expected Windows CRLF/LF warnings
 
 ### Next task after commit
 
-Do not move forward until the user confirms. Next implementation task is `Task 33. Create final license/demo checklist`.
+Do not move forward until the user confirms. Next implementation task is `Task 34. Create final project summary for license presentation`.
 ---
 
 ## 8. Latest Update
@@ -3537,6 +3534,55 @@ Validation:
 
 ```text
 rg stale-doc scan -> passed with only acceptable historical/local-override references
+git diff --check -> passed with only expected Windows CRLF/LF warnings
+```
+
+Notes:
+
+- this was a documentation-only task
+- no backend code changed
+- no mobile code changed
+- no AWS resource changed
+- no RDS data changed
+- no Cognito config changed
+- no secrets were added or exposed
+
+### Update 112 - Final demo checklist created
+
+Completed:
+
+- created `docs/FINAL_DEMO_CHECKLIST.md`
+- added a cloud startup checklist for:
+  - App Runner health
+  - `/mobile/drive-overview`
+  - `/reports/overview`
+  - Expo mobile startup
+  - Cognito login readiness
+- added a main demo checklist for:
+  - Drive screen
+  - route preview
+  - map route rendering
+  - personal feature protection
+  - API response
+  - pipeline files
+  - cloud architecture docs
+- added fallback steps for:
+  - App Runner unavailable
+  - local Docker backend
+  - route provider fallback
+  - Cognito login failure
+- added AWS cost shutdown steps for:
+  - App Runner pause
+  - RDS temporary stop
+  - ECR image cleanup
+  - Cognito cost-safe settings
+  - Billing and Budget check
+- linked the checklist from `README.md`, `docs/DEMO_FLOW.md`, and `docs/LOCAL_SETUP.md`
+
+Validation:
+
+```text
+rg checklist/link scan -> passed
 git diff --check -> passed with only expected Windows CRLF/LF warnings
 ```
 

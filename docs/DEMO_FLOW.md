@@ -6,6 +6,10 @@ This document defines the exact demo flow for presenting Traffiq.
 
 Use it when you want to show the project quickly without forgetting the important technical parts.
 
+For a step-by-step startup, fallback, and AWS shutdown checklist, use:
+
+- `docs/FINAL_DEMO_CHECKLIST.md`
+
 ## Demo Goal
 
 The demo should prove this:
