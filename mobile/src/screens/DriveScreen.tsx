@@ -351,42 +351,42 @@ export default function DriveScreen({
   const [currentRouteLocation, setCurrentRouteLocation] =
     useState<CurrentRouteLocation | null>(null);
 
-  useEffect(() => {
-    async function loadDriveData() {
+  async function loadDriveData() {
+    try {
+      setIsLoading(true);
+      setErrorMessage('');
+
+      const driveOverview = await getDriveOverview();
+
+      setData(driveOverview);
+      setIsDriveDataCached(false);
+      setDriveCacheSavedAt(null);
+
       try {
-        setIsLoading(true);
-        setErrorMessage('');
-
-        const driveOverview = await getDriveOverview();
-
-        setData(driveOverview);
-        setIsDriveDataCached(false);
-        setDriveCacheSavedAt(null);
-
-        try {
-          await saveCachedDriveOverview(driveOverview);
-        } catch {
-          // Cache writes should not block the live Drive experience.
-        }
-      } catch (error) {
-        const cachedDriveOverview = await getCachedDriveOverview();
-
-        if (cachedDriveOverview) {
-          setData(cachedDriveOverview.data);
-          setIsDriveDataCached(true);
-          setDriveCacheSavedAt(cachedDriveOverview.savedAt);
-          setErrorMessage('');
-          return;
-        }
-
-        setErrorMessage(
-          'Could not connect to the Traffiq backend and no cached Drive data is available yet.'
-        );
-      } finally {
-        setIsLoading(false);
+        await saveCachedDriveOverview(driveOverview);
+      } catch {
+        // Cache writes should not block the live Drive experience.
       }
-    }
+    } catch (error) {
+      const cachedDriveOverview = await getCachedDriveOverview();
 
+      if (cachedDriveOverview) {
+        setData(cachedDriveOverview.data);
+        setIsDriveDataCached(true);
+        setDriveCacheSavedAt(cachedDriveOverview.savedAt);
+        setErrorMessage('');
+        return;
+      }
+
+      setErrorMessage(
+        'Traffiq cannot reach the cloud backend yet, and this phone has no saved Drive snapshot.'
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  useEffect(() => {
     loadDriveData();
   }, []);
 
@@ -609,7 +609,15 @@ export default function DriveScreen({
   }
 
   if (errorMessage) {
-    return <ErrorState title="Drive" message={errorMessage} />;
+    return (
+      <ErrorState
+        actionLabel="Try again"
+        label="Drive unavailable"
+        message={errorMessage}
+        onAction={loadDriveData}
+        title="Drive"
+      />
+    );
   }
 
   const primaryRoute = data.routes[0];
@@ -862,7 +870,10 @@ export default function DriveScreen({
           </View>
 
           {!primaryRoute ? (
-            <EmptyState message="No route recommendation available." />
+            <EmptyState
+              message="Run the ETL seed or check the backend serving view if this appears during a demo."
+              title="No route insight available"
+            />
           ) : (
             <View style={styles.recommendationCard}>
               <View style={styles.cardTopRow}>
@@ -908,7 +919,10 @@ export default function DriveScreen({
           </View>
 
           {!primaryEvent ? (
-            <EmptyState message="No mapped demo alerts available." />
+            <EmptyState
+              message="The controlled Suceava alert feed returned no rows for this snapshot."
+              title="No mapped alerts available"
+            />
           ) : (
             data.events.slice(0, 3).map((event) => (
               <View key={event.event_id} style={styles.alertCard}>

@@ -12,6 +12,7 @@ import { useAuth } from '../context/AuthContext';
 import {
   confirmEmailSignUp,
   confirmPasswordReset,
+  CognitoRequestError,
   isUserAlreadyConfirmedError,
   isUsernameExistsError,
   requestPasswordReset,
@@ -83,6 +84,40 @@ function getHelperText(mode: AuthMode) {
   }
 
   return 'Sign in to access saved routes, ride history, and preferences.';
+}
+
+function getFriendlyAuthError(error: unknown) {
+  if (error instanceof CognitoRequestError) {
+    if (error.code === 'NotAuthorizedException') {
+      return 'Email or password is incorrect.';
+    }
+
+    if (error.code === 'UserNotConfirmedException') {
+      return 'Confirm your email before signing in.';
+    }
+
+    if (error.code === 'CodeMismatchException') {
+      return 'The confirmation code is not correct.';
+    }
+
+    if (error.code === 'ExpiredCodeException') {
+      return 'The code has expired. Request a new code and try again.';
+    }
+
+    if (error.code === 'InvalidPasswordException') {
+      return 'Use a stronger password that meets the account security rules.';
+    }
+
+    if (error.code === 'LimitExceededException') {
+      return 'Too many attempts. Wait a few minutes and try again.';
+    }
+
+    if (error.code === 'UsernameExistsException') {
+      return 'An account already exists for this email.';
+    }
+  }
+
+  return 'Authentication could not be completed. Check your details and try again.';
 }
 
 export default function AuthScreen({ initialMode = 'login' }: AuthScreenProps) {
@@ -173,7 +208,7 @@ export default function AuthScreen({ initialMode = 'login' }: AuthScreenProps) {
       setCode('');
       setPassword('');
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : 'Authentication failed.');
+      setErrorMessage(getFriendlyAuthError(error));
     } finally {
       setIsSubmitting(false);
     }
@@ -188,7 +223,7 @@ export default function AuthScreen({ initialMode = 'login' }: AuthScreenProps) {
       await resendEmailConfirmationCode(email);
       setMessage('Confirmation code resent. Check your inbox and spam folder.');
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : 'Could not resend code.');
+      setErrorMessage(getFriendlyAuthError(error));
     } finally {
       setIsResendingCode(false);
     }

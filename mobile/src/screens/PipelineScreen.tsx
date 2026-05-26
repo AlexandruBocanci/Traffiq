@@ -56,28 +56,28 @@ export default function PipelineScreen({ onBackToDrive }: PipelineScreenProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
 
-  useEffect(() => {
-    async function loadPipelineContext() {
-      try {
-        setIsLoading(true);
-        setErrorMessage('');
+  async function loadPipelineContext() {
+    try {
+      setIsLoading(true);
+      setErrorMessage('');
 
-        const [healthResponse, pipelineStatusResponse] = await Promise.all([
-          getHealthStatus(),
-          getPipelineStatus(),
-        ]);
+      const [healthResponse, pipelineStatusResponse] = await Promise.all([
+        getHealthStatus(),
+        getPipelineStatus(),
+      ]);
 
-        setMetrics({
-          apiStatus: healthResponse.status,
-          pipelineStatus: pipelineStatusResponse,
-        });
-      } catch {
-        setErrorMessage('Failed to load pipeline status from the backend.');
-      } finally {
-        setIsLoading(false);
-      }
+      setMetrics({
+        apiStatus: healthResponse.status,
+        pipelineStatus: pipelineStatusResponse,
+      });
+    } catch {
+      setErrorMessage('Pipeline status is unavailable. Check the cloud API and try again.');
+    } finally {
+      setIsLoading(false);
     }
+  }
 
+  useEffect(() => {
     loadPipelineContext();
   }, []);
 
@@ -86,13 +86,24 @@ export default function PipelineScreen({ onBackToDrive }: PipelineScreenProps) {
   }
 
   if (errorMessage) {
-    return <ErrorState title="Pipeline" message={errorMessage} />;
+    return (
+      <ErrorState
+        actionLabel="Try again"
+        label="Admin status unavailable"
+        message={errorMessage}
+        onAction={loadPipelineContext}
+        title="Pipeline"
+      />
+    );
   }
 
   if (!metrics) {
     return (
       <View style={styles.emptyStateWrapper}>
-        <EmptyState message="No pipeline status available." />
+        <EmptyState
+          message="No ETL metadata was returned by the backend yet."
+          title="No pipeline status available"
+        />
       </View>
     );
   }
@@ -180,11 +191,10 @@ export default function PipelineScreen({ onBackToDrive }: PipelineScreenProps) {
               )}
             </View>
           ) : (
-            <View style={styles.card}>
-              <Text style={styles.cardText}>
-                No ETL run has been recorded in pipeline metadata yet.
-              </Text>
-            </View>
+            <EmptyState
+              message="Run the ETL pipeline once so etl_meta.pipeline_runs has a latest run."
+              title="No ETL run recorded"
+            />
           )}
         </View>
 
@@ -192,11 +202,10 @@ export default function PipelineScreen({ onBackToDrive }: PipelineScreenProps) {
           <Text style={styles.sectionTitle}>Data quality checks</Text>
 
           {qualityChecks.length === 0 ? (
-            <View style={styles.card}>
-              <Text style={styles.cardText}>
-                No data quality checks are linked to the latest run.
-              </Text>
-            </View>
+            <EmptyState
+              message="The latest run has no linked data quality checks."
+              title="No quality checks found"
+            />
           ) : (
             qualityChecks.map((check) => (
               <View key={check.check_id} style={styles.card}>

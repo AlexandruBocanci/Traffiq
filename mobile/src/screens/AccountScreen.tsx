@@ -11,6 +11,7 @@ import {
   View,
 } from 'react-native';
 
+import EmptyState from '../components/EmptyState';
 import LoadingState from '../components/LoadingState';
 import { useAuth } from '../context/AuthContext';
 import { COGNITO_REGION, COGNITO_USER_POOL_ID } from '../config/auth';
@@ -302,9 +303,12 @@ export default function AccountScreen({
               ) : savedRoutesError ? (
                 <Text style={styles.errorText}>{savedRoutesError}</Text>
               ) : savedRoutes.length === 0 ? (
-                <Text style={styles.cardText}>
-                  Save a route from Drive to see it here.
-                </Text>
+                <EmptyState
+                  actionLabel="Open Drive"
+                  message="Preview a Suceava route and save it to your account."
+                  onAction={onBackToDrive}
+                  title="No saved routes yet"
+                />
               ) : (
                 savedRoutes.map((route) => (
                   <View key={route.saved_route_id} style={styles.savedRouteRow}>

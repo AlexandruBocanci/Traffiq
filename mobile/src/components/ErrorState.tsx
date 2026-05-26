@@ -4,6 +4,7 @@ import { colors, radius, shadows } from '../theme/theme';
 
 type ErrorStateProps = {
   actionLabel?: string;
+  label?: string;
   title: string;
   message: string;
   onAction?: () => void;
@@ -11,6 +12,7 @@ type ErrorStateProps = {
 
 export default function ErrorState({
   actionLabel,
+  label = 'Connection issue',
   title,
   message,
   onAction,
@@ -18,7 +20,7 @@ export default function ErrorState({
   return (
     <View style={styles.container}>
       <View style={styles.card}>
-        <Text style={styles.label}>Connection issue</Text>
+        <Text style={styles.label}>{label}</Text>
         <Text style={styles.title}>{title}</Text>
         <Text style={styles.message}>{message}</Text>
         {actionLabel && onAction ? (

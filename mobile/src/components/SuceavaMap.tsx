@@ -113,6 +113,10 @@ export default function SuceavaMap({
       : locationStatus === 'granted'
         ? 'Current area'
         : 'Suceava overview';
+  const locationNotice =
+    !activeRoute && locationStatus === 'denied'
+      ? 'Location unavailable. Showing the Suceava demo viewport.'
+      : '';
 
   return (
     <View style={[styles.mapPanel, isExpanded && styles.mapPanelExpanded]}>
@@ -155,6 +159,12 @@ export default function SuceavaMap({
       <View style={styles.locationBadge}>
         <Text style={styles.locationBadgeText}>{locationLabel}</Text>
       </View>
+
+      {locationNotice ? (
+        <View style={styles.mapNotice}>
+          <Text style={styles.mapNoticeText}>{locationNotice}</Text>
+        </View>
+      ) : null}
 
       {onExpand ? (
         <Pressable onPress={onExpand} style={styles.expandButton}>
@@ -240,5 +250,23 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '900',
     textTransform: 'uppercase',
+  },
+  mapNotice: {
+    backgroundColor: 'rgba(9, 11, 10, 0.86)',
+    borderColor: 'rgba(250, 204, 21, 0.42)',
+    borderRadius: radius.md,
+    borderWidth: 1,
+    bottom: 12,
+    left: 12,
+    maxWidth: '62%',
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+    position: 'absolute',
+  },
+  mapNoticeText: {
+    color: colors.text,
+    fontSize: 12,
+    fontWeight: '800',
+    lineHeight: 17,
   },
 });

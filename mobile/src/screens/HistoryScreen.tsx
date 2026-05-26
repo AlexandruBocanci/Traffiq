@@ -124,7 +124,12 @@ export default function HistoryScreen({
         </View>
 
         {rides.length === 0 ? (
-          <EmptyState message="No personal rides available yet." />
+          <EmptyState
+            actionLabel="Plan a route"
+            message="Preview a route from Drive, then add it to your personal history."
+            onAction={onBackToDrive}
+            title="No rides recorded yet"
+          />
         ) : (
           rides.map((ride) => (
             <View key={ride.ride_id} style={styles.rideCard}>

@@ -207,40 +207,48 @@ If detailed v1 task history is needed, read:
 
 ### Current task
 
-Add mobile cache for last successful API response.
+Add graceful error and empty states everywhere.
 
 ### Current status
 
-Task 28 is completed.
+Task 29 is completed.
 
 ### Files changed by the task
 
-- `mobile/package.json`
-- `mobile/package-lock.json`
-- `mobile/src/services/mobileCache.ts`
+- `mobile/src/components/EmptyState.tsx`
+- `mobile/src/components/ErrorState.tsx`
+- `mobile/src/components/SuceavaMap.tsx`
+- `mobile/src/screens/AccountScreen.tsx`
+- `mobile/src/screens/AuthScreen.tsx`
 - `mobile/src/screens/DriveScreen.tsx`
+- `mobile/src/screens/HistoryScreen.tsx`
+- `mobile/src/screens/PipelineScreen.tsx`
 - `docs/chat.md`
 
 ### Goal
 
-Make the mobile demo safer when the AWS backend, RDS, OSRM, or the phone network is temporarily unavailable.
+Make the mobile app fail gracefully when data, auth, map location, or pipeline status is unavailable.
 
 ### Validation result
 
-- `@react-native-async-storage/async-storage` added through Expo-compatible install
-- Drive screen caches the latest successful public `/mobile/drive-overview` response
-- Drive screen shows cached Drive data if the live backend request fails and cache exists
-- route preview caches the latest successful route preview
-- route preview can fall back to the latest cached route if fresh backend/direct OSRM calculation fails
-- cached-data labels are shown clearly in the UI
-- no Cognito tokens, passwords, AWS credentials, or personal protected data are cached by this task
+- `EmptyState` now supports title and optional action button
+- `ErrorState` now supports a custom label and action button
+- auth errors are mapped from Cognito technical exceptions to user-safe product messages
+- map shows a clear fallback notice when current location is unavailable and the Suceava viewport is used
+- Drive cloud-error state has a retry action
+- Drive empty route insight and alert states explain what data is missing
+- History empty state sends the user back to Drive to plan a route
+- Account saved routes empty state sends the user back to Drive
+- Pipeline unavailable state has a retry action
+- Pipeline empty metadata and data quality states use explicit empty-state UI
+- no backend change, AWS redeploy, or RDS change was required
 - `npx.cmd tsc --noEmit` passed
-- `npx.cmd expo export --platform android --output-dir .expo-export-task28` passed
-- generated `.expo-export-task28` validation artifact was deleted before commit
+- `npx.cmd expo export --platform android --output-dir .expo-export-task29` passed
+- generated `.expo-export-task29` validation artifact was deleted before commit
 
 ### Next task after commit
 
-Do not move forward until the user confirms. Next implementation task is `Task 29. Add graceful error and empty states everywhere`.
+Do not move forward until the user confirms. Next implementation task is `Task 30. Finalize mobile visual consistency`.
 ---
 
 ## 8. Latest Update
@@ -3394,6 +3402,37 @@ Notes:
 - no RDS change was required
 - no Cognito token, password, AWS credential, or personal protected data is cached by this task
 - npm reported existing moderate dependency audit findings during package installation; no forced audit fix was applied because it can introduce broad dependency changes
+
+### Update 108 - Graceful mobile error and empty states added
+
+Completed:
+
+- upgraded the shared empty-state component with optional title and action button
+- upgraded the shared error-state component with custom labels and retry/navigation actions
+- replaced raw Cognito exception messages in Auth with user-safe product messages
+- added an explicit map fallback notice when current location is unavailable
+- added retry action to the Drive unavailable state
+- improved Drive empty route insight and mapped alert states
+- improved History empty state with a direct route-planning action
+- improved Account saved routes empty state with a direct Drive action
+- added retry and better empty metadata states to Pipeline
+
+Validation:
+
+```text
+npx.cmd tsc --noEmit -> passed
+npx.cmd expo export --platform android --output-dir .expo-export-task29 -> passed
+generated .expo-export-task29 validation artifact -> deleted before commit
+git diff --check -> passed with only expected Windows CRLF/LF warnings
+```
+
+Notes:
+
+- this was a mobile UX robustness task only
+- no backend change was required
+- no AWS redeploy was required
+- no RDS change was required
+- the goal was to prevent broken-looking screens and technical raw errors during demo flows
 ---
 
 ## 9. Instructions For Any New Chat
