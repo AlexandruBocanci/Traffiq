@@ -244,6 +244,7 @@ Start here:
 - `docs/FINAL_DEMO_CHECKLIST.md`
 - `docs/FINAL_PROJECT_SUMMARY.md`
 - `docs/BACKEND_VALIDATION_RESULTS.md`
+- `docs/MOBILE_VALIDATION_RESULTS.md`
 - `docs/DEMO_FLOW.md`
 - `docs/DEMO_NARRATIVE.md`
 - `docs/LOCAL_SETUP.md`

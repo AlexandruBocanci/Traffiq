@@ -207,43 +207,40 @@ If detailed v1 task history is needed, read:
 
 ### Current task
 
-Run full backend validation.
+Run final mobile validation.
 
 ### Current status
 
-Task 35 is completed.
+Task 36 is completed.
 
 ### Files changed by the task
 
-- `docs/BACKEND_VALIDATION_RESULTS.md`
+- `docs/MOBILE_VALIDATION_RESULTS.md`
 - `README.md`
 - `docs/chat.md`
 
 ### Goal
 
-Confirm that backend critical flows work locally and in cloud.
+Confirm that the mobile app is demo-ready on a physical phone.
 
 ### Validation result
 
-- created `docs/BACKEND_VALIDATION_RESULTS.md`
-- cloud `GET /health` passed
-- cloud `GET /mobile/drive-overview` passed with Suceava data and public `rides=0`
-- cloud `POST /routes/preview` passed with expected `local_suceava_fallback`
-- cloud `GET /reports/overview` passed and did not expose `recent_rides` or `ride_count`
-- cloud `GET /pipeline/status` passed with latest `events_pipeline` success run
-- cloud personal endpoints without token returned `401`
-- local Python compile validation passed for API and relevant tests
-- local routing unit test passed
-- local FastAPI `TestClient` validation passed without running seed/reset
-- personal feature integration tests passed and test data cleanup left no rows
-- seed-dependent integration tests were intentionally blocked by the RDS reset guard
-- no `--confirm-cloud-reset` command was run
-- no AWS resource, RDS dataset, Cognito config, or secrets changed
+- created `docs/MOBILE_VALIDATION_RESULTS.md`
+- confirmed mobile uses the AWS App Runner API by default when no Expo API override is set
+- `npx.cmd tsc --noEmit` passed
+- `npx.cmd expo config --type public` passed
+- `npx.cmd expo export --platform android --output-dir .expo-export-task36` passed
+- generated `.expo-export-task36` validation artifact was deleted
+- physical-phone cloud-backed flow was confirmed operational by the user
+- intentional invalid API override displayed the last successful cached Drive snapshot
+- offline/unreachable-backend mode correctly did not provide ride history, saved routes, or preferences
+- clearing the invalid override restored complete cloud-backed app functionality
+- no code, AWS resource, RDS dataset, Cognito config, or secrets changed
 - `git diff --check` passed with only expected Windows CRLF/LF warnings
 
 ### Next task after commit
 
-Do not move forward until the user confirms. Next implementation task is `Task 36. Run final mobile validation`.
+Do not move forward until the user confirms. Next implementation task is `Task 36A. Build installable Android APK for demo`.
 ---
 
 ## 8. Latest Update
@@ -3691,6 +3688,45 @@ Notes:
 - no AWS resource changed
 - no Cognito config changed
 - no `--confirm-cloud-reset` command was run
+- no secrets or tokens were added or exposed
+
+### Update 115 - Final mobile validation completed
+
+Completed:
+
+- created `docs/MOBILE_VALIDATION_RESULTS.md`
+- confirmed that, without local override, mobile uses the public AWS App Runner API by default
+- validated the mobile project technically:
+  - TypeScript compilation passed
+  - Expo public configuration passed
+  - Android Expo export passed
+- validated physical-phone behavior with an intentionally unreachable API URL:
+  - Drive displayed the last successful cached public snapshot
+  - ride history remained unavailable without backend access
+  - saved routes remained unavailable without backend access
+  - personal settings remained unavailable without backend access
+- confirmed this offline behavior is correct because public read-only context may be cached, while personal account data remains backend-authoritative
+- confirmed through user testing that clearing the invalid override restored normal cloud-backed mobile operation
+- identified a Task 36A packaging requirement: the installable application must be branded as `Traffiq`, not the current generic Expo name `mobile`
+
+Validation:
+
+```text
+npx.cmd tsc --noEmit -> passed
+npx.cmd expo config --type public -> passed
+npx.cmd expo export --platform android --output-dir .expo-export-task36 -> passed
+generated .expo-export-task36 validation artifact -> deleted
+physical-phone cached fallback and cloud restoration -> user confirmed
+git diff --check -> passed with only expected Windows CRLF/LF warnings
+```
+
+Notes:
+
+- no mobile source code changed
+- no backend code changed
+- no AWS resource changed
+- no RDS dataset changed
+- no Cognito config changed
 - no secrets or tokens were added or exposed
 ---
 
