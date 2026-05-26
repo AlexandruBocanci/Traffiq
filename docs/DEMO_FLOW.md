@@ -17,37 +17,37 @@ It is an end-to-end data engineering system that moves data from sources to Post
 
 ## Before The Demo
 
-Use Docker for the cleanest demo.
+Use the cloud-backed mobile app for the cleanest final demo.
 
-From the repository root:
-
-```powershell
-cd C:\Users\alexa\Desktop\Traffiq
-docker compose up --build -d
-```
-
-Wait until the API container finishes seeding demo data.
-
-Validate backend health:
+Validate the public backend:
 
 ```powershell
-Invoke-RestMethod http://localhost:8000/health
+Invoke-RestMethod https://eguwdq6puz.eu-central-1.awsapprunner.com/health
 ```
 
 Validate mobile-shaped API data:
 
 ```powershell
+Invoke-RestMethod https://eguwdq6puz.eu-central-1.awsapprunner.com/mobile/drive-overview
+```
+
+Optional local Docker fallback:
+
+```powershell
+docker compose up --build -d
+Invoke-RestMethod http://localhost:8000/health
 Invoke-RestMethod http://localhost:8000/mobile/drive-overview
 ```
 
-Start the mobile app:
+Start the mobile app from the `mobile/` workspace:
 
 ```powershell
-cd C:\Users\alexa\Desktop\Traffiq\mobile
 npx.cmd expo start
 ```
 
 Open Expo Go and scan the QR code.
+
+By default, the mobile app calls the public App Runner API. Use `EXPO_PUBLIC_TRAFFIQ_API_BASE_URL` only when intentionally testing a local backend.
 
 ## Demo Order
 
@@ -63,18 +63,19 @@ This is the product-facing layer. The screen is not hardcoded; it consumes backe
 
 Show:
 
-- route/traffic overview
+- route planner
+- Suceava map with route polyline and alert markers
 - weather context
-- traffic alerts
+- route condition summary
 - recent ride panel
-- pipeline/settings entry
+- Account and Pipeline entries
 
 ### 2. Show The API Response
 
 Open:
 
 ```text
-http://localhost:8000/mobile/drive-overview
+https://eguwdq6puz.eu-central-1.awsapprunner.com/mobile/drive-overview
 ```
 
 Say:
@@ -126,7 +127,21 @@ Say:
 The core pipeline processes traffic and weather data, logs metadata, and writes analytical outputs. The demo seed pipeline runs the core pipeline and then loads route, event, ride, and mobile demo data.
 ```
 
-### 5. Show The API Structure
+### 5. Show Auth And Personal Feature Protection
+
+Show:
+
+- Account create/login flow
+- History screen as guest vs authenticated user
+- saved routes and preferences in Account
+
+Say:
+
+```text
+Public traffic intelligence data is available to guest users. Personal data such as ride history, saved routes, and preferences requires Cognito login, and FastAPI validates the Cognito access token before returning personal rows.
+```
+
+### 6. Show The API Structure
 
 Show:
 
@@ -139,7 +154,7 @@ Say:
 The API is split into route modules instead of keeping all endpoints in one file. It serves analytics from PostgreSQL and exposes mobile-ready data.
 ```
 
-### 6. Show The Architecture Document
+### 7. Show The Architecture Document
 
 Open:
 
@@ -151,29 +166,32 @@ Say:
 This document explains the full system architecture, including ETL, PostgreSQL layers, FastAPI, mobile app, Docker, and AWS direction.
 ```
 
-### 7. Show The Deployment Direction
+### 8. Show The Cloud Deployment
 
 Open:
 
 - `docs/CLOUD_WORKFLOW.md`
+- `docs/AWS_APP_RUNNER_BACKEND.md`
+- `docs/AWS_RDS_POSTGRESQL.md`
+- `docs/AWS_COGNITO_USER_POOL.md`
 - `docs/SCHEDULER_STRATEGY.md`
 - `docs/SECRETS_AND_CONFIG.md`
 
 Say:
 
 ```text
-The project runs locally through Docker today, and the documented AWS path is ECR, App Runner, RDS PostgreSQL, EventBridge Scheduler, and ECS Fargate for recurring ETL jobs.
+The current demo uses ECR for the image, App Runner for FastAPI, RDS PostgreSQL for storage, and Cognito for authentication. EventBridge Scheduler plus ECS Fargate is the documented next step for recurring ETL, but the demo keeps cost low by running controlled RDS loads only when needed.
 ```
 
 ## Short Demo Version
 
 If you only have 2 minutes:
 
-1. Show mobile Drive screen.
-2. Show `/mobile/drive-overview`.
+1. Show mobile Drive route flow.
+2. Show public `/mobile/drive-overview`.
 3. Show PostgreSQL schemas.
-4. Show `run_pipeline.py`.
-5. Show `ARCHITECTURE_WALKTHROUGH.md`.
+4. Show `run_pipeline.py` and `seed_demo_data.py`.
+5. Show Cognito-protected personal feature.
 
 ## Longer Demo Version
 

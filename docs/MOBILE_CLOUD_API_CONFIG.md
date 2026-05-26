@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document records how the Traffiq mobile app connects to the cloud backend in v3.
+This document records how the Traffiq mobile app connects to the cloud backend.
 
 The goal of this task is to remove the mobile app dependency on a backend running on the developer PC.
 
@@ -49,7 +49,7 @@ After this task:
 phone -> AWS App Runner public API -> Amazon RDS PostgreSQL
 ```
 
-This is the correct v3 direction.
+This is the correct cloud-backed mobile direction for the final demo.
 
 ## Local Development Override
 
@@ -103,29 +103,28 @@ Cloud mobile overview validation:
 Invoke-RestMethod -Uri 'https://eguwdq6puz.eu-central-1.awsapprunner.com/mobile/drive-overview'
 ```
 
-Validated result:
+Expected result:
 
 ```text
-routes: []
-events: []
-rides: []
-congested: []
-weather: []
+routes: Suceava route records
+events: geolocated Suceava alert records
+rides: [] for public guest overview
+congested: top congested segment records
+weather: Open-Meteo-backed weather impact records
 ```
 
-The empty lists are expected because RDS currently has schema objects but no loaded data.
+The public mobile overview intentionally returns `rides: []` because ride history is personal data and is available only through protected authenticated endpoints.
 
-## What Is Not Done Yet
+## Current Scope
 
-This task does not load data into RDS.
+The mobile cloud configuration is complete for the v4 demo:
 
-That belongs to a later v3 task:
+- default API target is AWS App Runner
+- local backend override remains available
+- RDS contains the controlled Suceava demo dataset
+- public mobile overview does not expose personal ride history
 
-```text
-Task 20. Update ETL pipeline for cloud database
-```
-
-Until data is loaded into RDS, the mobile app can reach the cloud API but may show empty states.
+An installable standalone phone build is handled separately from API configuration.
 
 ## Interview Explanation
 

@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document explains Traffiq's final v2 architecture in a way that can be used for technical review, recruiter discussion, and future development planning.
+This document explains Traffiq's final v4 architecture in a way that can be used for technical review, recruiter discussion, and future development planning.
 
 The project is built as an end-to-end data product:
 
@@ -34,7 +34,10 @@ flowchart LR
     mobile["React Native / Expo Mobile App"]
 
     docker["Docker Local Runtime"]
-    aws["AWS Deployable Direction"]
+    ecr["Amazon ECR"]
+    apprunner["AWS App Runner"]
+    rds["Amazon RDS PostgreSQL"]
+    cognito["Amazon Cognito"]
 
     traffic --> extract
     weather --> extract
@@ -59,10 +62,13 @@ flowchart LR
     meta --> api
     api --> mobile
 
-    docker -.->|"runs locally"| api
-    docker -.->|"runs locally"| bronze
-    aws -.->|"future deployment"| api
-    aws -.->|"future deployment"| serving
+    docker -.->|"runs local demo"| api
+    docker -.->|"runs local demo"| bronze
+    ecr -.->|"stores backend image"| apprunner
+    apprunner -.->|"runs FastAPI"| api
+    api -.->|"cloud DB connection"| rds
+    rds -.->|"contains schemas and serving views"| serving
+    cognito -.->|"issues JWTs for personal features"| api
 ```
 
 ## Runtime Architecture
@@ -82,7 +88,7 @@ flowchart TD
     expo --> backend
 ```
 
-Local Docker is used to run the backend stack in a reproducible way. The mobile app still runs through Expo Go on the host machine and calls the backend through the PC's network address.
+Local Docker is used to run the backend stack in a reproducible way. The mobile app can run through Expo Go and call either the local backend override or the public AWS App Runner API. By default, the current mobile configuration points to the public cloud API.
 
 ## Data Flow Walkthrough
 
@@ -96,7 +102,7 @@ Traffiq currently uses controlled sources that keep the project stable and demo-
 - events CSV for traffic incidents and warnings
 - ride history CSV for previous ride summaries
 
-This is intentional for v2. It gives the project realistic data engineering structure without depending on paid traffic APIs.
+This is intentional for the portfolio scope. It gives the project realistic data engineering structure without depending on paid traffic APIs or pretending to provide Waze-like live traffic.
 
 ### 2. Extract Layer
 
@@ -174,6 +180,9 @@ Current examples:
 - `silver.route_reference`
 - `silver.events_observations`
 - `silver.ride_history`
+- `silver.user_ride_history`
+- `silver.saved_routes`
+- `silver.user_preferences`
 
 Silver is where the data becomes reliable enough to support Gold analytics.
 
@@ -250,7 +259,7 @@ The demo/mobile seed entrypoint is:
 
 - `src/pipeline/seed_demo_data.py`
 
-It runs the main traffic-weather pipeline and then loads the extra v2 data needed by the app:
+It runs the main traffic-weather pipeline and then loads the extra data needed by the app:
 
 ```text
 route reference
@@ -261,6 +270,8 @@ events
 ride history
 ```
 
+For cloud/RDS execution, destructive demo reloads require explicit confirmation flags. This prevents accidental resets of the managed cloud database.
+
 ## API Architecture
 
 FastAPI is organized through route modules in:
@@ -270,17 +281,22 @@ FastAPI is organized through route modules in:
 Current API areas:
 
 - health
+- auth
 - traffic
 - streets
 - weather impact
 - route reports
 - route hourly reports
+- route preview
 - map events
 - ride history
+- saved routes
+- preferences
+- pipeline status
 - reports overview
 - mobile drive overview
 
-The most important v2 API improvement is:
+The most important mobile API contract is:
 
 - `GET /mobile/drive-overview`
 
@@ -303,9 +319,18 @@ Important parts:
 - `mobile/src/types/api.ts`
 - `mobile/src/theme/theme.ts`
 
-The current v2 mobile app is a product-style demo. It is not a real navigation engine yet, but it presents the data as a traffic intelligence product instead of a raw dashboard.
+The current mobile app is a product-style traffic intelligence demo for Suceava. It is not a real navigation engine and does not promise live Waze-like traffic, but it presents data engineering outputs as a usable mobile experience.
 
 The app consumes backend data through a shared API service layer, not direct fetch calls scattered across screens.
+
+Current mobile behavior:
+
+- Drive shows route planning, map, weather context, traffic alerts, route condition, and recent ride context.
+- Route preview calculates distance, duration, and geometry.
+- The map renders the route polyline, destination marker, and severity-coded alert markers.
+- The route confirmation flow supports saving a route, changing a route, ending a route, and starting a drive.
+- History, saved routes, and preferences are personal features protected by Cognito.
+- Pipeline shows demo/admin observability from backend health and ETL metadata.
 
 ## Docker Architecture
 
@@ -333,24 +358,28 @@ Production API startup should not seed demo data automatically.
 
 In production, API startup and ETL execution should be separated.
 
-## AWS Direction
+## AWS Architecture
 
-The intended AWS direction is:
+The implemented AWS architecture is:
 
 ```text
-ECR -> App Runner -> RDS PostgreSQL
-EventBridge Scheduler -> ECS Fargate ETL task -> RDS PostgreSQL
-Mobile app -> public API URL
+Mobile app -> App Runner public FastAPI URL -> Amazon RDS PostgreSQL
+Mobile app -> Cognito -> JWT -> protected FastAPI endpoints
+Backend image -> Amazon ECR -> AWS App Runner
+Controlled ETL/demo seed -> Amazon RDS PostgreSQL
 ```
 
 This is documented in:
 
-- `docs/AWS_DEPLOYMENT.md`
 - `docs/CLOUD_WORKFLOW.md`
+- `docs/AWS_ECR_BACKEND_IMAGE.md`
+- `docs/AWS_APP_RUNNER_BACKEND.md`
+- `docs/AWS_RDS_POSTGRESQL.md`
+- `docs/AWS_COGNITO_USER_POOL.md`
 - `docs/SCHEDULER_STRATEGY.md`
 - `docs/SECRETS_AND_CONFIG.md`
 
-The project is not deployed to AWS yet, but it is structured so the path is credible and explainable.
+Scheduled ETL through EventBridge Scheduler and ECS Fargate remains a later production-style improvement. The current demo keeps costs low by running controlled RDS loads only when needed.
 
 ## Why This Architecture Is Strong
 
@@ -363,14 +392,14 @@ Traffiq demonstrates the core responsibilities of a Junior Data Engineer:
 - building analytics-ready outputs
 - exposing data through FastAPI
 - tracking pipeline runs and data quality checks
-- preparing the project for Docker and AWS deployment
+- deploying a backend-facing data product to AWS with cost-aware service choices
 
 ## Technical Summary
 
 The concise explanation is:
 
 ```text
-Traffiq is an end-to-end traffic intelligence data product. It ingests traffic, weather, route, event, and ride data through Python ETL modules, models them in PostgreSQL using Bronze/Silver/Gold/Serving layers, exposes mobile-ready analytics through FastAPI, and presents the result in a React Native app. The project runs locally through Docker and has a documented path toward AWS using ECR, App Runner, RDS, EventBridge, and ECS Fargate.
+Traffiq is an end-to-end traffic intelligence data product for Suceava. It ingests traffic, weather, route, event, and ride data through Python ETL modules, models them in PostgreSQL using Bronze/Silver/Gold/Serving layers, exposes mobile-ready analytics through FastAPI, and presents the result in a React Native app. The current cloud demo uses ECR, App Runner, RDS PostgreSQL, and Cognito, while scheduled ETL with EventBridge and ECS Fargate remains the documented production-style next step.
 ```
 
 The recruiter/demo narrative is documented in:

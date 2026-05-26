@@ -130,17 +130,18 @@ Use this when:
 
 ## 3. AWS Deployable Environment
 
-Use this mode for the deployed cloud-backed v3 application.
+Use this mode for the deployed cloud-backed Traffiq application.
 
 The current implementation uses App Runner for FastAPI, Amazon RDS PostgreSQL for storage, Amazon ECR for the container image, and Amazon Cognito for authentication.
 
 ### Runtime
 
 ```text
-FastAPI runs as a containerized AWS service
+FastAPI runs as a containerized AWS App Runner service
 PostgreSQL runs on Amazon RDS
-Pipeline runs as a scheduled job
-Mobile app calls a public backend URL
+Pipeline can be run against RDS through the controlled cloud reset commands
+Mobile app calls the public App Runner backend URL by default
+Authentication uses Amazon Cognito
 Secrets come from AWS environment variables or managed secrets
 ```
 
@@ -190,7 +191,7 @@ Current RDS details are documented in:
 
 ### Pipeline execution
 
-Current Task 20 behavior:
+Current cloud demo behavior:
 
 ```text
 local Python ETL execution -> Amazon RDS PostgreSQL
@@ -212,7 +213,7 @@ Detailed scheduling strategy is documented in:
 
 - `docs/SCHEDULER_STRATEGY.md`
 
-The pipeline should not depend on a developer manually running local commands.
+For the portfolio demo, the controlled manual run is acceptable and lower-cost. For a production-style recurring system, the pipeline should not depend on a developer manually running local commands.
 
 ### Demo data behavior
 
@@ -236,8 +237,8 @@ demo seeding if needed
 | API DB host | `localhost` | `db` | RDS endpoint |
 | Host DB port | `5432` | `5433` | not local |
 | Secrets | `.env` | `docker-compose.yml` env values | AWS env vars or Secrets Manager |
-| Pipeline run | manual Python command | automatic seed or manual container command | scheduled job |
-| Mobile app | Expo Go | Expo Go | installed app or Expo pointing to public API |
+| Pipeline run | manual Python command | automatic seed or manual container command | controlled manual RDS run; scheduled later |
+| Mobile app | Expo Go with local/cloud API | Expo Go with local/cloud API | Expo Go or built app pointing to public API |
 
 ## Rules
 
@@ -246,7 +247,7 @@ demo seeding if needed
 3. Use `src/config/settings.py` as the single backend DB configuration source.
 4. Use Docker environment variables for local Docker runtime.
 5. Use AWS environment variables or Secrets Manager for deployable runtime.
-6. Keep local demo seeding separate from future production API behavior.
+6. Keep local demo seeding separate from cloud API startup behavior.
 
 ## Practical Commands
 

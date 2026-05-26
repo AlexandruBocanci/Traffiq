@@ -15,14 +15,19 @@ scheduled ETL job
 mobile client calling a public API URL
 ```
 
-## Recommended First Cloud Version
+## Current Cloud Version
 
-For the first real AWS deployment, use:
+The current cloud deployment uses:
 
 - Amazon ECR for the Docker image
 - AWS App Runner for the FastAPI backend
 - Amazon RDS PostgreSQL for the database
-- EventBridge Scheduler plus ECS Fargate for scheduled ETL later
+- Amazon Cognito for authentication
+- controlled manual ETL/demo seeding into RDS
+
+Recommended later scheduling target:
+
+- EventBridge Scheduler plus ECS Fargate for scheduled ETL
 
 This is the simplest professional path because App Runner can run the API container without managing servers, while RDS keeps PostgreSQL as a managed database.
 
@@ -30,9 +35,9 @@ Before creating any AWS resources, apply the project cost guardrails:
 
 - `docs/AWS_COST_GUARDRAILS.md`
 
-The budget alert and stop-resource checklist in that document are mandatory for the v3 cloud work.
+The budget alert and stop-resource checklist in that document are mandatory for cloud work.
 
-The current RDS PostgreSQL database created for v3 is documented in:
+The current RDS PostgreSQL database is documented in:
 
 - `docs/AWS_RDS_POSTGRESQL.md`
 
@@ -238,13 +243,13 @@ The explicit flag is required because both pipeline execution commands truncate 
 
 ### 9. Add Scheduled ETL Later
 
-The production-style scheduler target is:
+The production-style scheduler target remains:
 
 ```text
 EventBridge Scheduler -> ECS Fargate task -> python -m src.pipeline.run_pipeline -> RDS PostgreSQL
 ```
 
-The scheduler should run the ETL job separately from the API service.
+The scheduler should run the ETL job separately from the API service. This is not required for the low-cost demo because the RDS dataset is loaded through controlled commands when needed.
 
 The scheduling strategy is documented in:
 
@@ -252,15 +257,23 @@ The scheduling strategy is documented in:
 
 ### 10. Configure The Mobile App
 
-For local development, the mobile app calls the PC backend IP.
+For normal v4 mobile usage, the app calls the public App Runner URL by default.
 
-For cloud deployment, the mobile app should call the public App Runner URL:
+Public backend URL:
 
 ```text
-https://<app-runner-service-url>
+https://eguwdq6puz.eu-central-1.awsapprunner.com
 ```
 
-The future production improvement is to move the mobile API base URL into an environment-specific config instead of editing it manually.
+Local development can still override the API URL with:
+
+```text
+EXPO_PUBLIC_TRAFFIQ_API_BASE_URL
+```
+
+The mobile configuration is documented in:
+
+- `docs/MOBILE_CLOUD_API_CONFIG.md`
 
 ### 11. Validate The Cloud Setup
 
@@ -294,7 +307,7 @@ Expected result:
 
 Create a Cognito User Pool for email/password authentication.
 
-Traffiq v3 uses Cognito for:
+Traffiq uses Cognito for:
 
 - registration
 - login
@@ -316,7 +329,7 @@ traffiq-mobile
 6vp5r1edjn8phjhfm2jk1f4dcp
 ```
 
-The Cognito setup does not protect API routes by itself. FastAPI JWT validation is added in a later task.
+The Cognito setup does not protect API routes by itself. FastAPI JWT validation protects the personal endpoints by validating Cognito access tokens in the backend.
 
 ### 13. Add Mobile Auth Screens
 
@@ -370,7 +383,7 @@ GET /mobile/drive-overview -> public
 GET /mobile/drive-overview rides -> []
 ```
 
-The mobile app shows a login prompt for History when the user is a guest.
+The mobile app shows a login prompt for History, saved routes, and preferences when the user is a guest.
 
 ## Common Failure Points
 
@@ -391,7 +404,7 @@ The mobile app shows a login prompt for History when the user is a guest.
 The professional explanation is:
 
 ```text
-Traffiq is built locally with Docker, FastAPI, PostgreSQL, and Expo, and v3 moves the runtime toward AWS. The backend image is stored in ECR, served through App Runner, connected to RDS PostgreSQL, and integrated with Cognito for mobile authentication and backend JWT validation. Public traffic endpoints remain open, while ride history is protected as a personal feature. Scheduled ETL and full per-user data modeling remain later cloud steps.
+Traffiq is built locally with Docker, FastAPI, PostgreSQL, and Expo, and the current cloud demo runs the backend image from ECR through App Runner, connected to RDS PostgreSQL and Cognito. Public traffic intelligence endpoints remain open for guests, while ride history, saved routes, and preferences are protected personal features. Scheduled ETL remains a later production-style improvement; the demo uses controlled low-cost RDS loads.
 ```
 
 This shows that the project is not only a local demo. It has a realistic path toward a deployable data product.

@@ -76,7 +76,7 @@ Current core packages expected by the project:
 - httpx
 - PyJWT[crypto]
 
-Current Expo/mobile packages added for v3:
+Current Expo/mobile packages used by the mobile app:
 
 - expo-secure-store
 - expo-location
@@ -215,15 +215,27 @@ Go into the mobile workspace:
 
 ```powershell
 cd mobile
-npm.cmd start
+npx.cmd expo start
 ```
 
 Then:
 
 - open Expo Go on your Android phone
 - scan the QR code
-- make sure the phone and the PC are on the same Wi-Fi network
 - allow or deny foreground location permission when testing the Suceava map
+
+Current default behavior:
+
+- the mobile app calls the public AWS App Runner API by default
+- the phone does not need to reach a FastAPI process running on the PC for normal cloud-backed testing
+- use the same Wi-Fi network only when overriding the API URL to a local backend on the PC
+
+Local backend override for a physical phone:
+
+```powershell
+$env:EXPO_PUBLIC_TRAFFIQ_API_BASE_URL='http://<pc-lan-ip>:8000'
+npx.cmd expo start
+```
 
 ## 10. Current Database Notes
 
@@ -294,9 +306,9 @@ AWS cost guardrails are documented in:
 
 - `docs/AWS_COST_GUARDRAILS.md`
 
-Before creating cloud resources for Traffiq v3, configure the AWS Budget alert described in that file.
+Before creating or running cloud resources for Traffiq, configure the AWS Budget alert described in that file.
 
-The current Traffiq v3 RDS PostgreSQL instance is documented in:
+The current Traffiq RDS PostgreSQL instance is documented in:
 
 - `docs/AWS_RDS_POSTGRESQL.md`
 
@@ -316,7 +328,7 @@ The mobile cloud API configuration is documented in:
 
 - `docs/MOBILE_CLOUD_API_CONFIG.md`
 
-The Cognito user pool for v3 authentication is documented in:
+The Cognito user pool for authentication is documented in:
 
 - `docs/AWS_COGNITO_USER_POOL.md`
 
@@ -382,7 +394,7 @@ That file explains how the current Docker backend can evolve toward:
 
 ## 16. Environment Separation
 
-The difference between local classic, local Docker, and future AWS deployment environments is documented in:
+The difference between local classic, local Docker, and AWS deployment environments is documented in:
 
 - `docs/ENVIRONMENTS.md`
 
@@ -414,7 +426,7 @@ That file explains what belongs in `.env`, what belongs in Docker environment va
 
 ## 20. Architecture Walkthrough
 
-The final v2 architecture walkthrough is documented in:
+The final architecture walkthrough is documented in:
 
 - `docs/ARCHITECTURE_WALKTHROUGH.md`
 
@@ -436,12 +448,9 @@ The exact demo flow is documented in:
 
 That file explains what to start, what to validate, what screens to show, what API responses to open, and how to sequence the technical explanation.
 
-## 23. v2 Recap And v3 Backlog
+## 23. Historical Planning Docs
 
-The final v2 recap is documented in:
+Historical v2/v3 planning is documented in:
 
 - `docs/Traffiq_v2_recap.md`
-
-The recommended v3 backlog is documented in:
-
 - `docs/Traffiq_v3_backlog.md`

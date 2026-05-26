@@ -207,46 +207,43 @@ If detailed v1 task history is needed, read:
 
 ### Current task
 
-Polish map-oriented presentation layer.
+Update final architecture docs.
 
 ### Current status
 
-Task 31 is completed.
+Task 32 is completed.
 
 ### Files changed by the task
 
-- `mobile/src/components/SuceavaMap.tsx`
-- `mobile/src/screens/DriveScreen.tsx`
+- `README.md`
+- `docs/ARCHITECTURE_WALKTHROUGH.md`
+- `docs/CLOUD_WORKFLOW.md`
+- `docs/DEMO_FLOW.md`
+- `docs/ENVIRONMENTS.md`
+- `docs/LOCAL_SETUP.md`
+- `docs/MOBILE_CLOUD_API_CONFIG.md`
 - `docs/chat.md`
 
 ### Goal
 
-Make Map / Drive the strongest presentation screen in the app.
+Make the final documentation match the implemented Traffiq v4 system.
 
 ### Validation result
 
-- `SuceavaMap` now accepts mapped Suceava alert events
-- compact map shows up to 4 alert markers
-- expanded map shows up to 8 alert markers
-- alert markers use severity color semantics:
-  - red for high
-  - amber for medium
-  - green for low
-- active route map now shows the destination marker without drawing a separate origin marker over the user's location
-- expanded active route map now has a focused overlay with only destination, ETA, and distance
-- compact map does not show the active route overlay, keeping the small map readable
-- weather impact remains in the separate Drive card above the map
-- the old `Route overview` / `Route map` status badge was removed from the map
-- Drive passes alert events into the map component
-- no API, backend, AWS, RDS, Cognito, or pipeline behavior changed
-- `npx.cmd tsc --noEmit` passed
-- `npx.cmd expo export --platform android --output-dir .expo-export-task31` passed
-- generated `.expo-export-task31` validation artifact was deleted before commit
+- README now describes the final v4 scope instead of the closed v2 scope
+- architecture walkthrough now describes the implemented App Runner, RDS, ECR, and Cognito cloud architecture
+- cloud workflow now separates current low-cost controlled RDS loads from later scheduled ETL
+- local setup now explains that mobile uses the cloud API by default and needs same-Wi-Fi only for local backend override
+- environment separation now reflects current cloud behavior and avoids claiming scheduled ETL is already implemented
+- demo flow now starts from the cloud-backed mobile app and includes Cognito-protected personal features
+- mobile cloud API config now expects loaded Suceava cloud data, with public `rides=[]` by design
+- no code, API, AWS resource, RDS data, Cognito config, or secrets changed
+- documentation scan for stale architecture wording was performed
 - `git diff --check` passed with only expected Windows CRLF/LF warnings
 
 ### Next task after commit
 
-Do not move forward until the user confirms. Next implementation task is `Task 32. Update final architecture docs`.
+Do not move forward until the user confirms. Next implementation task is `Task 33. Create final license/demo checklist`.
 ---
 
 ## 8. Latest Update
@@ -3517,6 +3514,41 @@ Notes:
 - no AWS redeploy was required
 - no RDS change was required
 - map markers use existing controlled Suceava event data, not live traffic reports
+
+### Update 111 - Final architecture docs updated
+
+Completed:
+
+- updated `README.md` from closed v2 scope to final v4 scope
+- documented the current cloud path:
+  - mobile app
+  - AWS App Runner FastAPI
+  - Amazon RDS PostgreSQL
+  - Amazon Cognito authentication
+- updated architecture walkthrough so AWS is described as implemented for the demo, not only future direction
+- documented that scheduled ETL remains a later production-style improvement
+- clarified that current cloud demo data is loaded into RDS through controlled low-cost commands
+- updated local setup so mobile cloud API is the default and same-Wi-Fi is only needed for local backend override
+- updated environment separation for local classic, local Docker, and AWS deployable modes
+- updated demo flow to start from the cloud-backed mobile app and include personal feature protection
+- updated mobile cloud API config so `/mobile/drive-overview` expects loaded Suceava data while public `rides=[]` remains intentional
+
+Validation:
+
+```text
+rg stale-doc scan -> passed with only acceptable historical/local-override references
+git diff --check -> passed with only expected Windows CRLF/LF warnings
+```
+
+Notes:
+
+- this was a documentation-only task
+- no backend code changed
+- no mobile code changed
+- no AWS resource changed
+- no RDS data changed
+- no Cognito config changed
+- no secrets were added or exposed
 ---
 
 ## 9. Instructions For Any New Chat
