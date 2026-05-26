@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This is the active continuity file for Traffiq v3 execution.
+This is the active continuity file for Traffiq v4 execution.
 
 It should stay short and operational.
 
@@ -39,14 +39,15 @@ Use this file to understand:
 
 - `Traffiq v1` is closed
 - v1 was merged into `main`
-- Current branch: `feature/traffiq-v3`
-- Current implementation phase: `Traffiq v3`
-- Current v3 focus: Suceava-only product scope, cloud deployment, guest/public flow, auth for personal features, real map and routing
+- Current branch: `feature/traffiq-v4`
+- Current implementation phase: `Traffiq v4`
+- Current v4 focus: final demo stability, mobile polish, final documentation, installable Android demo build, validation, and release preparation
 - Primary v2 planning source: `docs/Traffiq_v2.md`
 - Final v2 recap: `docs/Traffiq_v2_recap.md`
 - Recommended v3 backlog: `docs/Traffiq_v3_backlog.md`
 - Primary v3 execution plan: `docs/Traffiq_v3_execution_plan.md`
 - Final v3 scope document: `docs/Traffiq_v3_scope.md`
+- Primary v4 execution plan: `docs/Traffiq_v4_execution_plan.md`
 - Guest/auth flow document: `docs/Traffiq_v3_guest_auth_flow.md`
 - Navigation flow document: `docs/Traffiq_v3_navigation_flow.md`
 - AWS cost guardrails document: `docs/AWS_COST_GUARDRAILS.md`
@@ -206,49 +207,31 @@ If detailed v1 task history is needed, read:
 
 ### Current task
 
-Configure mobile app to use cloud API URL
+Start Traffiq v4 and prepare the first v4 implementation task.
 
 ### Current status
 
-Task 9 is completed. The mobile app now uses the AWS App Runner public API URL by default.
+v4 planning handoff is active. The first proposed implementation task is `Task 28. Add mobile cache for last successful API response`.
 
 ### Files changed by the task
 
-- `docs/Traffiq_v3_scope.md`
-- `docs/Traffiq_v3_guest_auth_flow.md`
-- `docs/Traffiq_v3_navigation_flow.md`
-- `docs/AWS_COST_GUARDRAILS.md`
-- `docs/AWS_RDS_POSTGRESQL.md`
-- `docs/AWS_RDS_SCHEMA.md`
-- `docs/AWS_ECR_BACKEND_IMAGE.md`
-- `docs/AWS_APP_RUNNER_BACKEND.md`
-- `docs/MOBILE_CLOUD_API_CONFIG.md`
-- `docs/Traffiq_v3_execution_plan.md`
-- `README.md`
-- `docs/LOCAL_SETUP.md`
-- `docs/AWS_DEPLOYMENT.md`
-- `docs/CLOUD_WORKFLOW.md`
-- `docs/ENVIRONMENTS.md`
-- `docs/SECRETS_AND_CONFIG.md`
+- `docs/Traffiq_v4_execution_plan.md`
 - `docs/chat.md`
-- `mobile/src/config/api.ts`
 
 ### Goal
 
-Remove the mobile app dependency on localhost and make it call the AWS App Runner backend by default.
+Keep the v4 plan aligned with the final delivery goal: stable demo behavior, polished mobile UX, accurate documentation, installable Android APK, and final validation.
 
 ### Validation result
 
-- mobile API config defaults to `https://eguwdq6puz.eu-central-1.awsapprunner.com`
-- local override remains available through `EXPO_PUBLIC_TRAFFIQ_API_BASE_URL`
-- TypeScript check passed
-- cloud `/health` returns `status: ok`
-- cloud `/mobile/drive-overview` returns a valid empty response
-- README, LOCAL_SETUP, CLOUD_WORKFLOW, SECRETS_AND_CONFIG, and the v3 plan reference the mobile cloud API document
+- branch confirmed as `feature/traffiq-v4`
+- working tree confirmed clean before the v4 planning update
+- latest commit confirmed as `b4b9a12 polish mobile ux and routing coordinates`
+- `Task 36A. Build installable Android APK for demo` added to Epic 10
 
 ### Next task after commit
 
-Do not move forward until the user confirms. Next task is `Task 10. Create Cognito User Pool`.
+Do not move forward until the user confirms. Next implementation task is `Task 28. Add mobile cache for last successful API response`.
 ---
 
 ## 8. Latest Update
@@ -3350,6 +3333,27 @@ Notes:
 - no backend change was required
 - no AWS redeploy was required
 - no RDS pipeline reset was run
+
+### Update 106 - v4 planning handoff updated
+
+Completed:
+
+- confirmed the repository is on `feature/traffiq-v4`
+- confirmed the working tree was clean before the planning update
+- confirmed latest commit `b4b9a12 polish mobile ux and routing coordinates`
+- added `Task 36A. Build installable Android APK for demo` to `docs/Traffiq_v4_execution_plan.md`
+- updated the active continuity context from v3 to v4
+
+Task placement:
+
+- the installable APK task belongs to `Epic 10 - Final Validation And Release`
+- it should be done after mobile polish and before final mobile validation/release
+
+Notes:
+
+- this task is about packaging and delivery, not runtime fallback behavior
+- the APK target is an Android app installed directly on the phone, without Expo Go, `npx expo start`, or the development PC
+- the installed app will still depend on phone internet, AWS App Runner, and Amazon RDS being available
 ---
 
 ## 9. Instructions For Any New Chat

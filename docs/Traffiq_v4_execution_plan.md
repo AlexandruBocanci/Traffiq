@@ -188,6 +188,26 @@ Definition of done:
 
 - app is demo-ready on physical phone
 
+### Task 36A. Build installable Android APK for demo
+
+Goal:
+
+- make the mobile app usable like a normal Android app without Expo Go, `npx expo start`, or the development PC
+
+Deliverables:
+
+- Expo EAS build configuration
+- Android preview/internal APK build
+- installed Traffiq app on a physical Android phone
+- validation against the public AWS App Runner API
+- documented install/demo steps
+
+Definition of done:
+
+- the user can open Traffiq from the Android launcher and use the app without Expo Go or a local development server
+- the installed app uses the public AWS backend URL
+- the app still works with the agreed cloud dependency model: phone internet, App Runner backend, and RDS database available
+
 ### Task 37. Final cleanup and release commit
 
 Goal:
