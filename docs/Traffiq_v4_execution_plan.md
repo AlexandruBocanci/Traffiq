@@ -10,7 +10,10 @@ It starts after v3 has delivered the main real-product upgrades:
 cloud backend + AWS database + auth + real map/routing + Suceava-specific product features
 ```
 
-v4 should not add large new product scope. It should make the app stable, polished, documented, and ready for presentation.
+v4 originally focused on stability and delivery. After validating the installable
+Android APK, the final scope was extended to replace controlled traffic/event
+data in the user-facing product with real sources and to finish the mobile
+experience around those sources.
 
 ---
 
@@ -208,11 +211,121 @@ Definition of done:
 - the installed app uses the public AWS backend URL
 - the app still works with the agreed cloud dependency model: phone internet, App Runner backend, and RDS database available
 
+---
+
+## Epic 11 - Real Mobility Data And Product Completion
+
+### Task 36B. Add active-drive GPS telemetry experience
+
+Goal:
+
+- make the active drive map respond to real device movement without storing personal location history
+
+Deliverables:
+
+- current speed indicator in km/h while a drive is active
+- live device-location movement on the expanded map
+- recenter-on-current-location control
+- GPS listener starts only during active drive and stops when the route ends
+
+Definition of done:
+
+- the installed APK shows real foreground GPS speed and map position during a physical-device drive test
+- no GPS trace or live speed history is persisted or sent to the backend
+- no new paid API, key, or billing dependency is introduced
+
+### Task 36C. Replace controlled traffic and event data with real TomTom ingestion
+
+Goal:
+
+- remove seed/demo traffic and event claims from the final user-facing product by ingesting real Suceava traffic data
+
+Deliverables:
+
+- TomTom Traffic Flow backend ingestion for monitored Suceava road segments
+- TomTom Traffic Incidents backend ingestion for the Suceava bounding area
+- secure TomTom key handling in backend/cloud configuration only, never in the APK or Git
+- Bronze/Silver/Gold/Serving pipeline path for real traffic and incidents
+- controlled caching/request frequency and documented free-tier/cost guardrails
+- mobile route/map/traffic surfaces driven by real served observations instead of seed values
+
+Definition of done:
+
+- TomTom coverage and free-tier conditions are verified before cloud activation
+- real traffic and real incidents are returned through the Traffiq backend and shown in the installed APK
+- final user-facing traffic/event information no longer uses the controlled seed dataset
+- request volume is bounded and cost risk is documented before scheduled ingestion is enabled
+
+### Task 36D. Build historical hourly traffic profile for monitored corridors
+
+Goal:
+
+- show typical hourly traffic behavior by weekday using historical real observations, not generated demo data
+
+Deliverables:
+
+- TomTom Traffic Stats / MOVE validation for three representative Suceava corridors
+- verification of available sample coverage, trial cost constraints, and allowed result usage
+- weekday selector (`Mon` through `Sun`)
+- 24-hour chart for the selected weekday
+- metric labelled as traffic on monitored corridors, not total Suceava traffic
+
+Definition of done:
+
+- task proceeds only if TomTom MOVE returns usable Suceava corridor data and the usage/cost conditions are acceptable
+- graph is backed by real historical TomTom results processed and served through the backend
+- feature works in the installed APK
+
+### Task 36E. Implement Dark, Light, and System appearance modes
+
+Goal:
+
+- make the user preference for display mode functional throughout the mobile application
+
+Deliverables:
+
+- global light and dark theme tokens
+- functional `dark`, `light`, and `system` modes
+- preference persisted for authenticated users through the existing preferences flow
+- guest-compatible local behavior where required
+
+Definition of done:
+
+- all primary screens render correctly in all three modes on physical Android hardware
+- appearance mode works in the installed APK without additional paid services
+
+### Task 36F. Run final mobile UI/UX polish after real-data features
+
+Goal:
+
+- complete the presentation-level mobile experience only after the final features are in place
+
+Deliverables:
+
+- refined layouts and hierarchy for Drive, History, Account, and Pipeline
+- coherent presentation of GPS controls, real traffic/incidents, historical chart, and appearance modes
+- polished loading, error, empty, and offline/cached states
+- physical-device and installable APK visual validation
+
+Definition of done:
+
+- the application is visually coherent and usable across its final feature set
+- user confirms the final APK presentation flow
+
+Rejected scope decisions:
+
+- continuous remaining ETA recalculation during an active drive is excluded because it creates unnecessary routing request and reliability risk
+- live remaining-route-distance recalculation is excluded for the same reason and will not be approximated with misleading straight-line distance
+
+---
+
+## Epic 12 - Final Cleanup And Release
+
 ### Task 37. Final cleanup and release commit
 
 Goal:
 
-- finish the project cleanly
+- finish the project cleanly after real-data and final mobile experience work is validated
 
 Deliverables:
 

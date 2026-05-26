@@ -3795,6 +3795,61 @@ Notes:
   recorded risk and is not caused by the WebView map migration
 - remaining map UI/UX polish identified by the user is deferred to a separate
   confirmed future task
+
+### Update 117 - Post-APK real-data and final experience scope agreed
+
+Context:
+
+- the user confirmed the installable Traffiq APK works correctly on a physical
+  Android phone after Task 36A
+- the final product must not present controlled seed/demo values as real traffic
+  conditions or real Suceava incidents
+- no application or cloud implementation changed during this planning update
+
+Accepted future tasks:
+
+- active-drive GPS telemetry:
+  - real current-speed indicator from foreground device GPS
+  - live user-location movement on the active expanded map
+  - recenter control
+  - no GPS trace or speed history persisted or sent to the backend
+- real traffic and incident ingestion using TomTom:
+  - Traffic Flow for monitored Suceava road segments
+  - Traffic Incidents for the Suceava area
+  - TomTom key stored only in backend/cloud configuration, never APK or Git
+  - Bronze/Silver/Gold/Serving processing replaces user-facing controlled
+    traffic/event data
+  - caching/request-rate control required before scheduled ingestion
+- historical hourly traffic profile, conditional on TomTom MOVE validation:
+  - three monitored Suceava corridors
+  - weekday selector and 24 hourly bars
+  - presented as traffic on monitored corridors, not all streets in Suceava
+  - proceed only if historical data availability, cost, and usage conditions
+    are acceptable
+- functional `dark`, `light`, and `system` mobile modes
+- final UI/UX polish after all accepted real-data and mobile features are in
+  place, with installed APK validation
+
+Rejected scope decisions:
+
+- active-drive remaining ETA recalculation
+- active-drive remaining-distance recalculation
+
+Technical rationale:
+
+- TomTom Traffic APIs document real-time flow and incident support for Romania;
+  final coverage and free-tier conditions must be validated before activation
+- TomTom Traffic Stats / MOVE can support historical hourly route analysis
+  during a trial, but Suceava corridor data availability and sustainable usage
+  must be verified before this becomes a final APK feature
+- the installable APK remains a client of the FastAPI backend; external API
+  keys must remain server-side to avoid disclosure and uncontrolled usage
+
+Documentation update:
+
+- extended `docs/Traffiq_v4_execution_plan.md` with Epic 11 real mobility data
+  and product completion tasks
+- moved final cleanup/release to Epic 12 so it remains the last project step
 ---
 
 ## 9. Instructions For Any New Chat
