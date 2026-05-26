@@ -159,6 +159,9 @@ Authenticated users can save route previews and view their personal saved routes
 Authenticated users can start a drive from a route preview, which saves the trip to personal ride history.
 Authenticated users can manage personal preferences from Account.
 The Pipeline screen now shows backend/API health, the latest ETL run, record counts, and data quality checks for demo observability.
+An Android internal-distribution APK can be built for direct installation so
+the demo app runs from the phone launcher without Expo Go or a PC-hosted
+development server.
 
 ## Tech Stack
 
@@ -174,7 +177,8 @@ The Pipeline screen now shows backend/API health, the latest ETL run, record cou
 - React Native
 - Expo
 - TypeScript
-- react-native-maps
+- react-native-webview
+- Leaflet with OpenStreetMap tiles
 - expo-location
 
 ## Quick Start With Docker
@@ -202,6 +206,11 @@ npx.cmd expo start
 Then open Expo Go on the phone and scan the QR code.
 
 By default, the mobile app calls the public AWS App Runner API. For local backend testing, override `EXPO_PUBLIC_TRAFFIQ_API_BASE_URL` before starting Expo.
+
+For the installable Android demo build that runs without Expo Go or a
+development PC, follow:
+
+- `docs/ANDROID_APK_DEMO_BUILD.md`
 
 ## Local Classic Setup
 
@@ -245,6 +254,7 @@ Start here:
 - `docs/FINAL_PROJECT_SUMMARY.md`
 - `docs/BACKEND_VALIDATION_RESULTS.md`
 - `docs/MOBILE_VALIDATION_RESULTS.md`
+- `docs/ANDROID_APK_DEMO_BUILD.md`
 - `docs/DEMO_FLOW.md`
 - `docs/DEMO_NARRATIVE.md`
 - `docs/LOCAL_SETUP.md`

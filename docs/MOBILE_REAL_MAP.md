@@ -2,7 +2,10 @@
 
 ## Purpose
 
-Task 14 replaces the static map-like UI from the Drive screen with a real mobile map component.
+Task 14 originally replaced the static map-like UI from the Drive screen with
+a real mobile map component. During Task 36A release validation, the map
+implementation was migrated to the installable-APK-compatible rendering
+described below.
 
 The goal is not to build full navigation yet. The goal is to create the real map foundation required by the next routing tasks.
 
@@ -28,17 +31,24 @@ This task does not add:
 
 ## Libraries Used
 
-Mobile packages:
+Mobile packages and map resources:
 
-- `react-native-maps`
+- `react-native-webview`
 - `expo-location`
+- Leaflet `1.9.4`
+- OpenStreetMap tile layer
 
 Why:
 
-- `react-native-maps` gives the app a native map surface inside React Native.
+- `react-native-webview` renders a local Leaflet map document inside the React Native application.
 - `expo-location` handles foreground location permission and current device coordinates.
+- Leaflet draws the route polyline, map markers, and expanded-map interaction.
+- OpenStreetMap supplies map tiles with visible attribution for low-volume demo use.
 
-No paid routing or map account is required for this task.
+No paid routing or Google Maps billing account is required for this map layer.
+The public OpenStreetMap tile endpoint is appropriate for the low-volume
+student demo only; a scaled production deployment would require a managed tile
+provider or dedicated tile infrastructure.
 
 ## Implementation
 
@@ -54,7 +64,10 @@ Updated Expo configuration:
 
 - `mobile/app.json`
 
-The Drive screen now renders `SuceavaMap` instead of the previous manually drawn static map panel.
+The Drive screen renders `SuceavaMap` instead of the previous manually drawn
+static map panel. In the release-compatible implementation, `SuceavaMap`
+embeds Leaflet in a WebView instead of mounting the native Google Maps-backed
+component.
 
 The map uses these default Suceava coordinates:
 
@@ -111,6 +124,7 @@ Open the app in Expo Go and verify:
 3. The app asks for foreground location permission.
 4. If location is allowed, the map can show the current device location.
 5. The congestion overlay still appears on top of the map.
+6. The visible attribution identifies OpenStreetMap contributors.
 
 ## Explanation For Presentation
 
@@ -121,5 +135,11 @@ This means Traffiq is no longer only showing a designed placeholder. It has the 
 Task 22 now uses this map surface for geolocated controlled Suceava traffic
 alert markers. Marker positions come from the events Serving/API flow and are
 colored by severity.
+
+During Task 36A, an installed Android APK test revealed that the earlier
+native-map implementation terminated at startup without a Google Maps Android
+API key. The WebView/Leaflet/OpenStreetMap implementation removes that
+release-time Google billing dependency while retaining the Suceava map, route
+geometry, event markers, and device-location features.
 
 This is still intentionally not a production navigation engine. It is a data engineering portfolio app with a real mobile map interface connected to backend traffic intelligence.

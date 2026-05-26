@@ -49,7 +49,19 @@ Expected:
 
 ### Mobile App
 
-From the `mobile/` workspace:
+Preferred final demo mode:
+
+- install the Android APK by following `docs/ANDROID_APK_DEMO_BUILD.md`
+- open `Traffiq` directly from the Android launcher
+- stop any PC-hosted Expo development server before the demonstration
+
+Expected:
+
+- app opens without Expo Go
+- app works without `npx expo start` or the development PC
+- app calls the public App Runner API by default
+
+Development-only fallback from the `mobile/` workspace:
 
 ```powershell
 npx.cmd expo start
@@ -352,4 +364,3 @@ Do not position Traffiq as:
 - multi-city production navigation
 - paid traffic API integration
 - 24/7 enterprise infrastructure
-

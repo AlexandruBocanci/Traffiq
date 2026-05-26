@@ -3728,6 +3728,73 @@ Notes:
 - no RDS dataset changed
 - no Cognito config changed
 - no secrets or tokens were added or exposed
+
+### Update 116 - Installable Android APK validated without Expo Go
+
+Completed:
+
+- implemented `Task 36A. Build installable Android APK for demo`
+- configured EAS internal-distribution Android APK builds in `mobile/eas.json`
+- branded the installable Android application as `Traffiq` with dedicated icon
+  and splash assets
+- configured the installed Android package as `com.traffiq.mobile`
+- added Expo-compatible `mobile/metro.config.js` required by release validation
+- diagnosed the first installed APK startup crash on a physical Nothing Phone
+  through Android `adb logcat`
+- confirmed the exact crash cause:
+  - `java.lang.IllegalStateException: API key not found`
+  - native `react-native-maps` attempted to start Google Maps without an
+    Android manifest API key
+- rejected the Google Maps billing dependency for the final low-cost demo path
+- replaced `react-native-maps` with `react-native-webview` rendering:
+  - Leaflet map behavior
+  - OpenStreetMap tile layer with visible attribution
+  - Suceava viewport
+  - current device-location marker
+  - route polyline and destination marker
+  - severity-coded event markers
+  - compact non-interactive and expanded interactive map modes
+- removed the native Google Maps dependency from the mobile package tree
+- documented APK creation, installation, cloud dependency, OpenStreetMap
+  usage constraints, and cleanup steps in `docs/ANDROID_APK_DEMO_BUILD.md`
+- updated the map documentation and demo/setup references to match the final
+  installable architecture
+- removed the unused `GOOGLE_MAPS_API_KEY` value from the Expo EAS project
+  after the final APK no longer consumed it
+- removed the unused restricted Google Maps API key from the temporary Google
+  Cloud Maps project
+
+Validation:
+
+```text
+first installed APK launch -> failed and reproduced on physical Android phone
+adb logcat crash capture -> confirmed missing native Google Maps API key
+npx.cmd tsc --noEmit -> passed after Leaflet/OpenStreetMap migration
+npx.cmd expo-doctor -> 18/18 checks passed
+npx.cmd expo config --type public -> passed; Traffiq 1.0.1 / versionCode 2 / com.traffiq.mobile
+npm dependency check -> react-native-webview present and react-native-maps removed
+npx.cmd expo export --platform android --output-dir .expo-export-task36a-web-map -> passed
+generated Android export validation artifact -> deleted
+Expo Go pre-build visual validation -> user confirmed map, route and Drive flow work
+EAS APK installation on physical Android phone -> user confirmed installed app opens and works correctly
+final installed application -> runs from Android launcher without Expo Go or local PC server
+git diff --check -> passed with only expected Windows CRLF/LF warnings
+```
+
+Notes:
+
+- the installed APK still requires internet access for the public AWS App
+  Runner API and OpenStreetMap tiles
+- AWS App Runner, RDS, and Cognito remain the cloud backend dependencies
+- no Google Maps API key or Google Maps billing dependency remains in the
+  final application architecture
+- direct public OpenStreetMap tiles are appropriate only for this low-volume
+  student demo; a scaled product would require a managed tile provider
+- `npm audit` continues to report moderate Expo/Metro dependency advisories
+  whose available resolution requires a breaking Expo major upgrade; this is
+  recorded risk and is not caused by the WebView map migration
+- remaining map UI/UX polish identified by the user is deferred to a separate
+  confirmed future task
 ---
 
 ## 9. Instructions For Any New Chat

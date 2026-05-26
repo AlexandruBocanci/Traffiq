@@ -80,7 +80,8 @@ Current Expo/mobile packages used by the mobile app:
 
 - expo-secure-store
 - expo-location
-- react-native-maps
+- react-native-webview
+- Leaflet with OpenStreetMap tiles for the mobile map
 
 ## 5. PostgreSQL Setup
 
@@ -229,6 +230,10 @@ Current default behavior:
 - the mobile app calls the public AWS App Runner API by default
 - the phone does not need to reach a FastAPI process running on the PC for normal cloud-backed testing
 - use the same Wi-Fi network only when overriding the API URL to a local backend on the PC
+
+Expo Go is the development workflow. For the installable Android demo
+application that launches directly from the phone without Expo Go or this PC,
+follow `docs/ANDROID_APK_DEMO_BUILD.md`.
 
 Local backend override for a physical phone:
 

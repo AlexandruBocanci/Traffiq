@@ -1,17 +1,17 @@
 {
   "expo": {
-    "name": "mobile",
-    "slug": "mobile",
+    "name": "Traffiq",
+    "slug": "traffiq",
     "scheme": "traffiq",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "icon": "./assets/traffiq-icon.png",
+    "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/traffiq-splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#090b0a"
     },
     "ios": {
       "supportsTablet": true,
@@ -20,9 +20,11 @@
       }
     },
     "android": {
+      "package": "com.traffiq.mobile",
+      "versionCode": 2,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/traffiq-adaptive-icon.png",
+        "backgroundColor": "#090b0a"
       },
       "edgeToEdgeEnabled": true,
       "permissions": [
@@ -36,6 +38,11 @@
     },
     "plugins": [
       "expo-secure-store"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "a374c63f-97b0-43d9-97c1-deda33163a29"
+      }
+    }
   }
 }
