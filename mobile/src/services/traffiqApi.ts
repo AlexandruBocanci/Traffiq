@@ -1,10 +1,11 @@
-import { API_BASE_URL } from '../config/api';
+import { API_BASE_URL, MOBILITY_REFRESH_URL } from '../config/api';
 import {
   AddRideHistoryResponse,
   ApiListResponse,
   DriveOverviewResponse,
   HealthResponse,
   MapEventRecord,
+  MobilityRefreshResponse,
   PipelineStatusResponse,
   PreferencesResponse,
   RideHistoryRecord,
@@ -307,6 +308,20 @@ export async function getMapEvents() {
 
 export async function getDriveOverview() {
   return fetchFromApi<DriveOverviewResponse>('/mobile/drive-overview');
+}
+
+export async function requestMobilityRefresh() {
+  if (!MOBILITY_REFRESH_URL) {
+    return null;
+  }
+
+  const response = await fetch(MOBILITY_REFRESH_URL, { method: 'POST' });
+
+  if (!response.ok) {
+    throw new Error(`Mobility refresh request failed with status ${response.status}`);
+  }
+
+  return response.json() as Promise<MobilityRefreshResponse>;
 }
 
 export async function getPipelineStatus() {

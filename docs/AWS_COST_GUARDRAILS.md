@@ -197,6 +197,30 @@ Rules:
 - set log retention if possible
 - do not log secrets or full request payloads
 
+## Task 36D Mobility Refresh Guardrails
+
+Task 36D intentionally avoids a NAT Gateway. App Runner remains connected to
+RDS through the VPC connector, while a small Lambda function performs public
+TomTom/Open-Meteo calls only on mobile use.
+
+Rules:
+
+- keep Lambda function `traffiq-mobility-refresh` on the small configured
+  memory/timeout profile;
+- keep DynamoDB table `traffiq-mobility-refresh-lock` in `PAY_PER_REQUEST`
+  mode;
+- enforce the conditional 15-minute global lock before external API calls;
+- store TomTom and callback credentials only as SSM `SecureString` values;
+- do not add NAT Gateway solely for public traffic API access;
+- recheck TomTom pricing/free allowance before any higher-frequency cadence.
+
+Maximum designed TomTom use:
+
+```text
+4 non-tile TomTom calls per allowed refresh x 96 refresh windows/day
+= 384 TomTom requests/day
+```
+
 ## Stop Resources Checklist
 
 After a demo or development session:

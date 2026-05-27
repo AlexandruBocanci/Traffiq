@@ -190,3 +190,10 @@ export type DriveOverviewResponse = {
   traffic_scope: string;
   traffic_observed_at: string | null;
 };
+
+export type MobilityRefreshResponse = {
+  refreshed: boolean;
+  reason?: 'rate_limited' | 'refresh_failed';
+  pipeline_name?: string;
+  run_id?: number;
+};

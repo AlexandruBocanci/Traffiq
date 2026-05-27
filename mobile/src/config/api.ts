@@ -21,3 +21,15 @@ function getConfiguredApiBaseUrl() {
 }
 
 export const API_BASE_URL = getConfiguredApiBaseUrl();
+
+export function getConfiguredMobilityRefreshUrl() {
+  const processEnv = (
+    globalThis as {
+      process?: { env?: Record<string, string | undefined> };
+    }
+  ).process?.env;
+
+  return processEnv?.EXPO_PUBLIC_TRAFFIQ_MOBILITY_REFRESH_URL?.trim() ?? '';
+}
+
+export const MOBILITY_REFRESH_URL = getConfiguredMobilityRefreshUrl();

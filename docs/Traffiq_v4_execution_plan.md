@@ -270,10 +270,13 @@ Goal:
 
 Deliverables:
 
-- backend `refresh-if-stale` workflow triggered through the public mobile data request
+- public Lambda refresh worker triggered by the mobile app, with a protected
+  FastAPI ingestion callback because App Runner's RDS VPC connector has no
+  public internet egress without a NAT Gateway
 - refresh occurs on initial app data load and while the app remains open, but no more than once per 15 minutes globally
-- TomTom key and required database credential stored through AWS-managed secret configuration only, never in Git or APK
-- concurrency protection so repeated app opens cannot start duplicate external ingestion runs
+- TomTom key, ingestion token, and database credential stored through AWS SSM
+  Parameter Store `SecureString`, never in Git or APK
+- DynamoDB conditional lock so repeated app opens cannot start duplicate external ingestion runs
 - mobile refresh trigger and visible observation timestamp
 - request-volume and AWS cost guardrails documented before activation
 
@@ -283,6 +286,15 @@ Definition of done:
 - if the current snapshot is older than 15 minutes, the backend can update TomTom Flow, TomTom Incidents, and Open-Meteo before returning fresh data
 - maximum designed TomTom volume remains bounded at `384` non-tile requests/day for one global 15-minute refresh cadence
 - refresh behavior works in the final installed APK
+
+Implementation status:
+
+- implemented and cloud-validated on `May 27, 2026`
+- first cloud refresh completed as pipeline run `9`; immediate repeat was
+  rejected as `rate_limited`
+- bundle compatibility was validated through Android Expo export
+- physical installed-APK regression validation remains deferred to the final
+  APK build requested after the remaining mobile tasks
 
 ### Task 36E. Build historical hourly traffic profile for monitored corridors
 

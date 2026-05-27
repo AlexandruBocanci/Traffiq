@@ -3,6 +3,7 @@ import * as Location from 'expo-location';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
+  AppState,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -25,6 +26,7 @@ import {
   getDriveOverview,
   getUserPreferences,
   previewRoute,
+  requestMobilityRefresh,
   saveRoute,
 } from '../services/traffiqApi';
 import {
@@ -102,6 +104,7 @@ const SUCEAVA_DESTINATION_SUGGESTIONS = [
   'Gara Suceava',
   'Centru',
 ];
+const MOBILITY_REFRESH_INTERVAL_MS = 15 * 60 * 1000;
 
 function formatValue(value: number | null | undefined, suffix = '') {
   if (value === null || value === undefined) {
@@ -380,9 +383,11 @@ export default function DriveScreen({
     useState<CurrentRouteLocation | null>(null);
   const isLiveMapTrackingEnabled = isMapExpandedVisible || isDriveActive;
 
-  async function loadDriveData() {
+  async function loadDriveData(showLoadingState = true) {
     try {
-      setIsLoading(true);
+      if (showLoadingState) {
+        setIsLoading(true);
+      }
       setErrorMessage('');
 
       const driveOverview = await getDriveOverview();
@@ -430,12 +435,57 @@ export default function DriveScreen({
         'Traffiq cannot load a verified real mobility snapshot yet. Run the real-data pipeline and try again.'
       );
     } finally {
-      setIsLoading(false);
+      if (showLoadingState) {
+        setIsLoading(false);
+      }
     }
   }
 
+  async function refreshAndLoadDriveData(showLoadingState = true) {
+    try {
+      await requestMobilityRefresh();
+    } catch {
+      // The last verified snapshot remains available when refresh is unavailable.
+    }
+
+    await loadDriveData(showLoadingState);
+  }
+
   useEffect(() => {
-    loadDriveData();
+    let isRefreshRunning = false;
+
+    async function runRefresh(showLoadingState = false) {
+      if (isRefreshRunning) {
+        return;
+      }
+
+      isRefreshRunning = true;
+
+      try {
+        await refreshAndLoadDriveData(showLoadingState);
+      } finally {
+        isRefreshRunning = false;
+      }
+    }
+
+    runRefresh(true);
+
+    const interval = setInterval(() => {
+      if (AppState.currentState === 'active') {
+        runRefresh();
+      }
+    }, MOBILITY_REFRESH_INTERVAL_MS);
+
+    const appStateSubscription = AppState.addEventListener('change', (nextState) => {
+      if (nextState === 'active') {
+        runRefresh();
+      }
+    });
+
+    return () => {
+      clearInterval(interval);
+      appStateSubscription.remove();
+    };
   }, []);
 
   useEffect(() => {
@@ -791,7 +841,7 @@ export default function DriveScreen({
         actionLabel="Try again"
         label="Drive unavailable"
         message={errorMessage}
-        onAction={loadDriveData}
+        onAction={() => refreshAndLoadDriveData()}
         title="Drive"
       />
     );

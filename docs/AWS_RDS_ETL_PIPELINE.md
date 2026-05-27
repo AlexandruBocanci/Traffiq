@@ -265,10 +265,9 @@ Detailed endpoint documentation:
 
 - `docs/PIPELINE_STATUS_ENDPOINT.md`
 
-## Current Limitation
+## Real Mobility Refresh-On-Use
 
-Task 36C replaces the user-facing controlled traffic/event serving path with
-the manually executed TomTom real mobility pipeline:
+Task 36C introduced the manually executable TomTom real mobility pipeline:
 
 ```text
 python -m src.pipeline.run_tomtom_mobility_pipeline
@@ -277,7 +276,7 @@ python -m src.pipeline.run_tomtom_mobility_pipeline
 Validated on `May 27, 2026`:
 
 ```text
-latest real mobility pipeline run_id -> 8
+first manual real mobility pipeline run_id -> 8
 pipeline_name -> tomtom_real_mobility_snapshot
 pipeline status -> success
 flow corridor observations -> 3
@@ -286,19 +285,30 @@ weather current snapshot -> 1
 gold current corridor rows -> 3
 ```
 
-The cloud pipeline is still triggered manually from the developer machine.
-No schedule and no refresh-on-API-access mechanism is active yet.
-
-The later production-style direction remains:
+Task 36D activated an on-use cloud path:
 
 ```text
-Task 36D: app request -> FastAPI stale-check and global 15-minute guard -> protected server-side ingestion -> Amazon RDS PostgreSQL
+mobile POST -> AWS Lambda -> DynamoDB conditional 15-minute lock
+                         -> TomTom Flow / Incidents + Open-Meteo
+                         -> protected App Runner FastAPI callback
+                         -> Bronze / Silver / Gold / Serving in Amazon RDS PostgreSQL
 ```
 
-This refresh-on-use model was selected because it does not spend external API
-requests while the demo app is unused. The TomTom key must be moved to
-AWS-managed secure server configuration before activation.
+App Runner cannot make the external calls directly because its RDS VPC
+connector intentionally has no NAT Gateway. Lambda keeps external extraction
+low-cost while App Runner remains the only component that writes to private
+RDS.
+
+Validated on `May 27, 2026`:
+
+```text
+cloud refresh pipeline run_id -> 9
+pipeline status -> success
+immediate repeated refresh -> rate_limited
+observed_at after refresh -> 2026-05-27T19:43:51.096096 UTC
+```
 
 Detailed real ingestion documentation:
 
 - `docs/TOMTOM_REAL_MOBILITY_INGESTION.md`
+- `docs/TOMTOM_REFRESH_ON_USE.md`

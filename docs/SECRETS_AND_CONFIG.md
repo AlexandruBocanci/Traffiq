@@ -137,16 +137,14 @@ Do not reuse the Docker demo password for AWS.
 
 AWS should not use `.env`.
 
-AWS should inject values through one of:
-
-- App Runner environment variables for a simple first deployment
-- AWS Secrets Manager for stronger production-style secret handling
+AWS injects non-secret values as runtime variables and stores sensitive values
+through AWS-managed secret references.
 
 Recommended first portfolio deployment:
 
 ```text
 App Runner environment variables for non-secret config
-AWS Secrets Manager or App Runner secret references for DB_PASSWORD
+AWS SSM Parameter Store SecureString reference for DB_PASSWORD
 ```
 
 Expected AWS values:
@@ -191,9 +189,7 @@ Current mobile cloud API configuration is documented in:
 
 ## TomTom Real Mobility Key Strategy
 
-Task 36C adds TomTom Traffic Flow and Traffic Incidents ingestion.
-
-Current rule:
+Task 36C initially used local manual ingestion:
 
 ```text
 TOMTOM_API_KEY=<local secret in Git-ignored .env only>
@@ -201,21 +197,29 @@ TOMTOM_API_KEY=<local secret in Git-ignored .env only>
 
 - `.env.example` contains only the placeholder variable name.
 - the mobile APK never receives or calls with `TOMTOM_API_KEY`;
-- App Runner currently serves RDS data and does not need the TomTom key for
-  Task 36C manual ingestion;
 - `.dockerignore` excludes `.env` and `.env.*`, so Docker/ECR publication
   does not package local secrets.
 
-For Task 36D refresh-on-use, the required secure AWS direction is:
+Task 36D cloud configuration is now active:
 
 ```text
-AWS SSM Parameter Store Standard SecureString -> backend refresh runtime
+/traffiq/backend/db-password            -> App Runner runtime secret DB_PASSWORD
+/traffiq/mobility/tomtom-api-key        -> Lambda extraction only
+/traffiq/mobility/ingestion-token       -> Lambda callback authentication only
+MOBILITY_INGESTION_TOKEN_SHA256         -> App Runner non-secret verifier hash
 ```
 
-The backend must enforce a global minimum refresh age before any automatic
-TomTom call is activated. Do not store TomTom credentials in Expo/EAS
-environment variables, because they would be used by mobile build/runtime
-rather than a protected server-side ingestion component.
+The mobile EAS variable `EXPO_PUBLIC_TRAFFIQ_MOBILITY_REFRESH_URL` contains
+only the public Lambda URL. It contains no TomTom credential and no protected
+ingestion token.
+
+Security remediation completed on `May 27, 2026`:
+
+- an IAM user `traffiq-admin` was created for local AWS CLI work;
+- the previous root-user access key was deactivated after the IAM profile was
+  validated;
+- `DB_PASSWORD` was removed from App Runner plaintext runtime variables and
+  replaced with an SSM `SecureString` reference.
 
 ## Cognito Configuration Strategy
 
@@ -334,7 +338,7 @@ Expected result:
 The concise explanation is:
 
 ```text
-Traffiq does not hardcode database credentials in Python code. Local development uses a Git-ignored .env file, Docker injects local service variables through docker-compose.yml, and the AWS deployment direction uses App Runner environment variables or AWS Secrets Manager for RDS credentials.
+Traffiq does not hardcode database credentials in Python code. Local development uses a Git-ignored .env file. In AWS, App Runner reads the RDS password through an SSM SecureString reference, while Lambda reads the TomTom key and its callback token through narrowly scoped IAM permissions.
 ```
 
 This shows the project follows the same configuration pattern used in real backend and data engineering systems.

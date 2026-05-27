@@ -399,10 +399,29 @@ GET /rides/history without token -> 401
 GET /pipeline/status -> pipeline_name=tomtom_real_mobility_snapshot, status=success
 ```
 
-App Runner reads already-ingested data from RDS. It does not currently make
-TomTom requests and does not contain the TomTom API key. Automatic refresh is
-deferred to Task 36D, where server-side secret storage and a global
-15-minute rate limit must be implemented first.
+App Runner reads already-ingested data from RDS and does not contain the
+TomTom API key. Task 36D keeps public extraction in AWS Lambda because the
+VPC connector has no NAT Gateway for public API egress.
+
+## Task 36D Secure Refresh Callback Deployment
+
+On `May 27, 2026`, App Runner was deployed with a protected internal ingestion
+callback for the Lambda refresh worker:
+
+```text
+Backend ECR digest -> sha256:a61e2a17fd0c1225a0730bf042cc9804ebb0c882d959978585fdbf1aaed45565
+App Runner status -> RUNNING
+DB_PASSWORD runtime configuration -> SSM SecureString reference
+MOBILITY_INGESTION_TOKEN_SHA256 -> non-secret runtime verifier hash
+POST /internal/mobility/snapshot without token -> 401
+GET /mobile/drive-overview after Lambda ingestion -> traffic_source=tomtom
+GET /pipeline/status -> run_id=9, status=success
+```
+
+The callback receives normalized source snapshots only from the authorized
+Lambda worker, then reuses the same Bronze/Silver/Gold load path as manual
+ingestion. The raw TomTom key remains in Lambda-accessible SSM configuration
+and never enters App Runner or the mobile APK.
 
 ## What Is Not Done Yet
 

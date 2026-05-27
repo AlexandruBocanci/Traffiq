@@ -80,6 +80,15 @@ AWS App Runner FastAPI Service
 Amazon RDS PostgreSQL
 ```
 
+Real traffic refresh path:
+
+```text
+Mobile app -> AWS Lambda refresh URL -> TomTom / Open-Meteo
+                    |                       |
+                    v                       v
+             DynamoDB 15-minute lock -> protected FastAPI ingestion -> RDS
+```
+
 Authentication:
 
 ```text
@@ -205,6 +214,11 @@ Then open Expo Go on the phone and scan the QR code.
 
 By default, the mobile app calls the public AWS App Runner API. For local backend testing, override `EXPO_PUBLIC_TRAFFIQ_API_BASE_URL` before starting Expo.
 
+The installable preview build also receives
+`EXPO_PUBLIC_TRAFFIQ_MOBILITY_REFRESH_URL` through EAS. This public URL
+triggers the server-side refresh worker; the mobile app never contains the
+TomTom API key or the protected ingestion token.
+
 For the installable Android demo build that runs without Expo Go or a
 development PC, follow:
 
@@ -316,7 +330,7 @@ A production real-time navigation app.
 Current limitations are intentional and documented:
 
 - traffic is real observed TomTom snapshot data for three monitored corridors, not full-city live coverage
-- refresh automation is not enabled until Task 36D introduces server-side rate limiting and secret handling
+- refresh-on-use is enabled through Lambda and a global DynamoDB 15-minute guard; it is not continuous full-city traffic tracking
 - historical route analytics from the controlled seed dataset are not exposed as current mobile traffic
 - the app is not a full navigation engine
 - AWS deployment remains intentionally low-cost

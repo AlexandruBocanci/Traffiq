@@ -4010,6 +4010,130 @@ Documentation updated:
 - `docs/chat.md`
 ---
 
+### Update 120 - Task 36D refresh-on-use with global 15-minute cloud guard implemented
+
+Completed implementation and cloud validation for
+`Task 36D. Refresh real traffic on app use with server-side 15-minute rate limit`.
+
+Architecture decision:
+
+- direct TomTom refresh inside App Runner was rejected after verifying that the
+  service reaches RDS through a VPC connector and intentionally has no NAT
+  Gateway for public internet egress
+- selected low-cost path:
+  - mobile app sends a public `POST` trigger to AWS Lambda
+  - Lambda acquires a DynamoDB conditional 15-minute global lock
+  - Lambda extracts TomTom Flow, TomTom Incidents, and Open-Meteo snapshots
+  - Lambda sends the snapshot to a protected FastAPI callback
+  - App Runner reuses the existing Bronze/Silver/Gold/Serving load path into RDS
+
+Backend and mobile implementation:
+
+- extracted reusable `load_tomtom_mobility_snapshot(...)` pipeline loading logic
+- added hidden protected endpoint `POST /internal/mobility/snapshot`
+- endpoint validates `X-Traffiq-Ingestion-Token` against a SHA-256 verifier hash
+- added Lambda handler `src/cloud/refresh_mobility_lambda.py`
+- Lambda rejects non-`POST` requests before lock/external calls
+- mobile Drive screen triggers refresh:
+  - at initial load
+  - when the app returns to active foreground
+  - every 15 minutes while active
+- mobile continues showing the last verified snapshot if refresh is temporarily unavailable
+- configured EAS `preview` public variable
+  `EXPO_PUBLIC_TRAFFIQ_MOBILITY_REFRESH_URL` for the final APK build
+
+Security correction completed before cloud activation:
+
+- AWS CLI was detected using a root-user access key
+- created and validated IAM user `traffiq-admin` through group
+  `TraffiqAdministrators`
+- deactivated the root-user access key after the IAM profile was validated
+- migrated App Runner `DB_PASSWORD` from a plaintext runtime variable to SSM
+  Parameter Store `SecureString`
+- stored TomTom API key and Lambda-to-App-Runner ingestion token only as SSM
+  `SecureString` values
+- no TomTom key, database password, ingestion token, or AWS credential entered
+  Git or the APK
+
+AWS resources activated:
+
+```text
+Lambda function -> traffiq-mobility-refresh
+DynamoDB lock table -> traffiq-mobility-refresh-lock, PAY_PER_REQUEST
+TTL attribute -> expires_at
+App Runner instance role -> traffiq-apprunner-instance-role
+Lambda execution role -> traffiq-mobility-refresh-lambda-role
+SSM SecureString -> /traffiq/backend/db-password
+SSM SecureString -> /traffiq/mobility/tomtom-api-key
+SSM SecureString -> /traffiq/mobility/ingestion-token
+```
+
+Cost guardrail:
+
+```text
+one allowed refresh -> 3 TomTom Flow requests + 1 TomTom Incidents request
+maximum global cadence -> once every 15 minutes
+maximum designed TomTom volume -> 384 non-tile requests/day
+verified TomTom free allowance on May 27, 2026 -> 2,500 non-tile requests/day
+```
+
+Cloud validation:
+
+```text
+ECR/App Runner digest -> sha256:a61e2a17fd0c1225a0730bf042cc9804ebb0c882d959978585fdbf1aaed45565
+App Runner status -> RUNNING
+GET /health -> status=ok
+POST /internal/mobility/snapshot without token -> 401
+Lambda URL GET -> 405 method_not_allowed
+Lambda first POST -> refreshed=true, pipeline run_id=9
+Lambda immediate repeated POST -> refreshed=false, reason=rate_limited
+GET /mobile/drive-overview -> traffic_source=tomtom, congested=3, weather=1
+GET /pipeline/status -> run_id=9, status=success
+```
+
+Code validation:
+
+```text
+python -m compileall -q src tests -> passed
+TomTom extract and transform unit tests -> passed
+protected mobility ingestion endpoint unit test -> passed
+Lambda lock and POST-only unit tests -> passed
+mobile overview and pipeline status integration tests -> passed
+npx.cmd tsc --noEmit -> passed
+npx.cmd expo-doctor --verbose -> 18/18 checks passed
+npx.cmd expo export --platform android --output-dir .expo-export-task36d -> passed
+Android exported bundle -> 1.96 MB, 622 modules
+generated export artifact -> deleted
+git diff --check -> passed with expected Windows LF/CRLF warnings only
+```
+
+Release note:
+
+- no new APK was generated in this task, per the agreed workflow to rebuild a
+  single final APK after the remaining accepted mobile tasks
+- final installed-APK refresh validation remains required in the final release
+  task
+
+Documentation updated:
+
+- `README.md`
+- `docs/Traffiq_v4_execution_plan.md`
+- `docs/TOMTOM_REAL_MOBILITY_INGESTION.md`
+- `docs/TOMTOM_REFRESH_ON_USE.md`
+- `docs/SECRETS_AND_CONFIG.md`
+- `docs/AWS_RDS_ETL_PIPELINE.md`
+- `docs/AWS_APP_RUNNER_BACKEND.md`
+- `docs/AWS_ECR_BACKEND_IMAGE.md`
+- `docs/MOBILE_CLOUD_API_CONFIG.md`
+- `docs/AWS_COST_GUARDRAILS.md`
+- `docs/chat.md`
+
+Next accepted task after user confirmation:
+
+- `Task 36E. Build historical hourly traffic profile for monitored corridors`
+
+---
+
 ## 9. Instructions For Any New Chat
 
 Before suggesting or changing anything:

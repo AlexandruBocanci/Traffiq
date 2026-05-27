@@ -113,6 +113,17 @@ Before the Task 36C image was built, `.dockerignore` was verified to exclude
 `.env` and `.env.*`. The image therefore does not package the local TomTom
 key or RDS password.
 
+Latest Task 36D secure callback image:
+
+```text
+May 27, 2026 - refresh-on-use protected ingestion callback backend
+sha256:a61e2a17fd0c1225a0730bf042cc9804ebb0c882d959978585fdbf1aaed45565
+```
+
+This image adds the token-verified internal mobility snapshot endpoint. App
+Runner uses an SSM `SecureString` reference for `DB_PASSWORD`; no secret was
+packaged in the container image.
+
 ## What This Enables
 
 This prepares Task 8:

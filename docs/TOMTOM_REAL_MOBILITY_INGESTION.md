@@ -47,12 +47,12 @@ road has the same condition.
 
 ## Secret And Cost Rules
 
-- `TOMTOM_API_KEY` exists only in local Git-ignored `.env` during Task 36C.
+- local manual execution may use `TOMTOM_API_KEY` only in Git-ignored `.env`.
 - `.dockerignore` excludes `.env` and `.env.*`; the backend container does not
   contain the TomTom key or database password.
 - the APK reads the public FastAPI endpoint and does not call TomTom directly.
-- Task 36C runs ingestion manually; no automated refresh or scheduler has been
-  activated yet.
+- Task 36D refresh-on-use stores the TomTom key as AWS SSM `SecureString` and
+  executes extraction only in AWS Lambda.
 - one Task 36C snapshot run uses four TomTom non-tile requests: three Flow
   requests and one Incidents request.
 
@@ -63,8 +63,9 @@ TomTom free daily non-tile allowance -> 2,500 requests/day
 Open-Meteo free non-commercial daily allowance -> 10,000 calls/day
 ```
 
-Task 36D will add backend-controlled refresh-on-use only after secret storage,
-global rate limiting, and cost guardrails are implemented.
+Task 36D is implemented with a DynamoDB conditional 15-minute global lock.
+At its maximum designed cadence, `96` refreshes/day use `384` TomTom
+non-tile requests/day.
 
 ## Implemented Tables And Views
 
@@ -114,6 +115,16 @@ The backend container was pushed to ECR and deployed through App Runner:
 ECR/App Runner image digest -> sha256:5f8426c9bd906f9597f87fb53d200eda7a889a9f04e0c709e981eaef819a39d0
 ```
 
+Task 36D refresh-on-use validation:
+
+```text
+ECR/App Runner image digest -> sha256:a61e2a17fd0c1225a0730bf042cc9804ebb0c882d959978585fdbf1aaed45565
+Lambda worker -> traffiq-mobility-refresh
+DynamoDB lock table -> traffiq-mobility-refresh-lock, PAY_PER_REQUEST
+cloud refresh pipeline run_id -> 9, status=success
+immediate repeated POST -> refreshed=false, reason=rate_limited
+```
+
 ## Mobile Presentation
 
 The mobile app now:
@@ -134,3 +145,5 @@ accepted mobile tasks, so only one final APK build is required.
 - TomTom Traffic Flow documentation: https://developer.tomtom.com/traffic-api/documentation/tomtom-maps/traffic-flow/flow-segment-data
 - TomTom Traffic Incidents documentation: https://developer.tomtom.com/traffic-api/documentation/traffic-incidents/incident-details
 - Open-Meteo pricing: https://open-meteo.com/en/pricing
+- AWS App Runner VPC access: https://docs.aws.amazon.com/apprunner/latest/dg/network-vpc.html
+- AWS Lambda function URLs: https://docs.aws.amazon.com/lambda/latest/dg/urls-auth.html

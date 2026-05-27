@@ -71,6 +71,28 @@ npx.cmd expo start
 
 If the environment variable is not set, the app uses the cloud URL.
 
+## Real Mobility Refresh Trigger
+
+Task 36D adds a second public mobile configuration value:
+
+```text
+EXPO_PUBLIC_TRAFFIQ_MOBILITY_REFRESH_URL
+```
+
+It is configured in the EAS `preview` environment for the final APK build.
+The value is a public AWS Lambda Function URL, not an API key. On Drive screen
+load, foreground resume, and each 15-minute active interval, mobile sends a
+`POST` trigger. The Lambda worker holds server-side TomTom access and the
+DynamoDB global refresh lock.
+
+The APK never receives:
+
+```text
+TOMTOM_API_KEY
+MOBILITY_INGESTION_TOKEN
+DB_PASSWORD
+```
+
 ## Validation
 
 TypeScript validation:
@@ -121,7 +143,7 @@ The mobile cloud configuration is complete for the v4 demo:
 
 - default API target is AWS App Runner
 - local backend override remains available
-- RDS contains the controlled Suceava demo dataset
+- RDS serves current real TomTom corridor and incident snapshots
 - public mobile overview does not expose personal ride history
 
 An installable standalone phone build is handled separately from API configuration.

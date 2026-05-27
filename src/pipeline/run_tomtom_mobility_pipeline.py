@@ -24,28 +24,15 @@ from src.transform.transform_weather_data import transform_weather_data
 PIPELINE_NAME = "tomtom_real_mobility_snapshot"
 
 
-def run_tomtom_mobility_pipeline():
-    if TOMTOM_API_KEY == "":
-        raise RuntimeError(
-            "TOMTOM_API_KEY is not configured. Add it to the Git-ignored local .env file."
-        )
+def load_tomtom_mobility_snapshot(
+    flow_raw_records, incidents_raw_snapshot, raw_weather_df, run_id=None
+):
+    active_run_id = run_id or start_pipeline_run(PIPELINE_NAME)
 
-    run_id = start_pipeline_run(PIPELINE_NAME)
-
-    if run_id is None:
+    if active_run_id is None:
         return {"status": "failed", "error": "Could not create pipeline run metadata."}
 
     try:
-        flow_raw_records = extract_tomtom_flow_snapshot(
-            TOMTOM_API_KEY, TOMTOM_MONITORED_CORRIDORS
-        )
-        incidents_raw_snapshot = extract_tomtom_incidents_snapshot(
-            TOMTOM_API_KEY, TOMTOM_SUCEAVA_BOUNDING_BOX
-        )
-        raw_weather_df = extract_weather_api(
-            WEATHER_LATITUDE, WEATHER_LONGITUDE, WEATHER_TIMEZONE
-        )
-
         flow_df = transform_tomtom_flow_records(flow_raw_records)
         incidents_df = transform_tomtom_incidents_snapshot(incidents_raw_snapshot)
         weather_df = transform_weather_data(raw_weather_df)
@@ -78,30 +65,31 @@ def run_tomtom_mobility_pipeline():
         )
 
         log_data_quality_check(
-            run_id,
+            active_run_id,
             "tomtom_flow_corridors_complete",
             "passed",
             0,
             f"{expected_corridors} configured Suceava corridors returned valid flow data.",
         )
         log_data_quality_check(
-            run_id,
+            active_run_id,
             "tomtom_incidents_current_snapshot",
             "passed",
             0,
             f"{incident_rows} current TomTom incidents normalized for the Suceava bounding area.",
         )
         log_data_quality_check(
-            run_id,
+            active_run_id,
             "real_source_serving_snapshot_ready",
             "passed",
             0,
             "Gold traffic snapshot and Open-Meteo current weather snapshot are available.",
         )
-        finish_pipeline_run(run_id, "success", records_extracted, records_loaded)
+        finish_pipeline_run(active_run_id, "success", records_extracted, records_loaded)
 
         return {
             "status": "success",
+            "run_id": active_run_id,
             "flow_bronze_rows": flow_bronze_rows,
             "flow_silver_rows": flow_silver_rows,
             "incident_rows": incident_rows,
@@ -110,8 +98,38 @@ def run_tomtom_mobility_pipeline():
             "corridor_gold_rows": corridor_gold_rows,
         }
     except Exception as exc:
+        finish_pipeline_run(active_run_id, "failed", 0, 0, str(exc))
+        raise
+
+
+def run_tomtom_mobility_pipeline():
+    if TOMTOM_API_KEY == "":
+        raise RuntimeError(
+            "TOMTOM_API_KEY is not configured. Add it to the Git-ignored local .env file."
+        )
+
+    run_id = start_pipeline_run(PIPELINE_NAME)
+
+    if run_id is None:
+        return {"status": "failed", "error": "Could not create pipeline run metadata."}
+
+    try:
+        flow_raw_records = extract_tomtom_flow_snapshot(
+            TOMTOM_API_KEY, TOMTOM_MONITORED_CORRIDORS
+        )
+        incidents_raw_snapshot = extract_tomtom_incidents_snapshot(
+            TOMTOM_API_KEY, TOMTOM_SUCEAVA_BOUNDING_BOX
+        )
+        raw_weather_df = extract_weather_api(
+            WEATHER_LATITUDE, WEATHER_LONGITUDE, WEATHER_TIMEZONE
+        )
+    except Exception as exc:
         finish_pipeline_run(run_id, "failed", 0, 0, str(exc))
         raise
+
+    return load_tomtom_mobility_snapshot(
+        flow_raw_records, incidents_raw_snapshot, raw_weather_df, run_id
+    )
 
 
 if __name__ == "__main__":

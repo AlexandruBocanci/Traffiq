@@ -12,6 +12,7 @@ from src.api.routes.auth import router as auth_router
 from src.api.routes.saved_routes import router as saved_routes_router
 from src.api.routes.preferences import router as preferences_router
 from src.api.routes.pipeline import router as pipeline_router
+from src.api.routes.mobility_ingestion import router as mobility_ingestion_router
 
 app = FastAPI(
     title="Traffiq API",
@@ -32,4 +33,5 @@ app.include_router(auth_router)
 app.include_router(saved_routes_router)
 app.include_router(preferences_router)
 app.include_router(pipeline_router)
+app.include_router(mobility_ingestion_router)
 
