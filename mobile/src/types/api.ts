@@ -12,6 +12,10 @@ export type TopCongestedStreetRecord = {
   street_name: string;
   avg_speed: number | null;
   congestion_score: number | null;
+  observed_at: string;
+  free_flow_speed_kmh: number | null;
+  confidence: number | null;
+  source_provider: 'tomtom';
 };
 
 export type WeatherImpactRecord = {
@@ -123,6 +127,7 @@ export type RideHistoryRecord = {
   congestion_score: number | null;
   estimated_duration_minutes: number | null;
   ride_status: string;
+  traffic_data_source: 'tomtom_snapshot' | 'legacy_seed' | 'unavailable';
 };
 
 export type AddRideHistoryResponse = {
@@ -181,4 +186,7 @@ export type DriveOverviewResponse = {
   rides: RideHistoryRecord[];
   congested: TopCongestedStreetRecord[];
   weather: WeatherImpactRecord[];
+  traffic_source: 'tomtom';
+  traffic_scope: string;
+  traffic_observed_at: string | null;
 };

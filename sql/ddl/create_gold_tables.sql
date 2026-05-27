@@ -51,3 +51,15 @@ CREATE TABLE IF NOT EXISTS gold.top_congested_segments (
   avg_speed NUMERIC(10, 2),
   avg_congestion_score NUMERIC(5, 2)
 );
+
+CREATE TABLE IF NOT EXISTS gold.current_corridor_traffic (
+  corridor_key VARCHAR(100) PRIMARY KEY,
+  corridor_name VARCHAR(255) NOT NULL,
+  observed_at TIMESTAMP NOT NULL,
+  current_speed_kmh NUMERIC(10, 2) NOT NULL,
+  free_flow_speed_kmh NUMERIC(10, 2) NOT NULL,
+  congestion_score NUMERIC(5, 2) NOT NULL,
+  confidence NUMERIC(5, 4),
+  road_closure BOOLEAN NOT NULL DEFAULT FALSE,
+  source_provider VARCHAR(50) NOT NULL DEFAULT 'tomtom'
+);

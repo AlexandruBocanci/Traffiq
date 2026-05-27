@@ -189,6 +189,34 @@ Current mobile cloud API configuration is documented in:
 
 - `docs/MOBILE_CLOUD_API_CONFIG.md`
 
+## TomTom Real Mobility Key Strategy
+
+Task 36C adds TomTom Traffic Flow and Traffic Incidents ingestion.
+
+Current rule:
+
+```text
+TOMTOM_API_KEY=<local secret in Git-ignored .env only>
+```
+
+- `.env.example` contains only the placeholder variable name.
+- the mobile APK never receives or calls with `TOMTOM_API_KEY`;
+- App Runner currently serves RDS data and does not need the TomTom key for
+  Task 36C manual ingestion;
+- `.dockerignore` excludes `.env` and `.env.*`, so Docker/ECR publication
+  does not package local secrets.
+
+For Task 36D refresh-on-use, the required secure AWS direction is:
+
+```text
+AWS SSM Parameter Store Standard SecureString -> backend refresh runtime
+```
+
+The backend must enforce a global minimum refresh age before any automatic
+TomTom call is activated. Do not store TomTom credentials in Expo/EAS
+environment variables, because they would be used by mobile build/runtime
+rather than a protected server-side ingestion component.
+
 ## Cognito Configuration Strategy
 
 Cognito identifiers are configuration, not secrets.

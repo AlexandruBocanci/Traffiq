@@ -267,12 +267,38 @@ Detailed endpoint documentation:
 
 ## Current Limitation
 
-The cloud pipeline is currently executed manually from the developer machine.
+Task 36C replaces the user-facing controlled traffic/event serving path with
+the manually executed TomTom real mobility pipeline:
+
+```text
+python -m src.pipeline.run_tomtom_mobility_pipeline
+```
+
+Validated on `May 27, 2026`:
+
+```text
+latest real mobility pipeline run_id -> 8
+pipeline_name -> tomtom_real_mobility_snapshot
+pipeline status -> success
+flow corridor observations -> 3
+active TomTom incidents stored -> 24
+weather current snapshot -> 1
+gold current corridor rows -> 3
+```
+
+The cloud pipeline is still triggered manually from the developer machine.
+No schedule and no refresh-on-API-access mechanism is active yet.
 
 The later production-style direction remains:
 
 ```text
-EventBridge Scheduler -> ECS Fargate ETL task -> Amazon RDS PostgreSQL
+Task 36D: app request -> FastAPI stale-check and global 15-minute guard -> protected server-side ingestion -> Amazon RDS PostgreSQL
 ```
 
-That scheduling infrastructure is intentionally outside the current low-cost task scope.
+This refresh-on-use model was selected because it does not spend external API
+requests while the demo app is unused. The TomTom key must be moved to
+AWS-managed secure server configuration before activation.
+
+Detailed real ingestion documentation:
+
+- `docs/TOMTOM_REAL_MOBILITY_INGESTION.md`

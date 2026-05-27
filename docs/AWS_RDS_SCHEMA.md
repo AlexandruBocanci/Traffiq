@@ -256,6 +256,36 @@ Detailed user preferences documentation:
 
 - `docs/USER_PREFERENCES.md`
 
+## Task 36C Real TomTom Mobility Extension
+
+Task 36C adds appendable raw/standardized TomTom observations and a current
+serving snapshot without resetting personal tables.
+
+Applied additions on `May 27, 2026`:
+
+```text
+bronze.tomtom_flow_raw
+bronze.tomtom_incidents_raw
+silver.tomtom_flow_observations
+silver.tomtom_incidents
+silver.current_weather_snapshot
+gold.current_corridor_traffic
+silver.user_ride_history.traffic_data_source
+```
+
+The Serving views were recreated so public traffic and incident endpoints read
+real TomTom data. Legacy route seed analytical views deliberately return no
+current public route claims. Existing ride history records are preserved and
+identified as legacy where they do not have verified TomTom provenance.
+
+The idempotent DDL was applied through `sql/ddl/create_all.sql`. An initial
+view type mismatch was corrected by retaining the established numeric output
+types before the successful final schema application.
+
+Detailed real ingestion documentation:
+
+- `docs/TOMTOM_REAL_MOBILITY_INGESTION.md`
+
 ## What Is Not Done Yet
 
 This task only applies the schema.

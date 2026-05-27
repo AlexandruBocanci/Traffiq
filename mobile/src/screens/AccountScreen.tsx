@@ -1,8 +1,11 @@
 import {
   useEffect,
+  useRef,
   useState,
 } from 'react';
 import {
+  KeyboardAvoidingView,
+  Platform,
   Pressable,
   SafeAreaView,
   ScrollView,
@@ -69,6 +72,17 @@ export default function AccountScreen({
   const [isPreferencesLoading, setIsPreferencesLoading] = useState(false);
   const [isPreferencesSaving, setIsPreferencesSaving] = useState(false);
   const [preferencesError, setPreferencesError] = useState('');
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  function revealAuthenticationForm() {
+    requestAnimationFrame(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    });
+
+    setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }, 260);
+  }
 
   useEffect(() => {
     async function loadSavedRoutes() {
@@ -206,7 +220,17 @@ export default function AccountScreen({
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.keyboardAvoidingView}
+      >
+      <ScrollView
+        contentContainerStyle={styles.content}
+        keyboardDismissMode="interactive"
+        keyboardShouldPersistTaps="handled"
+        ref={scrollViewRef}
+        style={styles.container}
+      >
         <View style={styles.headerRow}>
           <View>
             <Text style={styles.eyebrow}>Personal area</Text>
@@ -337,10 +361,11 @@ export default function AccountScreen({
               </Text>
             </View>
 
-            <AuthScreen />
+            <AuthScreen onInputFocus={revealAuthenticationForm} />
           </>
         )}
       </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -349,6 +374,9 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  keyboardAvoidingView: {
+    flex: 1,
   },
   container: {
     flex: 1,

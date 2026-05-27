@@ -383,6 +383,27 @@ This enables:
 - App Runner to RDS integration
 - ETL-loaded Suceava data served from the cloud database
 
+## Task 36C Real Mobility Deployment Validation
+
+On `May 27, 2026`, App Runner was deployed with the backend that serves the
+real TomTom mobility snapshot loaded in RDS.
+
+```text
+Backend ECR digest -> sha256:5f8426c9bd906f9597f87fb53d200eda7a889a9f04e0c709e981eaef819a39d0
+App Runner status -> RUNNING
+GET /health -> status=ok
+GET /mobile/drive-overview -> traffic_source=tomtom, traffic_rows=3, events_rows=5, weather_rows=1, routes_rows=0, rides_rows=0
+GET /reports/overview -> route_highlights=0, report_segments=3
+GET /routes/report -> count=0
+GET /rides/history without token -> 401
+GET /pipeline/status -> pipeline_name=tomtom_real_mobility_snapshot, status=success
+```
+
+App Runner reads already-ingested data from RDS. It does not currently make
+TomTom requests and does not contain the TomTom API key. Automatic refresh is
+deferred to Task 36D, where server-side secret storage and a global
+15-minute rate limit must be implemented first.
+
 ## What Is Not Done Yet
 
 Remaining later work:

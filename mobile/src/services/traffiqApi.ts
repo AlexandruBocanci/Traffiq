@@ -244,7 +244,7 @@ export async function addRideToHistory(
   return fetchFromApi<AddRideHistoryResponse>('/rides/history', {
     accessToken,
     body: {
-      congestion_score: congestionScore ?? 0,
+      congestion_score: congestionScore ?? null,
       destination: {
         name: routePreview.destination.name,
       },

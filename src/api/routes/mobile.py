@@ -77,28 +77,6 @@ def get_mobile_drive_overview():
 
         cur = conn.cursor()
 
-        route_rows = fetch_all_dicts(
-            cur,
-            """
-            SELECT
-                route_id,
-                route_name,
-                origin_name,
-                destination_name,
-                route_distance_km,
-                observation_count,
-                avg_speed,
-                min_speed,
-                max_speed,
-                avg_congestion_score,
-                estimated_duration_minutes,
-                congestion_level
-            FROM serving.vw_routes_report
-            ORDER BY avg_congestion_score DESC, route_id ASC
-            LIMIT 5;
-            """,
-        )
-
         event_rows = fetch_all_dicts(
             cur,
             """
@@ -121,13 +99,18 @@ def get_mobile_drive_overview():
             cur,
             """
             SELECT
-                metric_date,
-                hour_of_day,
-                street_name,
-                avg_speed,
-                congestion_score
-            FROM serving.vw_top_congested_streets
-            ORDER BY congestion_score DESC, metric_date DESC, hour_of_day DESC, street_name ASC
+                observed_at::date AS metric_date,
+                EXTRACT(HOUR FROM observed_at)::integer AS hour_of_day,
+                corridor_name AS street_name,
+                current_speed_kmh AS avg_speed,
+                congestion_score,
+                observed_at,
+                free_flow_speed_kmh,
+                confidence,
+                source_provider
+            FROM gold.current_corridor_traffic
+            WHERE source_provider = 'tomtom'
+            ORDER BY congestion_score DESC, observed_at DESC, corridor_name ASC
             LIMIT 5;
             """,
         )
@@ -147,9 +130,14 @@ def get_mobile_drive_overview():
         )
 
         return {
-            "routes": [format_route(row) for row in route_rows],
+            "routes": [],
             "events": [format_event(row) for row in event_rows],
             "rides": [],
+            "traffic_source": "tomtom",
+            "traffic_scope": "Three monitored Suceava corridors",
+            "traffic_observed_at": (
+                congested_rows[0]["observed_at"] if congested_rows else None
+            ),
             "congested": [
                 {
                     "metric_date": row["metric_date"],
@@ -157,6 +145,10 @@ def get_mobile_drive_overview():
                     "street_name": row["street_name"],
                     "avg_speed": to_float(row["avg_speed"]),
                     "congestion_score": to_float(row["congestion_score"]),
+                    "observed_at": row["observed_at"],
+                    "free_flow_speed_kmh": to_float(row["free_flow_speed_kmh"]),
+                    "confidence": to_float(row["confidence"]),
+                    "source_provider": row["source_provider"],
                 }
                 for row in congested_rows
             ],

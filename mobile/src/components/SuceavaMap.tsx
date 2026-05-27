@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import * as Location from 'expo-location';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { WebView } from 'react-native-webview';
+import { WebView, WebViewMessageEvent } from 'react-native-webview';
 
 import { colors, radius, shadows } from '../theme/theme';
 import { MapEventRecord, RoutePreviewResponse } from '../types/api';
@@ -35,12 +35,15 @@ type SuceavaMapProps = {
   events?: MapEventRecord[];
   gpsStatus?: DriveGpsStatus;
   isDriveActive?: boolean;
+  isFollowingLocation?: boolean;
   isLiveTrackingEnabled?: boolean;
+  liveHeadingDegrees?: number | null;
   liveLocation?: MapCoordinate | null;
   liveSpeedKmh?: number | null;
   onDismissRoutePrompt?: () => void;
   onEndDrive?: () => void;
   onExpand?: () => void;
+  onFollowLocationChange?: (isFollowing: boolean) => void;
   onPlanRoute?: () => void;
   routePreview?: RoutePreviewResponse | null;
   showRoutePrompt?: boolean;
@@ -51,12 +54,15 @@ export default function SuceavaMap({
   events = [],
   gpsStatus = 'inactive',
   isDriveActive = false,
+  isFollowingLocation = true,
   isLiveTrackingEnabled = false,
+  liveHeadingDegrees = null,
   liveLocation = null,
   liveSpeedKmh = null,
   onDismissRoutePrompt,
   onEndDrive,
   onExpand,
+  onFollowLocationChange,
   onPlanRoute,
   routePreview,
   showRoutePrompt = false,
@@ -167,31 +173,63 @@ export default function SuceavaMap({
     ]
   );
 
-  function sendLiveLocationToMap(location: MapCoordinate, shouldCenter = false) {
+  function sendLiveLocationToMap(
+    location: MapCoordinate,
+    shouldCenter = false,
+    headingDegrees: number | null = null,
+    shouldOrient = false
+  ) {
     const serializedLocation = JSON.stringify(location).replace(/</g, '\\u003c');
 
     webViewRef.current?.injectJavaScript(
-      `window.updateUserLocation && window.updateUserLocation(${serializedLocation}, ${shouldCenter}); true;`
+      `window.updateUserLocation && window.updateUserLocation(${serializedLocation}, ${shouldCenter}, ${JSON.stringify(
+        headingDegrees
+      )}, ${shouldOrient}); true;`
     );
   }
 
   useEffect(() => {
     if (isExpanded && isLiveTrackingEnabled && liveLocation) {
-      sendLiveLocationToMap(liveLocation);
+      sendLiveLocationToMap(
+        liveLocation,
+        isFollowingLocation,
+        liveHeadingDegrees,
+        isFollowingLocation
+      );
     }
-  }, [isExpanded, isLiveTrackingEnabled, liveLocation]);
+  }, [
+    isDriveActive,
+    isExpanded,
+    isFollowingLocation,
+    isLiveTrackingEnabled,
+    liveHeadingDegrees,
+    liveLocation,
+  ]);
 
   const availableCenterLocation = liveLocation ?? currentLocation;
+
+  function handleMapMessage(event: WebViewMessageEvent) {
+    if (event.nativeEvent.data === 'manual-map-interaction') {
+      onFollowLocationChange?.(false);
+    }
+  }
+
   return (
     <View style={[styles.mapPanel, isExpanded && styles.mapPanelExpanded]}>
       <WebView
-        applicationNameForUserAgent="Traffiq/1.0.1"
+        applicationNameForUserAgent="Traffiq/1.0.2"
         javaScriptEnabled
         onLoadEnd={() => {
           if (isLiveTrackingEnabled && liveLocation) {
-            sendLiveLocationToMap(liveLocation);
+            sendLiveLocationToMap(
+              liveLocation,
+              isFollowingLocation,
+              liveHeadingDegrees,
+              isFollowingLocation
+            );
           }
         }}
+        onMessage={handleMapMessage}
         originWhitelist={['*']}
         pointerEvents={isExpanded ? 'auto' : 'none'}
         ref={webViewRef}
@@ -220,7 +258,13 @@ export default function SuceavaMap({
               accessibilityLabel="Current speed. Press to recenter map."
               onPress={() => {
                 if (availableCenterLocation) {
-                  sendLiveLocationToMap(availableCenterLocation, true);
+                  onFollowLocationChange?.(true);
+                  sendLiveLocationToMap(
+                    availableCenterLocation,
+                    true,
+                    liveHeadingDegrees,
+                    true
+                  );
                 }
               }}
               style={styles.speedCard}
@@ -324,8 +368,8 @@ function createMapHtml(mapData: EmbeddedMapData) {
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
     <link
       rel="stylesheet"
-      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      href="https://unpkg.com/leaflet-rotate-map@0.3.1/leaflet.css"
+      integrity="sha384-o/2yZuJZWGJ4s/adjxVW71R+EO/LyCwdQfP5UWSgX/w87iiTXuvDZaejd3TsN7mf"
       crossorigin=""
     />
     <style>
@@ -360,7 +404,19 @@ function createMapHtml(mapData: EmbeddedMapData) {
         box-shadow: 0 0 0 5px rgba(56, 189, 248, 0.22);
         box-sizing: border-box;
         height: 18px;
+        position: relative;
         width: 18px;
+      }
+      .location-direction {
+        border-bottom: 12px solid #38bdf8;
+        border-left: 5px solid transparent;
+        border-right: 5px solid transparent;
+        height: 0;
+        left: 1px;
+        position: absolute;
+        top: -12px;
+        transform-origin: 5px 20px;
+        width: 0;
       }
       .severity-high { background: rgba(244, 63, 94, 0.92); border-color: #f43f5e; }
       .severity-medium { background: rgba(234, 179, 8, 0.92); border-color: #eab308; }
@@ -371,8 +427,8 @@ function createMapHtml(mapData: EmbeddedMapData) {
   <body>
     <div id="map"></div>
     <script
-      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      src="https://unpkg.com/leaflet-rotate-map@0.3.1/leaflet.js"
+      integrity="sha384-/aJD8AwKFQDkcmbuhJmPzqq9VOJOL/2Ip5DTjvuh06FXLHZZub6mc1Tw1i3NtRUS"
       crossorigin=""
     ></script>
     <script>
@@ -383,6 +439,8 @@ function createMapHtml(mapData: EmbeddedMapData) {
           doubleClickZoom: data.interactive,
           dragging: data.interactive,
           keyboard: false,
+          rotate: data.interactive,
+          rotateControl: false,
           scrollWheelZoom: data.interactive,
           tap: data.interactive,
           touchZoom: data.interactive,
@@ -432,6 +490,83 @@ function createMapHtml(mapData: EmbeddedMapData) {
         }
 
         var userLocationMarker = null;
+        var directionMarkerElement = null;
+        var displayedBearing = 0;
+        var pendingBearing = 0;
+        var currentHeading = null;
+        var isHeadingUpEnabled = false;
+        var bearingAnimationFrame = null;
+        var isProgrammaticMapMove = false;
+        var lastBearingUpdateAt = 0;
+        var lastTargetBearing = null;
+        var BEARING_INTERVAL_MS = 3500;
+        var MIN_BEARING_CHANGE_DEGREES = 10;
+
+        function normalizedAngle(value) {
+          return ((value % 360) + 360) % 360;
+        }
+
+        function shortestRotation(from, to) {
+          return ((to - from + 540) % 360) - 180;
+        }
+
+        function updateDirectionMarker() {
+          if (!directionMarkerElement || typeof currentHeading !== 'number') {
+            return;
+          }
+
+          var markerRotation = isHeadingUpEnabled
+            ? shortestRotation(displayedBearing, currentHeading)
+            : currentHeading;
+
+          directionMarkerElement.style.transform = 'rotate(' + markerRotation + 'deg)';
+        }
+
+        function animateBearing() {
+          var rotation = shortestRotation(displayedBearing, pendingBearing);
+
+          if (Math.abs(rotation) <= 0.35) {
+            displayedBearing = normalizedAngle(pendingBearing);
+            map.setBearing(displayedBearing);
+            updateDirectionMarker();
+            bearingAnimationFrame = null;
+            return;
+          }
+
+          displayedBearing = normalizedAngle(displayedBearing + rotation * 0.16);
+          map.setBearing(displayedBearing);
+          updateDirectionMarker();
+          bearingAnimationFrame = window.requestAnimationFrame(animateBearing);
+        }
+
+        function setTargetBearing(headingDegrees) {
+          var now = Date.now();
+          var changedDegrees = lastTargetBearing === null
+            ? 360
+            : Math.abs(shortestRotation(lastTargetBearing, headingDegrees));
+
+          if (
+            lastTargetBearing !== null &&
+            now - lastBearingUpdateAt < BEARING_INTERVAL_MS
+          ) {
+            return;
+          }
+
+          if (
+            lastTargetBearing !== null &&
+            changedDegrees < MIN_BEARING_CHANGE_DEGREES
+          ) {
+            return;
+          }
+
+          lastBearingUpdateAt = now;
+          lastTargetBearing = normalizedAngle(headingDegrees);
+          pendingBearing = normalizedAngle(headingDegrees);
+
+          if (!bearingAnimationFrame) {
+            bearingAnimationFrame = window.requestAnimationFrame(animateBearing);
+          }
+        }
 
         function setUserLocation(location) {
           if (userLocationMarker) {
@@ -440,17 +575,45 @@ function createMapHtml(mapData: EmbeddedMapData) {
           }
 
           userLocationMarker = L.marker([location.latitude, location.longitude], {
-            icon: icon('<div class="location-marker"></div>', [18, 18])
+            icon: icon('<div class="location-marker"><div class="location-direction"></div></div>', [18, 18])
           }).addTo(map);
+          directionMarkerElement = userLocationMarker.getElement().querySelector('.location-direction');
+          updateDirectionMarker();
         }
 
-        window.updateUserLocation = function (location, shouldCenter) {
+        window.updateUserLocation = function (location, shouldCenter, headingDegrees, shouldOrient) {
           setUserLocation(location);
+          isHeadingUpEnabled = shouldOrient;
+
+          if (
+            shouldOrient &&
+            typeof headingDegrees === 'number' &&
+            isFinite(headingDegrees) &&
+            typeof map.setBearing === 'function'
+          ) {
+            currentHeading = headingDegrees;
+            setTargetBearing(headingDegrees);
+          } else if (typeof headingDegrees === 'number' && isFinite(headingDegrees)) {
+            currentHeading = headingDegrees;
+            updateDirectionMarker();
+          }
 
           if (shouldCenter) {
+            isProgrammaticMapMove = true;
             map.setView([location.latitude, location.longitude], 16, { animate: true });
+            window.setTimeout(function () {
+              isProgrammaticMapMove = false;
+            }, 350);
           }
         };
+
+        if (data.interactive && window.ReactNativeWebView) {
+          map.on('dragstart zoomstart', function () {
+            if (!isProgrammaticMapMove) {
+              window.ReactNativeWebView.postMessage('manual-map-interaction');
+            }
+          });
+        }
 
         if (data.currentLocation) {
           setUserLocation(data.currentLocation);

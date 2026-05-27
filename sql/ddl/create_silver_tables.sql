@@ -77,8 +77,12 @@ CREATE TABLE IF NOT EXISTS silver.user_ride_history (
   estimated_duration_minutes NUMERIC(10, 2) NOT NULL,
   ride_status VARCHAR(50) NOT NULL,
   source VARCHAR(100) NOT NULL DEFAULT 'mobile_route_preview',
+  traffic_data_source VARCHAR(50) NOT NULL DEFAULT 'legacy_seed',
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+ALTER TABLE silver.user_ride_history
+ADD COLUMN IF NOT EXISTS traffic_data_source VARCHAR(50) NOT NULL DEFAULT 'legacy_seed';
 
 CREATE TABLE IF NOT EXISTS silver.user_preferences (
   preference_id SERIAL PRIMARY KEY,
@@ -111,4 +115,42 @@ CREATE TABLE IF NOT EXISTS silver.saved_routes (
   provider VARCHAR(100) NOT NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS silver.tomtom_flow_observations (
+  flow_obs_id SERIAL PRIMARY KEY,
+  observed_at TIMESTAMP NOT NULL,
+  corridor_key VARCHAR(100) NOT NULL,
+  corridor_name VARCHAR(255) NOT NULL,
+  current_speed_kmh NUMERIC(10, 2) NOT NULL,
+  free_flow_speed_kmh NUMERIC(10, 2) NOT NULL,
+  current_travel_time_seconds INTEGER,
+  free_flow_travel_time_seconds INTEGER,
+  confidence NUMERIC(5, 4),
+  road_closure BOOLEAN NOT NULL DEFAULT FALSE,
+  source_provider VARCHAR(50) NOT NULL DEFAULT 'tomtom'
+);
+
+CREATE TABLE IF NOT EXISTS silver.tomtom_incidents (
+  event_obs_id SERIAL UNIQUE,
+  incident_id VARCHAR(255) PRIMARY KEY,
+  observed_at TIMESTAMP NOT NULL,
+  event_timestamp TIMESTAMP NOT NULL,
+  event_type VARCHAR(100) NOT NULL,
+  street_name VARCHAR(255) NOT NULL,
+  event_description TEXT NOT NULL,
+  severity VARCHAR(50) NOT NULL,
+  latitude NUMERIC(9, 6),
+  longitude NUMERIC(9, 6),
+  delay_seconds INTEGER,
+  source_provider VARCHAR(50) NOT NULL DEFAULT 'tomtom'
+);
+
+CREATE TABLE IF NOT EXISTS silver.current_weather_snapshot (
+  source_provider VARCHAR(50) PRIMARY KEY,
+  observed_at TIMESTAMP NOT NULL,
+  weather_label VARCHAR(100) NOT NULL,
+  temperature_c NUMERIC(5, 2),
+  precipitation_mm NUMERIC(5, 2),
+  wind_speed_kmh NUMERIC(5, 2)
 );

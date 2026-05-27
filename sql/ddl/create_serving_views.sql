@@ -1,30 +1,34 @@
 CREATE OR REPLACE VIEW serving.vw_traffic_observations AS
 SELECT
-  traffic_obs_id,
-  event_timestamp,
-  street_name,
-  avg_speed,
-  weather_label
-FROM silver.traffic_observations;
+  flow_obs_id AS traffic_obs_id,
+  observed_at AS event_timestamp,
+  corridor_name AS street_name,
+  current_speed_kmh AS avg_speed,
+  (SELECT weather_label FROM silver.current_weather_snapshot WHERE source_provider = 'open-meteo') AS weather_label
+FROM silver.tomtom_flow_observations
+WHERE source_provider = 'tomtom';
 
 CREATE OR REPLACE VIEW serving.vw_top_congested_streets AS
 SELECT
-  metric_date,
-  hour_of_day,
-  street_name,
-  avg_speed,
+  observed_at::date AS metric_date,
+  EXTRACT(HOUR FROM observed_at)::integer AS hour_of_day,
+  corridor_name AS street_name,
+  current_speed_kmh AS avg_speed,
   congestion_score
-FROM gold.hourly_street_metrics
-WHERE congestion_score IS NOT NULL;
+FROM gold.current_corridor_traffic
+WHERE source_provider = 'tomtom';
 
 CREATE OR REPLACE VIEW serving.vw_weather_impact AS
 SELECT
-  metric_date,
-  weather_label,
-  avg_speed,
-  avg_congestion_score
-FROM gold.weather_traffic_impact
-WHERE avg_congestion_score IS NOT NULL;
+  weather.observed_at::date AS metric_date,
+  weather.weather_label,
+  ROUND(AVG(traffic.current_speed_kmh), 2)::NUMERIC(10, 2) AS avg_speed,
+  ROUND(AVG(traffic.congestion_score), 2)::NUMERIC(5, 2) AS avg_congestion_score
+FROM silver.current_weather_snapshot weather
+CROSS JOIN gold.current_corridor_traffic traffic
+WHERE weather.source_provider = 'open-meteo'
+  AND traffic.source_provider = 'tomtom'
+GROUP BY weather.observed_at::date, weather.weather_label;
 
 CREATE OR REPLACE VIEW serving.vw_routes_report AS
 SELECT
@@ -40,7 +44,8 @@ SELECT
   avg_congestion_score,
   estimated_duration_minutes,
   congestion_level
-FROM gold.route_summary;
+FROM gold.route_summary
+WHERE FALSE;
 
 CREATE OR REPLACE VIEW serving.vw_routes_hourly AS
 SELECT
@@ -51,7 +56,8 @@ SELECT
   avg_speed,
   avg_congestion_score,
   estimated_duration_minutes
-FROM gold.route_hourly_report;
+FROM gold.route_hourly_report
+WHERE FALSE;
 
 CREATE OR REPLACE VIEW serving.vw_map_events AS
 SELECT
@@ -63,7 +69,8 @@ SELECT
   severity,
   latitude,
   longitude
-FROM silver.events_observations;
+FROM silver.tomtom_incidents
+WHERE source_provider = 'tomtom';
 
 CREATE OR REPLACE VIEW serving.vw_ride_history AS
 SELECT
@@ -95,7 +102,8 @@ SELECT
   estimated_duration_minutes,
   ride_status,
   source,
-  created_at
+  created_at,
+  traffic_data_source
 FROM silver.user_ride_history;
 
 CREATE OR REPLACE VIEW serving.vw_user_preferences AS
@@ -129,19 +137,20 @@ FROM silver.saved_routes;
 
 CREATE OR REPLACE VIEW serving.vw_reports_summary AS
 SELECT
-  (SELECT COUNT(*) FROM gold.route_summary) AS route_count,
-  (SELECT COUNT(*) FROM gold.top_congested_segments) AS congested_segment_count,
-  (SELECT COUNT(*) FROM silver.events_observations) AS event_count,
+  0::bigint AS route_count,
+  (SELECT COUNT(*) FROM gold.current_corridor_traffic WHERE source_provider = 'tomtom') AS congested_segment_count,
+  (SELECT COUNT(*) FROM silver.tomtom_incidents WHERE source_provider = 'tomtom') AS event_count,
   (SELECT COUNT(*) FROM silver.ride_history) AS ride_count,
-  (SELECT ROUND(AVG(avg_congestion_score), 2) FROM gold.route_summary) AS avg_route_congestion_score,
-  (SELECT ROUND(AVG(avg_speed), 2) FROM gold.route_summary) AS avg_route_speed,
-  (SELECT COUNT(*) FROM gold.route_summary WHERE congestion_level = 'high') AS high_congestion_route_count;
+  (SELECT ROUND(AVG(congestion_score), 2) FROM gold.current_corridor_traffic WHERE source_provider = 'tomtom') AS avg_route_congestion_score,
+  (SELECT ROUND(AVG(current_speed_kmh), 2) FROM gold.current_corridor_traffic WHERE source_provider = 'tomtom') AS avg_route_speed,
+  (SELECT COUNT(*) FROM gold.current_corridor_traffic WHERE source_provider = 'tomtom' AND congestion_score >= 65) AS high_congestion_route_count;
 
 CREATE OR REPLACE VIEW serving.vw_top_congested_segments AS
 SELECT
-  segment_rank,
-  street_name,
-  observation_count,
-  avg_speed,
-  avg_congestion_score
-FROM gold.top_congested_segments;
+  ROW_NUMBER() OVER (ORDER BY congestion_score DESC, corridor_key ASC)::integer AS segment_rank,
+  corridor_name AS street_name,
+  1::integer AS observation_count,
+  current_speed_kmh AS avg_speed,
+  congestion_score AS avg_congestion_score
+FROM gold.current_corridor_traffic
+WHERE source_provider = 'tomtom';

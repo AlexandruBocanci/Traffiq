@@ -50,3 +50,20 @@ CREATE TABLE IF NOT EXISTS bronze.rides_raw (
     raw_congestion_score VARCHAR(50),
     raw_status VARCHAR(50)
 );
+
+CREATE TABLE IF NOT EXISTS bronze.tomtom_flow_raw (
+    ingestion_id SERIAL PRIMARY KEY,
+    corridor_key VARCHAR(100) NOT NULL,
+    corridor_name VARCHAR(255) NOT NULL,
+    requested_latitude NUMERIC(9, 6) NOT NULL,
+    requested_longitude NUMERIC(9, 6) NOT NULL,
+    ingested_at TIMESTAMP NOT NULL,
+    raw_payload JSONB NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS bronze.tomtom_incidents_raw (
+    ingestion_id SERIAL PRIMARY KEY,
+    requested_bounding_box VARCHAR(255) NOT NULL,
+    ingested_at TIMESTAMP NOT NULL,
+    raw_payload JSONB NOT NULL
+);

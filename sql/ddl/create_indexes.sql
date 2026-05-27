@@ -39,3 +39,12 @@ ON silver.saved_routes (cognito_user_sub ASC, origin_name ASC, destination_name 
 
 CREATE INDEX IF NOT EXISTS idx_top_congested_segments_rank
 ON gold.top_congested_segments (segment_rank ASC);
+
+CREATE INDEX IF NOT EXISTS idx_tomtom_flow_observations_time
+ON silver.tomtom_flow_observations (observed_at DESC, corridor_key ASC);
+
+CREATE INDEX IF NOT EXISTS idx_tomtom_incidents_observed_at
+ON silver.tomtom_incidents (observed_at DESC, severity ASC);
+
+CREATE INDEX IF NOT EXISTS idx_current_corridor_traffic_score
+ON gold.current_corridor_traffic (congestion_score DESC, observed_at DESC);

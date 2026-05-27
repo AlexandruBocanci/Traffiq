@@ -100,14 +100,18 @@ imageStatus: ACTIVE
 Latest image update:
 
 ```text
-May 25, 2026 - post-v3 Iulius Mall Suceava coordinate correction
+May 27, 2026 - Task 36C TomTom real mobility serving backend
 ```
 
-Previous Task 26 digest:
+Current Task 36C digest:
 
 ```text
-sha256:d3ae9c92395cfeb4dab1e57494a6558f8df8002fda85ab98aa00295610071865
+sha256:5f8426c9bd906f9597f87fb53d200eda7a889a9f04e0c709e981eaef819a39d0
 ```
+
+Before the Task 36C image was built, `.dockerignore` was verified to exclude
+`.env` and `.env.*`. The image therefore does not package the local TomTom
+key or RDS password.
 
 ## What This Enables
 

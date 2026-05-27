@@ -140,6 +140,7 @@ def test_authenticated_user_can_add_and_view_own_ride_history():
     "congestion_score",
     "estimated_duration_minutes",
     "ride_status",
+    "traffic_data_source",
   ]
 
   for key in required_keys:
@@ -163,6 +164,12 @@ def test_authenticated_user_can_add_and_view_own_ride_history():
 
   if ride["ride_status"] != "completed":
     print("FAILED: ride status should be completed.")
+    print(ride)
+    cleanup_user_ride_history()
+    return 0
+
+  if ride["traffic_data_source"] != "tomtom_snapshot":
+    print("FAILED: a new ride with a real traffic snapshot should record its provenance.")
     print(ride)
     cleanup_user_ride_history()
     return 0

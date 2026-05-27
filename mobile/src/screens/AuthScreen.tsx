@@ -24,6 +24,7 @@ import { AuthMode } from '../types/auth';
 
 type AuthScreenProps = {
   initialMode?: AuthMode;
+  onInputFocus?: () => void;
 };
 
 function getModeTitle(mode: AuthMode) {
@@ -120,7 +121,10 @@ function getFriendlyAuthError(error: unknown) {
   return 'Authentication could not be completed. Check your details and try again.';
 }
 
-export default function AuthScreen({ initialMode = 'login' }: AuthScreenProps) {
+export default function AuthScreen({
+  initialMode = 'login',
+  onInputFocus,
+}: AuthScreenProps) {
   const { signIn } = useAuth();
   const [mode, setMode] = useState<AuthMode>(initialMode);
   const [email, setEmail] = useState('');
@@ -241,6 +245,7 @@ export default function AuthScreen({ initialMode = 'login' }: AuthScreenProps) {
           autoComplete="email"
           keyboardType="email-address"
           onChangeText={setEmail}
+          onFocus={onInputFocus}
           placeholder="Email"
           placeholderTextColor={colors.textMuted}
           style={styles.input}
@@ -252,6 +257,7 @@ export default function AuthScreen({ initialMode = 'login' }: AuthScreenProps) {
             autoCapitalize="none"
             keyboardType="number-pad"
             onChangeText={setCode}
+            onFocus={onInputFocus}
             placeholder="Confirmation code"
             placeholderTextColor={colors.textMuted}
             style={styles.input}
@@ -263,6 +269,7 @@ export default function AuthScreen({ initialMode = 'login' }: AuthScreenProps) {
           <TextInput
             autoCapitalize="none"
             onChangeText={setPassword}
+            onFocus={onInputFocus}
             placeholder={mode === 'reset' ? 'New password' : 'Password'}
             placeholderTextColor={colors.textMuted}
             secureTextEntry

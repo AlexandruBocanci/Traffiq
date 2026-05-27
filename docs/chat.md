@@ -3900,6 +3900,114 @@ Remaining final-release validation:
   physical-phone test and verify the same behavior in the final installed APK
 - OpenStreetMap attribution intentionally remains visible in the expanded map;
   hiding it entirely would violate the public tile-provider usage requirement
+
+### Update 119 - Task 36C real TomTom mobility ingestion and mobile presentation implemented
+
+Completed implementation for `Task 36C. Replace controlled traffic and event
+data with real TomTom ingestion`.
+
+Backend and data pipeline implementation:
+
+- added TomTom Traffic Flow extraction for three monitored Suceava corridors:
+  - `Calea Unirii`
+  - `Bulevardul 1 Mai`
+  - `Strada Stefan cel Mare`
+- added TomTom Traffic Incidents extraction for the Suceava bounding area
+- added Bronze, Silver, Gold, and Serving processing for real observations
+- added a current Open-Meteo weather snapshot used alongside real traffic
+- derived corridor slowdown from TomTom observed and free-flow speeds:
+  - `((free_flow_speed - current_speed) / free_flow_speed) * 100`
+- stopped user-facing endpoints from exposing seeded route analytics as
+  current traffic
+- preserved personal ride history while adding `traffic_data_source`, so
+  legacy values are not represented as verified real TomTom observations
+
+Security and cost handling:
+
+- stored the TomTom key only in the local Git-ignored `.env` for this manual
+  ingestion task
+- verified `.dockerignore` prevents `.env` values from entering the ECR image
+- kept TomTom calls outside the APK; the phone reads FastAPI only
+- did not enable any scheduled or automatic external refresh during Task 36C
+- verified the TomTom free non-tile allowance on `May 27, 2026` before
+  activation; one manual snapshot uses four TomTom requests
+
+Cloud validation:
+
+```text
+RDS TomTom pipeline run_id -> 8
+pipeline_name -> tomtom_real_mobility_snapshot
+pipeline status -> success
+TomTom flow observations -> 3
+TomTom incidents stored -> 24
+weather current snapshot -> 1
+gold current corridors -> 3
+ECR/App Runner digest -> sha256:5f8426c9bd906f9597f87fb53d200eda7a889a9f04e0c709e981eaef819a39d0
+App Runner status -> RUNNING
+GET /health -> status=ok
+GET /mobile/drive-overview -> traffic_source=tomtom, congested=3, events=5, weather=1, routes=0, rides=0
+GET /reports/overview -> route_highlights=0, top_congested_segments=3
+GET /routes/report -> count=0
+GET /rides/history without token -> 401
+```
+
+Mobile UI/UX refinements included before task handoff:
+
+- real TomTom traffic/incident wording replaces demo claims in the Drive
+  experience
+- old/unverified ride history no longer displays a real traffic score claim
+- expanded-map header respects phone safe area and uses a visible dark status
+  bar treatment
+- Account authentication form moves above the phone keyboard
+- Pipeline data-quality badges stay inside cards with long check names
+- live map uses phone compass heading with GPS fallback and a directional
+  location marker
+- rotation updates are filtered to reduce compass jitter:
+  - maximum one bearing correction every `3.5` seconds
+  - angle changes below `10` degrees ignored
+- manual zoom or pan suspends automatic following; `Press to recenter`
+  reactivates follow behavior
+
+Validation after final mobile edits:
+
+```text
+npx.cmd tsc --noEmit -> passed
+npx.cmd expo-doctor -> 18/18 checks passed
+npx.cmd expo export --platform android --output-dir .expo-export-task36c-follow-mode -> passed
+Android bundle -> 1.96 MB, 622 modules
+generated Android validation artifact -> deleted
+git diff --check -> passed with only expected Windows LF/CRLF warnings
+```
+
+Release note:
+
+- an intermediate EAS APK build completed before the final map/UI refinements
+  and is obsolete for final validation
+- per user decision, no replacement APK is generated after each UI update;
+  one final APK build will be generated after the accepted remaining tasks
+
+Next accepted task:
+
+- `Task 36D. Refresh real traffic on app use with server-side 15-minute rate limit`
+- selected architecture:
+  - mobile requests the FastAPI backend only
+  - backend refreshes external observations only when the global snapshot is
+    older than 15 minutes
+  - TomTom calls remain server-side with an AWS-managed secret
+  - maximum designed TomTom traffic volume is `384` non-tile requests/day
+    under a 15-minute global refresh limit
+
+Documentation updated:
+
+- `README.md`
+- `docs/Traffiq_v4_execution_plan.md`
+- `docs/TOMTOM_REAL_MOBILITY_INGESTION.md`
+- `docs/SECRETS_AND_CONFIG.md`
+- `docs/AWS_RDS_SCHEMA.md`
+- `docs/AWS_RDS_ETL_PIPELINE.md`
+- `docs/AWS_ECR_BACKEND_IMAGE.md`
+- `docs/AWS_APP_RUNNER_BACKEND.md`
+- `docs/chat.md`
 ---
 
 ## 9. Instructions For Any New Chat

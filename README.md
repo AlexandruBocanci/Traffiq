@@ -5,7 +5,7 @@ Traffiq is an end-to-end traffic intelligence data engineering portfolio project
 It ingests traffic, weather, route, event, and ride data, processes them through Python ETL pipelines, stores them in PostgreSQL analytical layers, exposes the results through FastAPI, and presents them in a React Native / Expo mobile app.
 
 The project is built to demonstrate practical Junior Data Engineer skills, not to pretend to be a production Waze clone.
-The final demo dataset is localized to Suceava streets, corridors, route examples, traffic events, weather impact, and personal route flows.
+The v4 mobile data surface is localized to Suceava and uses real TomTom traffic/incident snapshots for monitored corridors, real Open-Meteo weather, and protected personal route flows.
 
 ## What The Project Demonstrates
 
@@ -25,14 +25,12 @@ Traffiq v4 is the final portfolio/licence version currently being polished.
 
 Traffiq v4 includes:
 
-- traffic CSV ingestion
+- TomTom Traffic Flow ingestion for three monitored Suceava corridors
+- TomTom Traffic Incidents ingestion for the Suceava bounding area
 - weather API ingestion through Open-Meteo
 - route reference ingestion
-- traffic event ingestion
-- traffic-weather enrichment
-- route-level analytics
-- hourly route reporting
-- top congested segment analytics
+- current traffic-weather presentation based on real observations
+- current monitored-corridor slowdown analytics
 - serving-layer views optimized for API usage
 - backend-shaped mobile response through `/mobile/drive-overview`
 - public FastAPI deployment on AWS App Runner
@@ -46,7 +44,7 @@ Traffiq v4 includes:
 ## Architecture
 
 ```text
-Traffic CSV + Weather API + Route/Event/Ride CSVs
+TomTom Traffic APIs + Open-Meteo Weather API
         |
         v
 Python Extract / Transform / Load
@@ -317,9 +315,10 @@ A production real-time navigation app.
 
 Current limitations are intentional and documented:
 
-- traffic data is not real-time yet
-- route and event sources are controlled demo datasets
+- traffic is real observed TomTom snapshot data for three monitored corridors, not full-city live coverage
+- refresh automation is not enabled until Task 36D introduces server-side rate limiting and secret handling
+- historical route analytics from the controlled seed dataset are not exposed as current mobile traffic
 - the app is not a full navigation engine
-- AWS deployment is partial and intentionally low-cost
+- AWS deployment remains intentionally low-cost
 
 The strength of the project is the end-to-end data system: ingestion, transformation, SQL modeling, API serving, mobile consumption, observability, Docker, and cloud readiness.

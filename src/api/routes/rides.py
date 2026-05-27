@@ -39,6 +39,7 @@ def _serialize_ride_history_row(row):
     "congestion_score": float(row[8]) if row[8] is not None else None,
     "estimated_duration_minutes": float(row[9]) if row[9] is not None else None,
     "ride_status": row[10],
+    "traffic_data_source": row[11],
   }
 
 
@@ -67,7 +68,8 @@ def get_rides_history(current_user: dict = Depends(require_current_user)):
         avg_speed,
         congestion_score,
         estimated_duration_minutes,
-        ride_status
+        ride_status,
+        traffic_data_source
       FROM serving.vw_user_ride_history
       WHERE cognito_user_sub = %s
       ORDER BY started_at DESC, ride_id ASC
@@ -121,9 +123,9 @@ def add_ride_history(
   ended_at = datetime.now()
   started_at = ended_at - timedelta(minutes=request.duration_minutes)
   avg_speed = round(request.distance_km / (request.duration_minutes / 60), 2)
-  congestion_score = request.congestion_score if request.congestion_score is not None else 0
+  congestion_score = request.congestion_score
 
-  if congestion_score < 0 or congestion_score > 100:
+  if congestion_score is not None and (congestion_score < 0 or congestion_score > 100):
     raise HTTPException(status_code=400, detail="congestion_score must be between 0 and 100.")
 
   try:
@@ -133,6 +135,24 @@ def add_ride_history(
       raise HTTPException(status_code=500, detail="Database connection failed.")
 
     cur = conn.cursor()
+    traffic_data_source = "unavailable"
+
+    if congestion_score is not None:
+      cur.execute(
+        """
+        SELECT EXISTS (
+          SELECT 1
+          FROM gold.current_corridor_traffic
+          WHERE source_provider = 'tomtom'
+        );
+        """
+      )
+
+      if cur.fetchone()[0]:
+        traffic_data_source = "tomtom_snapshot"
+      else:
+        congestion_score = None
+
     cur.execute(
       """
       INSERT INTO silver.user_ride_history (
@@ -146,9 +166,10 @@ def add_ride_history(
         avg_speed,
         congestion_score,
         estimated_duration_minutes,
-        ride_status
+        ride_status,
+        traffic_data_source
       )
-      VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+      VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
       RETURNING
         ride_id,
         started_at,
@@ -160,7 +181,8 @@ def add_ride_history(
         avg_speed,
         congestion_score,
         estimated_duration_minutes,
-        ride_status;
+        ride_status,
+        traffic_data_source;
       """,
       (
         current_user["sub"],
@@ -174,6 +196,7 @@ def add_ride_history(
         congestion_score,
         request.duration_minutes,
         request.ride_status,
+        traffic_data_source,
       ),
     )
 

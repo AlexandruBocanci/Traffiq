@@ -18,7 +18,7 @@ import { PipelineStatusResponse } from '../types/api';
 const PIPELINE_STEPS = [
   {
     title: 'Extract',
-    description: 'Traffic CSV ingestion, Open-Meteo weather ingestion, and controlled Suceava seed data.',
+    description: 'TomTom traffic flow and incidents plus Open-Meteo weather are requested for Suceava.',
   },
   {
     title: 'Bronze',
@@ -30,7 +30,7 @@ const PIPELINE_STEPS = [
   },
   {
     title: 'Gold',
-    description: 'Business-level route, congestion, weather, and hourly metrics are calculated.',
+    description: 'Current monitored-corridor slowdown is calculated against TomTom free-flow speed.',
   },
   {
     title: 'Serving',
@@ -210,7 +210,7 @@ export default function PipelineScreen({ onBackToDrive }: PipelineScreenProps) {
             qualityChecks.map((check) => (
               <View key={check.check_id} style={styles.card}>
                 <View style={styles.checkHeader}>
-                  <Text style={styles.cardTitle}>
+                  <Text style={[styles.cardTitle, styles.checkTitle]}>
                     {formatCheckName(check.check_name)}
                   </Text>
                   <Text
@@ -402,10 +402,14 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   checkHeader: {
-    alignItems: 'center',
+    alignItems: 'flex-start',
     flexDirection: 'row',
     gap: 10,
     justifyContent: 'space-between',
+  },
+  checkTitle: {
+    flex: 1,
+    flexShrink: 1,
   },
   statusBadge: {
     borderRadius: 999,
@@ -414,6 +418,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     paddingHorizontal: 10,
     paddingVertical: 5,
+    flexShrink: 0,
     textTransform: 'uppercase',
   },
   statusBadgePassed: {

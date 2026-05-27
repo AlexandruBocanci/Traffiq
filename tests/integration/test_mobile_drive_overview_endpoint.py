@@ -1,20 +1,12 @@
 from fastapi.testclient import TestClient
 
 from src.api.main import app
-from src.pipeline.seed_demo_data import seed_demo_data
 
 
 client = TestClient(app)
 
 
 def test_mobile_drive_overview_endpoint():
-  seed_result = seed_demo_data()
-
-  if seed_result.get("status") != "success":
-    print("FAILED: seed_demo_data should return success.")
-    print(seed_result)
-    return 0
-
   response = client.get("/mobile/drive-overview")
 
   if response.status_code != 200:
@@ -23,7 +15,16 @@ def test_mobile_drive_overview_endpoint():
     return 0
 
   response_json = response.json()
-  required_keys = ["routes", "events", "rides", "congested", "weather"]
+  required_keys = [
+    "routes",
+    "events",
+    "rides",
+    "congested",
+    "weather",
+    "traffic_source",
+    "traffic_scope",
+    "traffic_observed_at",
+  ]
 
   for key in required_keys:
     if key not in response_json:
@@ -31,36 +32,38 @@ def test_mobile_drive_overview_endpoint():
       print(response_json)
       return 0
 
-    if key != "rides" and len(response_json[key]) == 0:
-      print(f"FAILED: {key} should not be empty.")
-      print(response_json)
-      return 0
+  if response_json["routes"] != []:
+    print("FAILED: controlled route recommendations must not be exposed as current traffic.")
+    print(response_json["routes"])
+    return 0
 
   if response_json["rides"] != []:
     print("FAILED: public mobile overview should not expose personal ride history.")
     print(response_json)
     return 0
 
-  first_route = response_json["routes"][0]
-  route_keys = [
-    "route_id",
-    "route_name",
-    "origin_name",
-    "destination_name",
-    "avg_speed",
-    "avg_congestion_score",
-    "estimated_duration_minutes",
-    "congestion_level",
-  ]
+  if response_json["traffic_source"] != "tomtom" or not response_json["traffic_observed_at"]:
+    print("FAILED: mobile overview must identify a real TomTom snapshot.")
+    print(response_json)
+    return 0
 
-  for key in route_keys:
-    if key not in first_route:
-      print(f"FAILED: missing route key {key}.")
-      print(first_route)
+  if len(response_json["congested"]) == 0 or len(response_json["weather"]) == 0:
+    print("FAILED: real traffic and weather snapshot rows should be available.")
+    print(response_json)
+    return 0
+
+  for row in response_json["congested"]:
+    if row["source_provider"] != "tomtom":
+      print("FAILED: a congestion row does not come from TomTom.")
+      print(row)
       return 0
 
-  print("SUCCESS: Mobile drive overview endpoint test passed.")
-  print(response_json)
+    if row["congestion_score"] < 0 or row["congestion_score"] > 100:
+      print("FAILED: congestion score should be between 0 and 100.")
+      print(row)
+      return 0
+
+  print("SUCCESS: Mobile overview exposes verified TomTom traffic without demo routes.")
   return 1
 
 

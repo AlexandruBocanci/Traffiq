@@ -29,6 +29,14 @@ function formatValue(value: number | null | undefined, suffix = '') {
   return `${value}${suffix}`;
 }
 
+function formatTrafficValue(ride: RideHistoryRecord) {
+  if (ride.traffic_data_source !== 'tomtom_snapshot') {
+    return 'N/A';
+  }
+
+  return formatValue(ride.congestion_score);
+}
+
 export default function HistoryScreen({
   onBackToDrive,
   onOpenAccount,
@@ -155,7 +163,7 @@ export default function HistoryScreen({
                 </View>
                 <View style={styles.metric}>
                   <Text style={styles.metricValue}>
-                    {formatValue(ride.congestion_score)}
+                    {formatTrafficValue(ride)}
                   </Text>
                   <Text style={styles.metricLabel}>Traffic</Text>
                 </View>

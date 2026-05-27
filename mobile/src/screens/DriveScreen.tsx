@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import * as Location from 'expo-location';
+import { StatusBar } from 'expo-status-bar';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   KeyboardAvoidingView,
   Modal,
@@ -53,6 +55,9 @@ type DriveState = {
   rides: RideHistoryRecord[];
   congested: TopCongestedStreetRecord[];
   weather: WeatherImpactRecord[];
+  trafficSource: 'tomtom';
+  trafficScope: string;
+  trafficObservedAt: string | null;
 };
 
 type PlannedRoute = {
@@ -63,6 +68,7 @@ type PlannedRoute = {
 type RouteOriginMode = 'current' | 'manual';
 
 type CurrentRouteLocation = {
+  headingDegrees?: number | null;
   latitude: number;
   longitude: number;
 };
@@ -127,6 +133,12 @@ function formatDistance(valueKm: number | null | undefined, unit: DistanceUnit) 
   }
 
   return `${valueKm} km`;
+}
+
+function formatRideTraffic(ride: RideHistoryRecord) {
+  return ride.traffic_data_source === 'tomtom_snapshot'
+    ? `${formatValue(ride.congestion_score)} traffic`
+    : 'traffic not verified';
 }
 
 function formatCacheTimestamp(value: string | null) {
@@ -288,21 +300,21 @@ function buildRouteConditionSummary(
   const cityAlerts = events.slice(0, 3);
   const tone = getRouteConditionTone(congestionScore, cityAlerts);
   const weatherLabel = weatherImpact?.weather_label ?? 'No weather signal';
-  const congestedStreet = topCongestedSegment?.street_name ?? 'Suceava city network';
+  const congestedStreet = topCongestedSegment?.street_name ?? 'Monitored Suceava corridors';
 
   const descriptions: Record<RouteConditionTone, string> = {
     high:
-      'Expect a slower trip. The route estimate is combined with elevated Suceava congestion signals and mapped city alerts.',
+      'Expect a slower trip. The route estimate is combined with elevated observed corridor traffic and mapped incidents.',
     low:
-      'No heavy Suceava congestion signal is shown for this preview. Use the ETA as the baseline estimate.',
+      'No heavy traffic signal is observed on monitored corridors. Use the ETA as the baseline estimate.',
     moderate:
-      'Expect some delay around Suceava. The estimate combines route duration with current city congestion and weather context.',
+      'Expect some delay around Suceava. The estimate combines route duration with current monitored-corridor traffic and weather.',
   };
 
   return {
     alertContext: cityAlerts.length
-      ? `${cityAlerts.length} mapped city alert${cityAlerts.length === 1 ? '' : 's'}`
-      : 'No mapped alerts',
+      ? `${cityAlerts.length} TomTom incident${cityAlerts.length === 1 ? '' : 's'}`
+      : 'No active incidents',
     congestionContext:
       congestionScore === null || congestionScore === undefined
         ? `${congestedStreet}: no score`
@@ -319,6 +331,7 @@ export default function DriveScreen({
   onOpenAccount,
   onOpenHistory,
 }: DriveScreenProps) {
+  const insets = useSafeAreaInsets();
   const { getAccessToken, isAuthenticated, session } = useAuth();
   const [data, setData] = useState<DriveState>({
     routes: [],
@@ -326,6 +339,9 @@ export default function DriveScreen({
     rides: [],
     congested: [],
     weather: [],
+    trafficSource: 'tomtom',
+    trafficScope: 'Three monitored Suceava corridors',
+    trafficObservedAt: null,
   });
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
@@ -340,6 +356,8 @@ export default function DriveScreen({
   const [liveDriveLocation, setLiveDriveLocation] =
     useState<CurrentRouteLocation | null>(null);
   const [liveDriveSpeedKmh, setLiveDriveSpeedKmh] = useState<number | null>(null);
+  const [liveDriveHeadingDegrees, setLiveDriveHeadingDegrees] = useState<number | null>(null);
+  const [isMapFollowingLocation, setIsMapFollowingLocation] = useState(true);
   const [isRideSheetVisible, setIsRideSheetVisible] = useState(false);
   const [routeOriginMode, setRouteOriginMode] = useState<RouteOriginMode>('current');
   const [manualRouteOrigin, setManualRouteOrigin] = useState('');
@@ -369,7 +387,17 @@ export default function DriveScreen({
 
       const driveOverview = await getDriveOverview();
 
-      setData(driveOverview);
+      if (driveOverview.traffic_source !== 'tomtom') {
+        throw new Error('Backend is not serving the real TomTom mobility snapshot yet.');
+      }
+
+      setData({
+        ...driveOverview,
+        trafficSource: driveOverview.traffic_source ?? 'tomtom',
+        trafficScope:
+          driveOverview.traffic_scope ?? 'Three monitored Suceava corridors',
+        trafficObservedAt: driveOverview.traffic_observed_at ?? null,
+      });
       setIsDriveDataCached(false);
       setDriveCacheSavedAt(null);
 
@@ -381,8 +409,17 @@ export default function DriveScreen({
     } catch (error) {
       const cachedDriveOverview = await getCachedDriveOverview();
 
-      if (cachedDriveOverview) {
-        setData(cachedDriveOverview.data);
+      if (
+        cachedDriveOverview &&
+        cachedDriveOverview.data.traffic_source === 'tomtom'
+      ) {
+        setData({
+          ...cachedDriveOverview.data,
+          trafficSource: cachedDriveOverview.data.traffic_source ?? 'tomtom',
+          trafficScope:
+            cachedDriveOverview.data.traffic_scope ?? 'Three monitored Suceava corridors',
+          trafficObservedAt: cachedDriveOverview.data.traffic_observed_at ?? null,
+        });
         setIsDriveDataCached(true);
         setDriveCacheSavedAt(cachedDriveOverview.savedAt);
         setErrorMessage('');
@@ -390,7 +427,7 @@ export default function DriveScreen({
       }
 
       setErrorMessage(
-        'Traffiq cannot reach the cloud backend yet, and this phone has no saved Drive snapshot.'
+        'Traffiq cannot load a verified real mobility snapshot yet. Run the real-data pipeline and try again.'
       );
     } finally {
       setIsLoading(false);
@@ -427,15 +464,24 @@ export default function DriveScreen({
   }, [getAccessToken, isAuthenticated, session?.tokens.accessToken]);
 
   useEffect(() => {
+    if (isMapExpandedVisible) {
+      setIsMapFollowingLocation(true);
+    }
+  }, [isMapExpandedVisible]);
+
+  useEffect(() => {
     if (!isLiveMapTrackingEnabled) {
       setDriveGpsStatus('inactive');
       setLiveDriveLocation(null);
       setLiveDriveSpeedKmh(null);
+      setLiveDriveHeadingDegrees(null);
       return;
     }
 
     let isMounted = true;
-    let subscription: Location.LocationSubscription | null = null;
+    let positionSubscription: Location.LocationSubscription | null = null;
+    let headingSubscription: Location.LocationSubscription | null = null;
+    let hasCompassHeading = false;
 
     async function startDriveTracking() {
       try {
@@ -451,7 +497,21 @@ export default function DriveScreen({
           return;
         }
 
-        subscription = await Location.watchPositionAsync(
+        headingSubscription = await Location.watchHeadingAsync((heading) => {
+          if (!isMounted) {
+            return;
+          }
+
+          const degrees =
+            heading.trueHeading >= 0 ? heading.trueHeading : heading.magHeading;
+
+          if (degrees >= 0) {
+            hasCompassHeading = true;
+            setLiveDriveHeadingDegrees(degrees);
+          }
+        });
+
+        positionSubscription = await Location.watchPositionAsync(
           {
             accuracy: Location.Accuracy.High,
             distanceInterval: 3,
@@ -462,6 +522,10 @@ export default function DriveScreen({
               return;
             }
 
+            const gpsHeading =
+              position.coords.heading === null || position.coords.heading < 0
+                ? null
+                : position.coords.heading;
             const location = {
               latitude: position.coords.latitude,
               longitude: position.coords.longitude,
@@ -471,6 +535,9 @@ export default function DriveScreen({
             setDriveGpsStatus('tracking');
             setLiveDriveLocation(location);
             setCurrentRouteLocation(location);
+            if (!hasCompassHeading && gpsHeading !== null) {
+              setLiveDriveHeadingDegrees(gpsHeading);
+            }
             setLiveDriveSpeedKmh(
               speedMetersPerSecond === null || speedMetersPerSecond < 0
                 ? null
@@ -481,6 +548,7 @@ export default function DriveScreen({
             if (isMounted) {
               setDriveGpsStatus('unavailable');
               setLiveDriveSpeedKmh(null);
+              setLiveDriveHeadingDegrees(null);
             }
           }
         );
@@ -488,6 +556,7 @@ export default function DriveScreen({
         if (isMounted) {
           setDriveGpsStatus('unavailable');
           setLiveDriveSpeedKmh(null);
+          setLiveDriveHeadingDegrees(null);
         }
       }
     }
@@ -496,7 +565,8 @@ export default function DriveScreen({
 
     return () => {
       isMounted = false;
-      subscription?.remove();
+      positionSubscription?.remove();
+      headingSubscription?.remove();
     };
   }, [isLiveMapTrackingEnabled]);
 
@@ -727,7 +797,6 @@ export default function DriveScreen({
     );
   }
 
-  const primaryRoute = data.routes[0];
   const primaryEvent = data.events[0];
   const topCongestedSegment = data.congested[0];
   const weatherImpact = data.weather[0];
@@ -741,6 +810,7 @@ export default function DriveScreen({
   );
   const driveCacheTimestamp = formatCacheTimestamp(driveCacheSavedAt);
   const routePreviewCacheTimestamp = formatCacheTimestamp(routePreviewCacheSavedAt);
+  const trafficObservedTimestamp = formatCacheTimestamp(data.trafficObservedAt);
   const shouldShowInlineRouteConfirmation =
     !!plannedRoute && !isRouteConfirmationVisible && !isMapExpandedVisible;
 
@@ -999,47 +1069,50 @@ export default function DriveScreen({
 
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Route traffic insight</Text>
-            <Text style={styles.sectionAction}>Live model</Text>
+            <Text style={styles.sectionTitle}>Observed traffic</Text>
+            <Text style={styles.sectionAction}>TomTom flow</Text>
           </View>
 
-          {!primaryRoute ? (
+          {!topCongestedSegment ? (
             <EmptyState
-              message="Run the ETL seed or check the backend serving view if this appears during a demo."
-              title="No route insight available"
+              message="Run the real mobility ingestion pipeline to load a current TomTom traffic snapshot."
+              title="No real traffic observation yet"
             />
           ) : (
             <View style={styles.recommendationCard}>
               <View style={styles.cardTopRow}>
-                <Text style={styles.recommendationTitle}>{primaryRoute.route_name}</Text>
-                <Text style={styles.levelBadge}>{primaryRoute.congestion_level ?? 'unknown'}</Text>
+                <Text style={styles.recommendationTitle}>{topCongestedSegment.street_name}</Text>
+                <Text style={styles.levelBadge}>
+                  {formatValue(topCongestedSegment.congestion_score)}/100
+                </Text>
               </View>
               <Text style={styles.cardText}>
-                {primaryRoute.origin_name} to {primaryRoute.destination_name}
+                Highest current slowdown among {data.trafficScope.toLowerCase()}.
               </Text>
               <Text style={styles.cardText}>
-                Analytical snapshot from the Suceava dataset, not a live navigation
-                recommendation.
+                Real TomTom observation
+                {trafficObservedTimestamp ? ` captured ${trafficObservedTimestamp}` : ''};
+                this is not a full-city traffic claim.
               </Text>
 
               <View style={styles.tripStats}>
                 <View style={styles.tripStat}>
                   <Text style={styles.tripValue}>
-                    {formatValue(primaryRoute.estimated_duration_minutes, 'm')}
+                    {formatValue(topCongestedSegment.avg_speed, ' km/h')}
                   </Text>
-                  <Text style={styles.tripLabel}>ETA</Text>
+                  <Text style={styles.tripLabel}>Current</Text>
                 </View>
                 <View style={styles.tripStat}>
                   <Text style={styles.tripValue}>
-                    {formatValue(primaryRoute.avg_speed, ' km/h')}
+                    {formatValue(topCongestedSegment.free_flow_speed_kmh, ' km/h')}
                   </Text>
-                  <Text style={styles.tripLabel}>Speed</Text>
+                  <Text style={styles.tripLabel}>Free flow</Text>
                 </View>
                 <View style={styles.tripStat}>
                   <Text style={styles.tripValue}>
-                    {formatValue(primaryRoute.avg_congestion_score)}
+                    {formatValue(topCongestedSegment.congestion_score)}
                   </Text>
-                  <Text style={styles.tripLabel}>Traffic</Text>
+                  <Text style={styles.tripLabel}>Slowdown</Text>
                 </View>
               </View>
             </View>
@@ -1049,13 +1122,13 @@ export default function DriveScreen({
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Mapped Suceava alerts</Text>
-            <Text style={styles.sectionAction}>Demo data</Text>
+            <Text style={styles.sectionAction}>TomTom incidents</Text>
           </View>
 
           {!primaryEvent ? (
             <EmptyState
-              message="The controlled Suceava alert feed returned no rows for this snapshot."
-              title="No mapped alerts available"
+              message="TomTom returned no active traffic incidents in the Suceava area for the latest snapshot."
+              title="No active mapped alerts"
             />
           ) : (
             data.events.slice(0, 3).map((event) => (
@@ -1088,9 +1161,9 @@ export default function DriveScreen({
             <Text style={styles.recentRideTitle}>{recentRide?.route_name ?? 'Ride history'}</Text>
             <Text style={styles.recentRideText}>
               {recentRide
-                ? `${formatValue(recentRide.estimated_duration_minutes, ' min')} · ${formatValue(
-                    recentRide.congestion_score
-                  )} traffic`
+                ? `${formatValue(recentRide.estimated_duration_minutes, ' min')} · ${formatRideTraffic(
+                    recentRide
+                  )}`
                 : 'Sign in to view personal rides'}
             </Text>
           </View>
@@ -1103,8 +1176,14 @@ export default function DriveScreen({
         visible={isMapExpandedVisible}
         onRequestClose={() => setIsMapExpandedVisible(false)}
       >
+        <StatusBar backgroundColor={colors.background} style="light" translucent />
         <SafeAreaView style={styles.expandedMapContainer}>
-          <View style={styles.expandedMapHeader}>
+          <View
+            style={[
+              styles.expandedMapHeader,
+              { paddingTop: Math.max(insets.top + 10, 26) },
+            ]}
+          >
             <Text style={styles.expandedMapTitle}>Suceava map</Text>
             <Pressable
               onPress={() => setIsMapExpandedVisible(false)}
@@ -1119,11 +1198,14 @@ export default function DriveScreen({
               events={data.events}
               gpsStatus={driveGpsStatus}
               isDriveActive={isDriveActive}
+              isFollowingLocation={isMapFollowingLocation}
               isLiveTrackingEnabled={isLiveMapTrackingEnabled}
+              liveHeadingDegrees={liveDriveHeadingDegrees}
               liveLocation={liveDriveLocation}
               liveSpeedKmh={liveDriveSpeedKmh}
               onDismissRoutePrompt={() => setIsExpandedRoutePromptVisible(false)}
               onEndDrive={handleEndRoute}
+              onFollowLocationChange={setIsMapFollowingLocation}
               onPlanRoute={() => {
                 setIsMapExpandedVisible(false);
                 setIsRouteSheetVisible(true);
@@ -1485,23 +1567,6 @@ export default function DriveScreen({
               <Text style={styles.routePreviewError}>{routePreviewError}</Text>
             ) : null}
 
-            {data.routes.slice(0, 3).map((route) => (
-              <Pressable
-                key={route.route_id}
-                onPress={() => {
-                  setRouteOriginMode('manual');
-                  setManualRouteOrigin(route.origin_name);
-                  setCurrentLocationMessage('');
-                  setRouteDestination(route.destination_name);
-                }}
-                style={styles.sheetRouteRow}
-              >
-                <Text style={styles.sheetRouteName}>{route.route_name}</Text>
-                <Text style={styles.sheetRouteMeta}>
-                  {formatValue(route.estimated_duration_minutes, 'm')} · {route.congestion_level}
-                </Text>
-              </Pressable>
-            ))}
           </View>
         </KeyboardAvoidingView>
       </Modal>
@@ -1525,7 +1590,7 @@ export default function DriveScreen({
                 <Text style={styles.sheetRouteName}>{ride.route_name}</Text>
                 <Text style={styles.sheetRouteMeta}>
                   {formatValue(ride.estimated_duration_minutes, ' min')} ·{' '}
-                  {formatValue(ride.congestion_score)} traffic
+                  {formatRideTraffic(ride)}
                 </Text>
               </View>
             ))}

@@ -256,7 +256,35 @@ Definition of done:
 - final user-facing traffic/event information no longer uses the controlled seed dataset
 - request volume is bounded and cost risk is documented before scheduled ingestion is enabled
 
-### Task 36D. Build historical hourly traffic profile for monitored corridors
+Implementation status:
+
+- implemented and cloud-validated on `May 27, 2026`
+- App Runner serves TomTom flow and incident data loaded through RDS
+- final rebuilt APK regression validation is intentionally deferred until the remaining mobile tasks are complete
+
+### Task 36D. Refresh real traffic on app use with server-side 15-minute rate limit
+
+Goal:
+
+- keep real traffic information recent while the app is actively used, without wasting TomTom requests when no demo/user session is running
+
+Deliverables:
+
+- backend `refresh-if-stale` workflow triggered through the public mobile data request
+- refresh occurs on initial app data load and while the app remains open, but no more than once per 15 minutes globally
+- TomTom key and required database credential stored through AWS-managed secret configuration only, never in Git or APK
+- concurrency protection so repeated app opens cannot start duplicate external ingestion runs
+- mobile refresh trigger and visible observation timestamp
+- request-volume and AWS cost guardrails documented before activation
+
+Definition of done:
+
+- the phone never calls TomTom directly and contains no TomTom key
+- if the current snapshot is older than 15 minutes, the backend can update TomTom Flow, TomTom Incidents, and Open-Meteo before returning fresh data
+- maximum designed TomTom volume remains bounded at `384` non-tile requests/day for one global 15-minute refresh cadence
+- refresh behavior works in the final installed APK
+
+### Task 36E. Build historical hourly traffic profile for monitored corridors
 
 Goal:
 
@@ -276,7 +304,7 @@ Definition of done:
 - graph is backed by real historical TomTom results processed and served through the backend
 - feature works in the installed APK
 
-### Task 36E. Implement Dark, Light, and System appearance modes
+### Task 36F. Implement Dark, Light, and System appearance modes
 
 Goal:
 
@@ -294,7 +322,7 @@ Definition of done:
 - all primary screens render correctly in all three modes on physical Android hardware
 - appearance mode works in the installed APK without additional paid services
 
-### Task 36F. Run final mobile UI/UX polish after real-data features
+### Task 36G. Run final mobile UI/UX polish after real-data features
 
 Goal:
 
