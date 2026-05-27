@@ -3850,6 +3850,56 @@ Documentation update:
 - extended `docs/Traffiq_v4_execution_plan.md` with Epic 11 real mobility data
   and product completion tasks
 - moved final cleanup/release to Epic 12 so it remains the last project step
+
+### Update 118 - Active-drive and expanded-map GPS telemetry implemented
+
+Completed implementation for `Task 36B. Add active-drive GPS telemetry
+experience`:
+
+- added foreground-only live GPS tracking through `expo-location`
+- enabled the GPS experience whenever the user opens the expanded map, with or
+  without a selected route
+- retained active-drive state when the user presses `Drive`, with `End drive`
+  stopping the route session and its telemetry
+- converted device-reported speed from meters per second to kilometers per hour
+  for the live speed presentation
+- kept only the latest coordinate and speed in mobile memory:
+  - no coordinate trail is stored
+  - no live speed history is stored
+  - no GPS telemetry is sent to FastAPI, RDS, or the ETL pipeline
+- moved the Leaflet current-position marker through injected JavaScript rather
+  than rebuilding the WebView map for each GPS update
+- made the live-speed card the recenter action, labelled `Press to recenter`
+- added a compact `Plan a route` prompt aligned with the speed card when the
+  expanded map has no selected route
+- added `Later` dismissal behavior for that prompt; it returns on the next
+  expanded-map opening
+- removed visible Leaflet zoom buttons while keeping gesture map interaction
+- omitted OpenStreetMap attribution from the compact preview and preserved it
+  on the expanded interactive map, where it remains required for public OSM
+  tile usage
+- updated the mobile location permission text and APK/map documentation
+
+Validation:
+
+```text
+npx.cmd tsc --noEmit -> passed
+npx.cmd expo-doctor -> 18/18 checks passed
+npx.cmd expo config --type public -> passed; foreground location permissions preserved
+npx.cmd expo export --platform android --output-dir .expo-export-task36b-speed-recenter -> passed
+Android export -> 1.95 MB bundle, 622 modules
+generated Android export validation artifact -> deleted
+git diff --check -> passed with only expected Windows CRLF/LF warnings
+Expo Go expanded-map UI flow -> user confirmed accepted
+```
+
+Remaining final-release validation:
+
+- the Android export confirms the feature is bundle-compatible for APK builds
+- before final release closure, verify live movement/speed during a safe
+  physical-phone test and verify the same behavior in the final installed APK
+- OpenStreetMap attribution intentionally remains visible in the expanded map;
+  hiding it entirely would violate the public tile-provider usage requirement
 ---
 
 ## 9. Instructions For Any New Chat

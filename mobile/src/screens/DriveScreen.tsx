@@ -67,6 +67,8 @@ type CurrentRouteLocation = {
   longitude: number;
 };
 
+type DriveGpsStatus = 'inactive' | 'starting' | 'tracking' | 'denied' | 'unavailable';
+
 type RouteConditionTone = 'low' | 'moderate' | 'high';
 
 type RouteConditionSummary = {
@@ -332,6 +334,12 @@ export default function DriveScreen({
   const [isRouteSheetVisible, setIsRouteSheetVisible] = useState(false);
   const [isRouteConfirmationVisible, setIsRouteConfirmationVisible] = useState(false);
   const [isMapExpandedVisible, setIsMapExpandedVisible] = useState(false);
+  const [isExpandedRoutePromptVisible, setIsExpandedRoutePromptVisible] = useState(true);
+  const [isDriveActive, setIsDriveActive] = useState(false);
+  const [driveGpsStatus, setDriveGpsStatus] = useState<DriveGpsStatus>('inactive');
+  const [liveDriveLocation, setLiveDriveLocation] =
+    useState<CurrentRouteLocation | null>(null);
+  const [liveDriveSpeedKmh, setLiveDriveSpeedKmh] = useState<number | null>(null);
   const [isRideSheetVisible, setIsRideSheetVisible] = useState(false);
   const [routeOriginMode, setRouteOriginMode] = useState<RouteOriginMode>('current');
   const [manualRouteOrigin, setManualRouteOrigin] = useState('');
@@ -352,6 +360,7 @@ export default function DriveScreen({
   const [distanceUnit, setDistanceUnit] = useState<DistanceUnit>('km');
   const [currentRouteLocation, setCurrentRouteLocation] =
     useState<CurrentRouteLocation | null>(null);
+  const isLiveMapTrackingEnabled = isMapExpandedVisible || isDriveActive;
 
   async function loadDriveData() {
     try {
@@ -416,6 +425,80 @@ export default function DriveScreen({
 
     loadDistancePreference();
   }, [getAccessToken, isAuthenticated, session?.tokens.accessToken]);
+
+  useEffect(() => {
+    if (!isLiveMapTrackingEnabled) {
+      setDriveGpsStatus('inactive');
+      setLiveDriveLocation(null);
+      setLiveDriveSpeedKmh(null);
+      return;
+    }
+
+    let isMounted = true;
+    let subscription: Location.LocationSubscription | null = null;
+
+    async function startDriveTracking() {
+      try {
+        setDriveGpsStatus('starting');
+        const permission = await Location.requestForegroundPermissionsAsync();
+
+        if (!isMounted) {
+          return;
+        }
+
+        if (permission.status !== 'granted') {
+          setDriveGpsStatus('denied');
+          return;
+        }
+
+        subscription = await Location.watchPositionAsync(
+          {
+            accuracy: Location.Accuracy.High,
+            distanceInterval: 3,
+            timeInterval: 1000,
+          },
+          (position) => {
+            if (!isMounted) {
+              return;
+            }
+
+            const location = {
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+            };
+            const speedMetersPerSecond = position.coords.speed;
+
+            setDriveGpsStatus('tracking');
+            setLiveDriveLocation(location);
+            setCurrentRouteLocation(location);
+            setLiveDriveSpeedKmh(
+              speedMetersPerSecond === null || speedMetersPerSecond < 0
+                ? null
+                : Math.round(speedMetersPerSecond * 3.6)
+            );
+          },
+          () => {
+            if (isMounted) {
+              setDriveGpsStatus('unavailable');
+              setLiveDriveSpeedKmh(null);
+            }
+          }
+        );
+      } catch {
+        if (isMounted) {
+          setDriveGpsStatus('unavailable');
+          setLiveDriveSpeedKmh(null);
+        }
+      }
+    }
+
+    startDriveTracking();
+
+    return () => {
+      isMounted = false;
+      subscription?.remove();
+    };
+  }, [isLiveMapTrackingEnabled]);
 
   async function getCurrentRouteLocation() {
     try {
@@ -500,6 +583,7 @@ export default function DriveScreen({
         destination: preview.destination.name,
         origin: preview.origin.name,
       });
+      setIsDriveActive(false);
       setRoutePreview(preview);
       setRoutePreviewCacheSavedAt(null);
       setIsCurrentRouteSaved(false);
@@ -523,6 +607,7 @@ export default function DriveScreen({
           destination: preview.destination.name,
           origin: preview.origin.name,
         });
+        setIsDriveActive(false);
         setRoutePreview(preview);
         setRoutePreviewCacheSavedAt(cachedRoutePreview.savedAt);
         setIsCurrentRouteSaved(false);
@@ -583,6 +668,7 @@ export default function DriveScreen({
       return;
     }
 
+    setIsDriveActive(true);
     setIsMapExpandedVisible(true);
     setIsRouteConfirmationVisible(false);
 
@@ -612,6 +698,17 @@ export default function DriveScreen({
     } finally {
       setIsAddingRideHistory(false);
     }
+  }
+
+  function handleEndRoute() {
+    setIsDriveActive(false);
+    setIsMapExpandedVisible(false);
+    setPlannedRoute(null);
+    setRoutePreview(null);
+    setRoutePreviewCacheMessage('');
+    setIsCurrentRouteSaved(false);
+    setSavedRouteMessage('');
+    setRideHistoryMessage('');
   }
 
   if (isLoading) {
@@ -717,7 +814,10 @@ export default function DriveScreen({
 
         <SuceavaMap
           events={data.events}
-          onExpand={() => setIsMapExpandedVisible(true)}
+          onExpand={() => {
+            setIsExpandedRoutePromptVisible(true);
+            setIsMapExpandedVisible(true);
+          }}
           routePreview={routePreview}
         />
 
@@ -732,17 +832,12 @@ export default function DriveScreen({
               </View>
               <Pressable
                 accessibilityLabel="End route preview"
-                onPress={() => {
-                  setPlannedRoute(null);
-                  setRoutePreview(null);
-                  setRoutePreviewCacheMessage('');
-                  setIsCurrentRouteSaved(false);
-                  setSavedRouteMessage('');
-                  setRideHistoryMessage('');
-                }}
+                onPress={handleEndRoute}
                 style={styles.routeDraftRemoveButton}
               >
-                <Text style={styles.routeDraftRemoveText}>End route</Text>
+                <Text style={styles.routeDraftRemoveText}>
+                  {isDriveActive ? 'End drive' : 'End route'}
+                </Text>
               </Pressable>
             </View>
 
@@ -858,7 +953,10 @@ export default function DriveScreen({
 
               <Pressable
                 accessibilityLabel="Change planned route"
-                onPress={() => setIsRouteSheetVisible(true)}
+                onPress={() => {
+                  setIsDriveActive(false);
+                  setIsRouteSheetVisible(true);
+                }}
                 style={styles.routeDraftEditButton}
               >
                 <Text style={styles.routeDraftEditText}>Change route</Text>
@@ -867,20 +965,34 @@ export default function DriveScreen({
 
             <Pressable
               accessibilityLabel="Start driving with this route"
-              disabled={!routePreview || isAddingRideHistory}
-              onPress={handleStartDrive}
+              disabled={!routePreview || (!isDriveActive && isAddingRideHistory)}
+              onPress={() => {
+                if (isDriveActive) {
+                  setIsMapExpandedVisible(true);
+                  return;
+                }
+
+                handleStartDrive();
+              }}
               style={[
                 styles.driveButton,
-                (!routePreview || isAddingRideHistory) && styles.routeDraftButtonDisabled,
+                (!routePreview || (!isDriveActive && isAddingRideHistory)) &&
+                  styles.routeDraftButtonDisabled,
               ]}
             >
               <Text style={styles.driveButtonText}>
-                {isAddingRideHistory ? 'Starting drive...' : 'Drive'}
+                {isDriveActive
+                  ? 'Resume drive'
+                  : isAddingRideHistory
+                    ? 'Starting drive...'
+                    : 'Drive'}
               </Text>
             </Pressable>
 
             <Text style={styles.driveHelpText}>
-              Drive opens the route map and saves the trip to History when signed in.
+              {isDriveActive
+                ? 'Live GPS is active only while this drive remains in progress.'
+                : 'Drive opens the route map and saves the trip to History when signed in.'}
             </Text>
           </View>
         ) : null}
@@ -1005,26 +1117,22 @@ export default function DriveScreen({
           <View style={styles.expandedMapBody}>
             <SuceavaMap
               events={data.events}
-              routePreview={routePreview}
-              variant="expanded"
-            />
-          </View>
-
-          {!routePreview ? (
-            <Pressable
-              onPress={() => {
+              gpsStatus={driveGpsStatus}
+              isDriveActive={isDriveActive}
+              isLiveTrackingEnabled={isLiveMapTrackingEnabled}
+              liveLocation={liveDriveLocation}
+              liveSpeedKmh={liveDriveSpeedKmh}
+              onDismissRoutePrompt={() => setIsExpandedRoutePromptVisible(false)}
+              onEndDrive={handleEndRoute}
+              onPlanRoute={() => {
                 setIsMapExpandedVisible(false);
                 setIsRouteSheetVisible(true);
               }}
-              style={styles.expandedRouteButton}
-            >
-              <View>
-                <Text style={styles.destinationLabel}>Plan a route</Text>
-                <Text style={styles.destinationText}>Where to?</Text>
-              </View>
-              <Text style={styles.expandedRouteButtonText}>Choose</Text>
-            </Pressable>
-          ) : null}
+              routePreview={routePreview}
+              showRoutePrompt={!routePreview && isExpandedRoutePromptVisible}
+              variant="expanded"
+            />
+          </View>
         </SafeAreaView>
       </Modal>
 
@@ -1674,27 +1782,6 @@ const styles = StyleSheet.create({
   },
   expandedMapBody: {
     flex: 1,
-  },
-  expandedRouteButton: {
-    ...shadows.card,
-    alignItems: 'center',
-    backgroundColor: colors.card,
-    borderColor: colors.border,
-    borderRadius: radius.xl,
-    borderWidth: 1,
-    bottom: 18,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    left: spacing.screenX,
-    padding: 16,
-    position: 'absolute',
-    right: spacing.screenX,
-  },
-  expandedRouteButtonText: {
-    color: colors.primary,
-    fontSize: 13,
-    fontWeight: '900',
-    textTransform: 'uppercase',
   },
   routeDraftCard: {
     ...shadows.card,

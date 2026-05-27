@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import * as Location from 'expo-location';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { WebView } from 'react-native-webview';
@@ -29,21 +29,41 @@ const USER_LOCATION_REGION_DELTA = 0.012;
 const MIN_ROUTE_REGION_DELTA = 0.015;
 
 type LocationStatus = 'checking' | 'granted' | 'denied';
+type DriveGpsStatus = 'inactive' | 'starting' | 'tracking' | 'denied' | 'unavailable';
 
 type SuceavaMapProps = {
   events?: MapEventRecord[];
+  gpsStatus?: DriveGpsStatus;
+  isDriveActive?: boolean;
+  isLiveTrackingEnabled?: boolean;
+  liveLocation?: MapCoordinate | null;
+  liveSpeedKmh?: number | null;
+  onDismissRoutePrompt?: () => void;
+  onEndDrive?: () => void;
   onExpand?: () => void;
+  onPlanRoute?: () => void;
   routePreview?: RoutePreviewResponse | null;
+  showRoutePrompt?: boolean;
   variant?: 'compact' | 'expanded';
 };
 
 export default function SuceavaMap({
   events = [],
+  gpsStatus = 'inactive',
+  isDriveActive = false,
+  isLiveTrackingEnabled = false,
+  liveLocation = null,
+  liveSpeedKmh = null,
+  onDismissRoutePrompt,
+  onEndDrive,
   onExpand,
+  onPlanRoute,
   routePreview,
+  showRoutePrompt = false,
   variant = 'compact',
 }: SuceavaMapProps) {
   const isExpanded = variant === 'expanded';
+  const webViewRef = useRef<WebView>(null);
   const [currentRegion, setCurrentRegion] = useState<MapRegion>(SUCEAVA_REGION);
   const [currentLocation, setCurrentLocation] = useState<MapCoordinate | null>(null);
   const [locationStatus, setLocationStatus] = useState<LocationStatus>('checking');
@@ -147,13 +167,34 @@ export default function SuceavaMap({
     ]
   );
 
+  function sendLiveLocationToMap(location: MapCoordinate, shouldCenter = false) {
+    const serializedLocation = JSON.stringify(location).replace(/</g, '\\u003c');
+
+    webViewRef.current?.injectJavaScript(
+      `window.updateUserLocation && window.updateUserLocation(${serializedLocation}, ${shouldCenter}); true;`
+    );
+  }
+
+  useEffect(() => {
+    if (isExpanded && isLiveTrackingEnabled && liveLocation) {
+      sendLiveLocationToMap(liveLocation);
+    }
+  }, [isExpanded, isLiveTrackingEnabled, liveLocation]);
+
+  const availableCenterLocation = liveLocation ?? currentLocation;
   return (
     <View style={[styles.mapPanel, isExpanded && styles.mapPanelExpanded]}>
       <WebView
         applicationNameForUserAgent="Traffiq/1.0.1"
         javaScriptEnabled
+        onLoadEnd={() => {
+          if (isLiveTrackingEnabled && liveLocation) {
+            sendLiveLocationToMap(liveLocation);
+          }
+        }}
         originWhitelist={['*']}
         pointerEvents={isExpanded ? 'auto' : 'none'}
+        ref={webViewRef}
         source={{ html: mapHtml, baseUrl: 'https://traffiq.local/' }}
         style={styles.map}
       />
@@ -164,6 +205,58 @@ export default function SuceavaMap({
           <Text style={styles.routeInfoText}>
             {activeRoute.duration_minutes} min - {activeRoute.distance_km} km
           </Text>
+        </View>
+      ) : null}
+
+      {isExpanded && isLiveTrackingEnabled ? (
+        <View style={styles.liveToolbar}>
+          <View style={styles.liveToolbarRow}>
+            <Pressable
+              accessibilityHint={
+                gpsStatus === 'denied'
+                  ? 'Location permission is required before the map can recenter.'
+                  : 'Centers the map on your latest phone GPS location.'
+              }
+              accessibilityLabel="Current speed. Press to recenter map."
+              onPress={() => {
+                if (availableCenterLocation) {
+                  sendLiveLocationToMap(availableCenterLocation, true);
+                }
+              }}
+              style={styles.speedCard}
+            >
+              <Text style={styles.speedValue}>{liveSpeedKmh ?? '--'}</Text>
+              <Text style={styles.speedUnit}>km/h</Text>
+              <Text style={styles.speedStatus}>Press to recenter</Text>
+            </Pressable>
+
+            {showRoutePrompt ? (
+              <View style={styles.planRouteCard}>
+                <Text style={styles.planRouteLabel}>Plan a route</Text>
+                <Text style={styles.planRouteTitle}>Where to?</Text>
+                <View style={styles.planRouteActions}>
+                  <Pressable onPress={onPlanRoute} style={styles.planRouteChooseButton}>
+                    <Text style={styles.planRouteChooseText}>Choose</Text>
+                  </Pressable>
+                  <Pressable onPress={onDismissRoutePrompt} style={styles.planRouteLaterButton}>
+                    <Text style={styles.planRouteLaterText}>Later</Text>
+                  </Pressable>
+                </View>
+              </View>
+            ) : null}
+
+            {!showRoutePrompt && isDriveActive ? (
+              <View style={styles.driveControls}>
+                <Pressable
+                  accessibilityLabel="End active drive"
+                  onPress={onEndDrive}
+                  style={styles.endDriveButton}
+                >
+                  <Text style={styles.endDriveButtonText}>End drive</Text>
+                </Pressable>
+              </View>
+            ) : null}
+          </View>
         </View>
       ) : null}
 
@@ -286,14 +379,14 @@ function createMapHtml(mapData: EmbeddedMapData) {
       (function () {
         var data = ${serializedData};
         var map = L.map('map', {
-          attributionControl: true,
+          attributionControl: data.interactive,
           doubleClickZoom: data.interactive,
           dragging: data.interactive,
           keyboard: false,
           scrollWheelZoom: data.interactive,
           tap: data.interactive,
           touchZoom: data.interactive,
-          zoomControl: data.interactive
+          zoomControl: false
         });
         var southWest = [
           data.region.latitude - data.region.latitudeDelta / 2,
@@ -338,10 +431,29 @@ function createMapHtml(mapData: EmbeddedMapData) {
           }).addTo(map).bindTooltip(escapeText(data.destination.name));
         }
 
-        if (data.currentLocation) {
-          L.marker([data.currentLocation.latitude, data.currentLocation.longitude], {
+        var userLocationMarker = null;
+
+        function setUserLocation(location) {
+          if (userLocationMarker) {
+            userLocationMarker.setLatLng([location.latitude, location.longitude]);
+            return;
+          }
+
+          userLocationMarker = L.marker([location.latitude, location.longitude], {
             icon: icon('<div class="location-marker"></div>', [18, 18])
           }).addTo(map);
+        }
+
+        window.updateUserLocation = function (location, shouldCenter) {
+          setUserLocation(location);
+
+          if (shouldCenter) {
+            map.setView([location.latitude, location.longitude], 16, { animate: true });
+          }
+        };
+
+        if (data.currentLocation) {
+          setUserLocation(data.currentLocation);
         }
 
         data.events.forEach(function (event) {
@@ -401,6 +513,118 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     lineHeight: 17,
     marginTop: 4,
+  },
+  speedCard: {
+    backgroundColor: 'rgba(9, 11, 10, 0.92)',
+    borderColor: 'rgba(248, 250, 248, 0.14)',
+    borderRadius: radius.md,
+    borderWidth: 1,
+    height: 104,
+    justifyContent: 'center',
+    minWidth: 104,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  speedValue: {
+    color: colors.text,
+    fontSize: 30,
+    fontWeight: '900',
+    lineHeight: 32,
+  },
+  speedUnit: {
+    color: colors.textSoft,
+    fontSize: 12,
+    fontWeight: '800',
+    lineHeight: 16,
+  },
+  speedStatus: {
+    color: colors.textMuted,
+    fontSize: 10,
+    fontWeight: '700',
+    lineHeight: 14,
+    marginTop: 4,
+  },
+  liveToolbar: {
+    bottom: 34,
+    gap: 8,
+    left: 12,
+    position: 'absolute',
+    right: 12,
+  },
+  liveToolbarRow: {
+    alignItems: 'flex-end',
+    flexDirection: 'row',
+    gap: 8,
+  },
+  planRouteCard: {
+    backgroundColor: 'rgba(9, 11, 10, 0.92)',
+    borderColor: 'rgba(248, 250, 248, 0.14)',
+    borderRadius: radius.md,
+    borderWidth: 1,
+    flex: 1,
+    height: 104,
+    justifyContent: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+  },
+  planRouteLabel: {
+    color: colors.textMuted,
+    fontSize: 10,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+  },
+  planRouteTitle: {
+    color: colors.text,
+    fontSize: 15,
+    fontWeight: '900',
+    lineHeight: 18,
+    marginTop: 2,
+  },
+  planRouteActions: {
+    flexDirection: 'row',
+    gap: 6,
+    marginTop: 7,
+  },
+  planRouteChooseButton: {
+    backgroundColor: colors.primary,
+    borderRadius: radius.md,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+  },
+  planRouteChooseText: {
+    color: colors.primaryText,
+    fontSize: 10,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+  },
+  planRouteLaterButton: {
+    borderColor: colors.borderStrong,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+  },
+  planRouteLaterText: {
+    color: colors.textSoft,
+    fontSize: 10,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+  },
+  driveControls: {
+    gap: 8,
+  },
+  endDriveButton: {
+    backgroundColor: colors.red,
+    borderRadius: radius.md,
+    paddingHorizontal: 14,
+    paddingVertical: 11,
+  },
+  endDriveButtonText: {
+    color: colors.text,
+    fontSize: 12,
+    fontWeight: '900',
+    textAlign: 'center',
+    textTransform: 'uppercase',
   },
   expandButton: {
     backgroundColor: colors.primary,

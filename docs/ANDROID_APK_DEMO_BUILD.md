@@ -76,8 +76,11 @@ phone retrieves map tiles and the application data comes from the public AWS
 API.
 
 OpenStreetMap attribution remains visible in the map, as required by its
-licensing and tile usage policy. This direct tile source is suitable for a
-low-volume student demo, not a high-traffic commercial production rollout.
+licensing and tile usage policy, on the full expanded map used for map
+inspection. The compact preview omits the cramped attribution overlay while
+the expanded map preserves the required attribution. This direct tile source
+is suitable for a low-volume student demo, not a high-traffic commercial
+production rollout.
 
 ## Google Maps Attempt Cleanup
 
@@ -147,7 +150,17 @@ installed Android app:
 4. Log in through Cognito with your test user.
 5. Save a route and verify it is visible in personal saved routes.
 6. Start a drive and verify the ride is visible in personal history.
-7. Optionally switch the phone from Wi-Fi to mobile data and reopen the app.
+7. Expand the map without a route and verify the live speed card and compact
+   `Plan a route` prompt are aligned without overlapping and use the available
+   width.
+8. Press `Later`, close and reopen the expanded map, and verify the route
+   prompt is shown again.
+9. Start a drive and verify pressing the live-speed card recenters the map
+   and `End drive` is available on the active route map.
+10. Verify the expanded map has OpenStreetMap attribution but does not show
+    Leaflet `+` / `-` zoom controls.
+11. Press `End drive` and verify live GPS telemetry stops with the active route.
+12. Optionally switch the phone from Wi-Fi to mobile data and reopen the app.
 
 Expected result:
 
@@ -162,6 +175,9 @@ Cloud-backed features work while App Runner and RDS are available.
 - Requests from the APK reach the existing App Runner API; keeping App Runner
   and RDS available can continue to incur AWS cost.
 - The map does not use Google Maps billing or a Google API key.
+- Expanded-map and active-drive speed and position use foreground-only device
+  GPS through `expo-location`; no GPS trace is written to the backend or stored
+  in history.
 - The demo uses public OpenStreetMap tiles with visible attribution and must
   remain low-volume; a scaled product would use a managed tile provider.
 - Cognito protects personal data with authenticated access tokens.

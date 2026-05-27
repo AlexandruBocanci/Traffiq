@@ -7,7 +7,8 @@ a real mobile map component. During Task 36A release validation, the map
 implementation was migrated to the installable-APK-compatible rendering
 described below.
 
-The goal is not to build full navigation yet. The goal is to create the real map foundation required by the next routing tasks.
+The map now supports the route preview and active-drive presentation layer. It
+is not turn-by-turn navigation and does not track location in the background.
 
 ## Scope
 
@@ -18,14 +19,23 @@ This task adds:
 - foreground location permission request
 - current-location marker when permission is granted
 - fallback to the Suceava viewport when permission is denied
-- existing congestion summary overlay on top of the map
+- route polyline and destination presentation
+- expanded-map live GPS speed indicator in `km/h`
+- expanded-map moving device-location marker
+- tappable live-speed card that recenters the map on the current position
+- dismissible `Plan a route` prompt aligned with live telemetry when no route
+  is selected; it returns on the next expanded-map opening
+- gesture-based expanded-map interaction without visible Leaflet zoom buttons
+- OpenStreetMap attribution visible on the expanded map while omitted from the
+  constrained compact preview surface
+- explicit end-drive action that stops the foreground GPS subscription
 
 This task does not add:
 
-- route search
-- route polyline rendering
 - turn-by-turn navigation
-- Waze-like real-time traffic
+- background location collection
+- persisted GPS route or speed history
+- Waze-like real-time traffic conditions
 - multi-city map support
 - user-generated reports
 
@@ -41,7 +51,8 @@ Mobile packages and map resources:
 Why:
 
 - `react-native-webview` renders a local Leaflet map document inside the React Native application.
-- `expo-location` handles foreground location permission and current device coordinates.
+- `expo-location` handles foreground location permission, current device
+  coordinates, and the active-drive foreground subscription.
 - Leaflet draws the route polyline, map markers, and expanded-map interaction.
 - OpenStreetMap supplies map tiles with visible attribution for low-volume demo use.
 
@@ -76,9 +87,26 @@ latitude: 47.6514
 longitude: 26.2556
 ```
 
-If the user allows location access, the map centers on the current device location and shows the user marker.
+If the user allows location access, the map can center on the current device
+location and shows the user marker.
 
 If the user denies location access or location lookup fails, the app keeps the default Suceava viewport.
+
+When the user expands the map, or confirms a route with `Drive`,
+`DriveScreen` starts a foreground `Location.watchPositionAsync()`
+subscription. This allows the speed card and moving device marker to work
+both while viewing the map and during an active route. The application
+converts the device speed from meters per second to kilometers per hour:
+
+```text
+speed_km_h = speed_m_s * 3.6
+```
+
+Only the latest in-memory coordinate and speed are supplied to the expanded
+map. The Leaflet marker is moved through injected WebView JavaScript instead
+of rebuilding the map document on every GPS update. Closing an expanded map
+without an active drive removes the subscription; during an active route,
+`End drive` removes it and clears the live telemetry state.
 
 ## App Permissions
 
@@ -90,8 +118,11 @@ Android permissions:
 iOS permission message:
 
 ```text
-Traffiq uses your location to center the Suceava map when permission is granted.
+Traffiq uses your location while the app is open to show your position and current speed on the expanded map.
 ```
+
+Traffiq requests no background-location permission for this feature. This
+avoids collecting movement when the user is not actively using the drive map.
 
 ## Validation
 
@@ -99,15 +130,17 @@ Commands used:
 
 ```powershell
 npx.cmd tsc --noEmit
+npx.cmd expo-doctor
 npx.cmd expo config --type public
 git diff --check
-npx.cmd expo export --platform android --output-dir .expo-export-task14
+npx.cmd expo export --platform android --output-dir .expo-export-task36b-gps
 npm.cmd audit --omit=dev
 ```
 
 Results:
 
 - TypeScript compilation passed.
+- Expo Doctor dependency/configuration checks passed.
 - Expo config includes the location permissions.
 - Android Expo bundle export passed.
 - `git diff --check` reported no whitespace errors.
@@ -117,14 +150,26 @@ Results:
 
 ## Manual Phone Test
 
-Open the app in Expo Go and verify:
+Open the installed APK on a physical Android phone and verify:
 
 1. The Drive screen shows a real map, not the old drawn placeholder.
 2. The map starts around Suceava if location is denied.
 3. The app asks for foreground location permission.
 4. If location is allowed, the map can show the current device location.
 5. The congestion overlay still appears on top of the map.
-6. The visible attribution identifies OpenStreetMap contributors.
+6. The compact preview does not show cramped attribution or zoom controls.
+7. Expand the map without planning a route and verify the tappable speed card
+   and the wider aligned `Plan a route` prompt are visible without overlapping.
+8. Press `Later`, confirm the route prompt disappears, close and expand the
+   map again, and confirm the route prompt returns.
+9. Calculate a route and press `Drive`; verify that `End drive` also appears.
+10. Tap the speed card labelled `Press to recenter` and confirm the map
+    recenters on the current marker.
+11. Outdoors or during a safe passenger test, the location marker and speed
+   respond to device movement.
+12. Confirm the expanded map preserves visible OpenStreetMap attribution and
+    supports gesture zooming without `+` / `-` buttons.
+13. Press `End drive` and confirm the active-drive telemetry UI closes.
 
 ## Explanation For Presentation
 
@@ -143,3 +188,8 @@ release-time Google billing dependency while retaining the Suceava map, route
 geometry, event markers, and device-location features.
 
 This is still intentionally not a production navigation engine. It is a data engineering portfolio app with a real mobile map interface connected to backend traffic intelligence.
+
+Task 36B adds client-side GPS telemetry for expanded-map and active-drive
+experiences. The speed value is device sensor data, not an external traffic
+API result, and it is intentionally not stored in personal ride history or
+the data pipeline.

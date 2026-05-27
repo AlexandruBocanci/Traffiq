@@ -16,7 +16,7 @@
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "Traffiq uses your location to center the Suceava map when permission is granted."
+        "NSLocationWhenInUseUsageDescription": "Traffiq uses your location while the app is open to show your position and current speed on the expanded map."
       }
     },
     "android": {
