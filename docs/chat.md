@@ -4778,6 +4778,52 @@ temporary Cognito SignUp user -> deleted
 
 ---
 
+## Update 127 - Task 37 Final Cleanup And Release Validation
+
+Status:
+
+- final release validation completed before queuing the Android APK build
+
+What changed:
+
+- updated the v4 execution plan with the final release validation checklist
+
+Validation:
+
+```text
+git branch --show-current -> feature/traffiq-v4
+git log -1 --oneline -> 4d4f1c7 fix cognito email delivery and timestamps
+npx tsc --noEmit -> passed
+python -m compileall -q src -> passed
+npx expo-doctor --verbose -> 18/18 checks passed
+npx expo export --platform android -> passed
+GET /health -> status=ok
+GET /mobile/drive-overview -> traffic_source=tomtom
+GET /mobile/drive-overview -> traffic_observed_at includes UTC Z
+GET /mobile/traffic-profile -> 168 rows
+GET /pipeline/status -> latest_run.status=success
+GET /rides/history without token -> 401
+GET /preferences without token -> 401
+POST /routes/preview -> 200
+App Runner status -> RUNNING
+Cognito AutoVerifiedAttributes -> email
+Cognito email sending account -> DEVELOPER
+SES sent last 24h -> 7 of 200
+app icon -> mobile/assets/traffiq-icon.png 1024x1024
+adaptive icon -> mobile/assets/traffiq-adaptive-icon.png 1024x1024
+splash icon -> mobile/assets/traffiq-splash-icon.png 1242x2436
+favicon -> mobile/assets/favicon.png 256x256
+secret scan -> no committed AWS access keys found
+```
+
+Note:
+
+- `pytest` is not installed in the local virtual environment, so Python unit
+  tests could not be run through pytest. The source compilation and cloud/API
+  smoke tests passed.
+
+---
+
 ## 9. Instructions For Any New Chat
 
 Before suggesting or changing anything:

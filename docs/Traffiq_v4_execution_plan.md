@@ -536,3 +536,23 @@ Deliverables:
 Definition of done:
 
 - project is ready for license presentation
+
+Final release validation:
+
+- branch verified: `feature/traffiq-v4`
+- working tree verified clean before final release checks
+- mobile TypeScript validation passed
+- Python source compilation passed
+- Expo Doctor passed all checks
+- Android Expo export passed
+- public backend health check passed
+- public mobile overview returns TomTom data with UTC timestamps
+- public traffic profile returns 168 hourly rows
+- public pipeline status returns the latest successful TomTom pipeline run
+- protected personal endpoints reject unauthenticated requests
+- route preview endpoint returns a valid Suceava route preview
+- App Runner service is `RUNNING`
+- Cognito uses SES delivery and automatic email verification
+- final app icon, adaptive icon, splash image, and favicon point to the selected
+  Traffiq traffic-light branding
+- no hardcoded AWS access keys were found in the repository scan
