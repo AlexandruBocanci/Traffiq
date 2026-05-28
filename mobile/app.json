@@ -3,7 +3,7 @@
     "name": "Traffiq",
     "slug": "traffiq",
     "scheme": "traffiq",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "orientation": "portrait",
     "icon": "./assets/traffiq-icon.png",
     "userInterfaceStyle": "dark",
@@ -21,7 +21,7 @@
     },
     "android": {
       "package": "com.traffiq.mobile",
-      "versionCode": 3,
+      "versionCode": 4,
       "adaptiveIcon": {
         "foregroundImage": "./assets/traffiq-adaptive-icon.png",
         "backgroundColor": "#090b0a"

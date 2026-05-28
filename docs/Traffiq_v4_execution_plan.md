@@ -556,3 +556,12 @@ Final release validation:
 - final app icon, adaptive icon, splash image, and favicon point to the selected
   Traffiq traffic-light branding
 - no hardcoded AWS access keys were found in the repository scan
+
+Final APK follow-up:
+
+- fixed repeated location permission prompts when returning to Home from other
+  tabs/screens
+- automatic map permission checks now reuse the existing Expo Location status
+  and prompt at most once per app session
+- explicit current-location actions can still request permission when needed
+- Android release version bumped to `1.0.3` with `versionCode=4`

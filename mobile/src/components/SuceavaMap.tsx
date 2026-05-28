@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { WebView, WebViewMessageEvent } from 'react-native-webview';
 
 import { useThemedStyles } from '../context/ThemeContext';
+import { getForegroundLocationPermission } from '../services/locationPermission';
 import { radius, shadows, ThemeColors } from '../theme/theme';
 import { MapEventRecord, RoutePreviewResponse } from '../types/api';
 
@@ -81,7 +82,7 @@ export default function SuceavaMap({
 
     async function loadCurrentLocation() {
       try {
-        const permission = await Location.requestForegroundPermissionsAsync();
+        const permission = await getForegroundLocationPermission();
 
         if (!isMounted) {
           return;

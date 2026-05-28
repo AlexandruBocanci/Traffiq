@@ -4824,6 +4824,38 @@ Note:
 
 ---
 
+## Update 128 - Final APK Location Permission Fix
+
+Status:
+
+- fixed a post-release-candidate mobile bug before producing the final APK
+
+Problem:
+
+- returning from Account, Ride History, or Pipeline Status back to Home could
+  trigger the location permission request again because the Home map remounted
+  and called Expo Location permission request automatically
+
+What changed:
+
+- added a shared mobile location-permission helper with session memory
+- automatic Home/map loading checks the existing permission before prompting
+- automatic prompts are limited to one request per active app session
+- explicit user actions, such as selecting current location, can still request
+  permission intentionally
+- bumped the Android release build to `1.0.3` / `versionCode=4` so the fixed
+  APK is distinguishable from the previous queued build
+
+Validation:
+
+```text
+npx tsc --noEmit -> passed
+npx expo export --platform android -> passed
+git diff --check -> passed with Windows LF/CRLF warnings only
+```
+
+---
+
 ## 9. Instructions For Any New Chat
 
 Before suggesting or changing anything:

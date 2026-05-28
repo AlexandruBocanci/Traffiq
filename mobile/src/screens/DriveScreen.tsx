@@ -40,6 +40,7 @@ import {
   saveCachedDriveOverview,
   saveCachedRoutePreview,
 } from '../services/mobileCache';
+import { getForegroundLocationPermission } from '../services/locationPermission';
 import { radius, shadows, spacing, ThemeColors } from '../theme/theme';
 import {
   DistanceUnit,
@@ -691,7 +692,7 @@ export default function DriveScreen({
     async function startDriveTracking() {
       try {
         setDriveGpsStatus('starting');
-        const permission = await Location.requestForegroundPermissionsAsync();
+        const permission = await getForegroundLocationPermission();
 
         if (!isMounted) {
           return;
@@ -830,7 +831,7 @@ export default function DriveScreen({
 
   async function getCurrentRouteLocation() {
     try {
-      const permission = await Location.requestForegroundPermissionsAsync();
+      const permission = await getForegroundLocationPermission({ forcePrompt: true });
 
       if (permission.status !== 'granted') {
         return null;
