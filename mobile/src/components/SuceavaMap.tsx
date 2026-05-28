@@ -415,6 +415,7 @@ function createMapHtml(mapData: EmbeddedMapData) {
         border-right: 5px solid transparent;
         height: 0;
         left: 1px;
+        opacity: 0;
         position: absolute;
         top: -12px;
         transform-origin: 5px 20px;
@@ -522,6 +523,7 @@ function createMapHtml(mapData: EmbeddedMapData) {
             : currentHeading;
 
           directionMarkerElement.style.transform = 'rotate(' + markerRotation + 'deg)';
+          directionMarkerElement.style.opacity = '1';
         }
 
         function animateBearing() {
@@ -602,7 +604,7 @@ function createMapHtml(mapData: EmbeddedMapData) {
 
           if (shouldCenter) {
             isProgrammaticMapMove = true;
-            map.setView([location.latitude, location.longitude], 16, { animate: true });
+            map.setView([location.latitude, location.longitude], map.getZoom(), { animate: true });
             window.setTimeout(function () {
               isProgrammaticMapMove = false;
             }, 350);

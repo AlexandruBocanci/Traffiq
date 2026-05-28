@@ -31,6 +31,11 @@ The mobile application invokes the public refresh URL:
 - when the app becomes active in the foreground;
 - every 15 minutes while the app remains active.
 
+The APK uses `EXPO_PUBLIC_TRAFFIQ_MOBILITY_REFRESH_URL` when it is available
+and falls back to the same public Lambda Function URL in `mobile/src/config/api.ts`.
+This prevents a release build from silently skipping refresh calls if the EAS
+environment variable is missing.
+
 Lambda permits only `POST`. A `GET` request returns `405` before attempting
 the DynamoDB lock or an external API request.
 
@@ -111,6 +116,7 @@ DynamoDB table -> traffiq-mobility-refresh-lock
 App Runner runtime instance role -> traffiq-apprunner-instance-role
 Lambda execution role -> traffiq-mobility-refresh-lambda-role
 EAS preview public variable -> EXPO_PUBLIC_TRAFFIQ_MOBILITY_REFRESH_URL
+Mobile fallback config -> mobile/src/config/api.ts
 ```
 
 ## Validation

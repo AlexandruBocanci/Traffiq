@@ -543,8 +543,6 @@ export default function DriveScreen({
 
     let isMounted = true;
     let positionSubscription: Location.LocationSubscription | null = null;
-    let headingSubscription: Location.LocationSubscription | null = null;
-    let hasCompassHeading = false;
 
     async function startDriveTracking() {
       try {
@@ -560,25 +558,11 @@ export default function DriveScreen({
           return;
         }
 
-        headingSubscription = await Location.watchHeadingAsync((heading) => {
-          if (!isMounted) {
-            return;
-          }
-
-          const degrees =
-            heading.trueHeading >= 0 ? heading.trueHeading : heading.magHeading;
-
-          if (degrees >= 0) {
-            hasCompassHeading = true;
-            setLiveDriveHeadingDegrees(degrees);
-          }
-        });
-
         positionSubscription = await Location.watchPositionAsync(
           {
             accuracy: Location.Accuracy.High,
-            distanceInterval: 3,
-            timeInterval: 1000,
+            distanceInterval: 5,
+            timeInterval: 3500,
           },
           (position) => {
             if (!isMounted) {
@@ -594,11 +578,15 @@ export default function DriveScreen({
               longitude: position.coords.longitude,
             };
             const speedMetersPerSecond = position.coords.speed;
+            const hasReliableGpsHeading =
+              gpsHeading !== null &&
+              speedMetersPerSecond !== null &&
+              speedMetersPerSecond >= 1.4;
 
             setDriveGpsStatus('tracking');
             setLiveDriveLocation(location);
             setCurrentRouteLocation(location);
-            if (!hasCompassHeading && gpsHeading !== null) {
+            if (hasReliableGpsHeading) {
               setLiveDriveHeadingDegrees(gpsHeading);
             }
             setLiveDriveSpeedKmh(
@@ -629,7 +617,6 @@ export default function DriveScreen({
     return () => {
       isMounted = false;
       positionSubscription?.remove();
-      headingSubscription?.remove();
     };
   }, [isLiveMapTrackingEnabled]);
 
@@ -1481,7 +1468,8 @@ export default function DriveScreen({
         onRequestClose={() => setIsRouteSheetVisible(false)}
       >
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top : 0}
           style={styles.sheetBackdrop}
         >
           <Pressable
@@ -1490,7 +1478,7 @@ export default function DriveScreen({
             style={styles.sheetDismissArea}
           />
 
-          <View style={styles.bottomSheet}>
+          <View style={[styles.bottomSheet, styles.routePlannerSheet]}>
             <View style={styles.sheetHandle} />
             <Text style={styles.sheetTitle}>Where to?</Text>
 
@@ -1600,7 +1588,13 @@ export default function DriveScreen({
                 <>
                   <Text style={styles.inputLabel}>Matching places</Text>
                   {destinationSuggestions.length > 0 ? (
-                    <View style={styles.suggestionList}>
+                    <ScrollView
+                      keyboardShouldPersistTaps="handled"
+                      nestedScrollEnabled
+                      showsVerticalScrollIndicator={false}
+                      style={styles.suggestionListScroll}
+                    >
+                      <View style={styles.suggestionList}>
                       {destinationSuggestions.map((destination) => {
                         const isSelected = routeDestination === destination.name;
 
@@ -1642,7 +1636,8 @@ export default function DriveScreen({
                           </Pressable>
                         );
                       })}
-                    </View>
+                      </View>
+                    </ScrollView>
                   ) : (
                     <Text style={styles.noSuggestionsText}>
                       No supported Suceava place matches this search.
@@ -2359,6 +2354,9 @@ function createStyles(colors: ThemeColors) {
     padding: 20,
     paddingBottom: 14,
   },
+  routePlannerSheet: {
+    maxHeight: '82%',
+  },
   sheetHandle: {
     alignSelf: 'center',
     backgroundColor: colors.borderStrong,
@@ -2450,6 +2448,9 @@ function createStyles(colors: ThemeColors) {
   },
   suggestionList: {
     gap: 8,
+  },
+  suggestionListScroll: {
+    maxHeight: 220,
   },
   suggestionRow: {
     alignItems: 'center',

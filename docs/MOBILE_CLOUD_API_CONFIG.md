@@ -79,7 +79,8 @@ Task 36D adds a second public mobile configuration value:
 EXPO_PUBLIC_TRAFFIQ_MOBILITY_REFRESH_URL
 ```
 
-It is configured in the EAS `preview` environment for the final APK build.
+The mobile code also keeps the same public Lambda Function URL as a fallback,
+so APK refresh still works if the EAS variable is not injected into a build.
 The value is a public AWS Lambda Function URL, not an API key. On Drive screen
 load, foreground resume, and each 15-minute active interval, mobile sends a
 `POST` trigger. The Lambda worker holds server-side TomTom access and the

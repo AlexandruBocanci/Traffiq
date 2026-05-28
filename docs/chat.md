@@ -4393,6 +4393,73 @@ Next accepted task after user confirmation:
 
 ---
 
+## 2026-05-28 - APK refresh, route sheet keyboard, and map heading fix
+
+User-reported issue:
+
+- installed APK opened correctly but did not trigger a fresh TomTom refresh
+- latest traffic snapshot stayed old even after opening the app
+- compass-based heading made the map and location arrow unstable when the
+  phone was held vertically
+- `Where to?` input was covered by the Android keyboard, and suggestions were
+  hard to use while typing
+
+Root cause:
+
+- mobile refresh depended only on `EXPO_PUBLIC_TRAFFIQ_MOBILITY_REFRESH_URL`
+  being injected into the APK build
+- if that EAS variable was missing, `requestMobilityRefresh()` returned early
+  and the APK only loaded the last existing App Runner/RDS snapshot
+- `watchHeadingAsync()` reads the phone compass, which is unstable for this
+  use case when the phone angle changes
+
+Implementation:
+
+- added a public Lambda refresh URL fallback in `mobile/src/config/api.ts`
+- kept TomTom and ingestion secrets outside the APK; the APK still contains no
+  `TOMTOM_API_KEY`, no ingestion token, and no DB password
+- removed phone-compass heading from Drive map tracking
+- now map heading uses only GPS movement heading when speed is reliable
+- reduced live GPS update frequency to roughly every 3.5 seconds / 5 meters
+- changed map recenter logic to preserve the user's current zoom level instead
+  of forcing zoom `16` on every follow update
+- hid the direction arrow until a valid heading exists
+- changed the route planner bottom sheet to avoid the Android keyboard
+- made destination suggestions scrollable while the keyboard is open
+- updated refresh documentation:
+  - `docs/MOBILE_CLOUD_API_CONFIG.md`
+  - `docs/TOMTOM_REFRESH_ON_USE.md`
+
+Files changed:
+
+- `mobile/src/config/api.ts`
+- `mobile/src/screens/DriveScreen.tsx`
+- `mobile/src/components/SuceavaMap.tsx`
+- `docs/MOBILE_CLOUD_API_CONFIG.md`
+- `docs/TOMTOM_REFRESH_ON_USE.md`
+- `docs/chat.md`
+
+Validation:
+
+```text
+npx.cmd tsc --noEmit -> passed
+public Lambda POST -> refreshed=true, run_id=12
+public GET /health -> status=ok
+public GET /mobile/drive-overview -> traffic_observed_at=2026-05-28T11:49:55.004540
+npx.cmd expo-doctor --verbose -> 18/18 checks passed
+npx.cmd expo export --platform android --output-dir .expo-export-refresh-map-fix -> passed
+temporary export artifact -> deleted
+git diff --check -> passed, only expected CRLF working-copy warnings
+```
+
+Release note:
+
+- no APK was generated during this fix
+- the next APK should trigger refresh on open even if EAS environment
+  variables are not injected
+
+---
+
 ## 9. Instructions For Any New Chat
 
 Before suggesting or changing anything:

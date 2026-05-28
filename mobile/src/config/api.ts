@@ -1,4 +1,6 @@
 const CLOUD_API_BASE_URL = 'https://eguwdq6puz.eu-central-1.awsapprunner.com';
+const CLOUD_MOBILITY_REFRESH_URL =
+  'https://vmazc4lutvisfoj5ko7gsxudcu0abedr.lambda-url.eu-central-1.on.aws/';
 
 function normalizeApiBaseUrl(value: string) {
   return value.replace(/\/+$/, '');
@@ -29,7 +31,14 @@ export function getConfiguredMobilityRefreshUrl() {
     }
   ).process?.env;
 
-  return processEnv?.EXPO_PUBLIC_TRAFFIQ_MOBILITY_REFRESH_URL?.trim() ?? '';
+  const configuredUrl =
+    processEnv?.EXPO_PUBLIC_TRAFFIQ_MOBILITY_REFRESH_URL?.trim();
+
+  if (configuredUrl) {
+    return configuredUrl;
+  }
+
+  return CLOUD_MOBILITY_REFRESH_URL;
 }
 
 export const MOBILITY_REFRESH_URL = getConfiguredMobilityRefreshUrl();
