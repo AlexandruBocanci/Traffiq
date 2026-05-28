@@ -4460,6 +4460,192 @@ Release note:
 
 ---
 
+## 2026-05-28 - Task 36G final mobile UI/UX polish
+
+Task:
+
+`Task 36G. Run final mobile UI/UX polish after real-data features`
+
+Goal:
+
+- make the app more user-friendly and less developer-facing before final release
+- keep this as polish only, not a feature expansion
+
+User-requested changes:
+
+- make ride-history `completed` status visually green
+- reduce English/developer wording on normal user screens
+- keep accepted product terminology such as `Weather impact`
+- remove the current-hour badge from the traffic profile chart
+- remove the numeric traffic score below the highlighted chart bar
+- replace the top congested street card with a broader Suceava traffic summary
+- remove `OSRM direct` from saved routes
+- add a saved-route action that prepares the route in Drive
+
+Implementation:
+
+- updated `HistoryScreen`:
+  - `completed` is shown as `Finalizată`
+  - the status badge uses a green success treatment
+  - main empty/session copy is localized and less technical
+- updated `TrafficProfileChart`:
+  - removed the top-right current-hour box
+  - removed the numeric score under the highlighted current-hour bar
+  - changed day labels and helper text to user-facing Romanian copy
+- updated `DriveScreen`:
+  - `Observed traffic` is now a Suceava-level summary using averages from the
+    monitored corridors
+  - removed route-provider text from route preview cards
+  - translated route, alert, and history-facing copy where it was normal user
+    text
+  - converted raw alert descriptions such as `stationary traffic` into
+    understandable Romanian text
+  - added handling for saved-route reuse requests from Account
+- updated `AccountScreen`:
+  - saved routes no longer show provider names
+  - each saved route has a `Folosește` action
+  - pressing it returns to Drive and prepares the route preview
+  - account/preference/saved-route copy was made more user-friendly
+- updated `AppNavigator`:
+  - added a small saved-route handoff state between Account and Drive
+- updated `PipelineScreen`:
+  - changed long quality-check status badges from raw `passed` to compact `OK`
+  - constrained long check titles so the badge stays inside the card
+- updated `SuceavaMap`:
+  - localized the expanded-map route prompt labels
+
+Files changed:
+
+- `mobile/src/navigation/AppNavigator.tsx`
+- `mobile/src/screens/DriveScreen.tsx`
+- `mobile/src/screens/HistoryScreen.tsx`
+- `mobile/src/screens/AccountScreen.tsx`
+- `mobile/src/screens/AuthScreen.tsx`
+- `mobile/src/screens/PipelineScreen.tsx`
+- `mobile/src/components/TrafficProfileChart.tsx`
+- `mobile/src/components/SuceavaMap.tsx`
+- `docs/Traffiq_v4_execution_plan.md`
+- `docs/chat.md`
+
+Validation:
+
+```text
+npx.cmd tsc --noEmit -> passed
+npx.cmd expo-doctor --verbose -> 18/18 checks passed
+npx.cmd expo export --platform android --output-dir .expo-export-ui-polish -> passed
+temporary export artifact -> deleted
+```
+
+Release note:
+
+- no APK was generated for this task
+- final physical APK visual confirmation is still required before the release
+  cleanup task
+
+User-requested refinement:
+
+- changed the final mobile UI direction from mixed English/Romanian to Romanian
+  across the user-facing app
+- kept `low`, `medium`, and `high` text in Suceava alerts, but colored the text
+  to match the alert severity bar
+
+Additional implementation:
+
+- translated remaining Drive, History, Account, map, route-planner, and Pipeline
+  UI copy to Romanian
+- removed Cognito/User Pool implementation details from the normal Account
+  screen so it reads like a user app, not a developer dashboard
+- translated weather labels, route condition labels, location categories, and
+  common pipeline statuses/details
+- changed saved ride route names created on mobile from `to` to `către`
+- preserved technical service names only where they are part of the architecture
+  or admin/demo context
+
+Additional validation:
+
+```text
+npx.cmd tsc --noEmit -> passed
+npx.cmd expo-doctor --verbose -> 18/18 checks passed
+npx.cmd expo export --platform android --output-dir .expo-export-ui-polish-ro -> passed
+temporary export artifact -> deleted
+git diff --check -> passed, only expected CRLF working-copy warnings
+```
+
+Follow-up refinement in the same task:
+
+- added a `Șterge` action for saved routes in Account
+- added a `Șterge cursa` action for ride history
+- aligned saved-route action buttons as full-width row actions inside each
+  route container
+- replaced awkward user-facing copy such as `Impact vreme`, `Unitate distanță`,
+  `Aspect`, `Actualizat`, and `Hartă` back buttons with more natural Romanian
+  wording
+- normalized old route names that contain `to` so the mobile UI displays
+  `către`
+- added protected backend endpoint `DELETE /rides/history/{ride_id}`
+- kept delete operations scoped by `cognito_user_sub`, so users cannot delete
+  records that belong to another Cognito account
+- updated backend route-name defaults from `to` to `către`
+- redeployed App Runner because ride-history delete needs backend support in
+  the installed app and public API
+- replaced the native ride-history delete alert with a custom Traffiq-styled
+  confirmation modal that matches the app palette
+- replaced the native saved-route delete alert with the same Traffiq-styled
+  confirmation modal, so destructive actions are consistent across Account and
+  History
+- restored Account theme option labels to `System`, `Dark`, and `Light`
+  because those terms read more naturally as product settings
+
+Additional files changed:
+
+- `src/api/routes/rides.py`
+- `src/api/routes/saved_routes.py`
+- `mobile/src/types/api.ts`
+- `mobile/src/services/traffiqApi.ts`
+- `docs/AWS_ECR_BACKEND_IMAGE.md`
+- `docs/AWS_APP_RUNNER_BACKEND.md`
+
+Additional validation after delete actions:
+
+```text
+npx.cmd tsc --noEmit -> passed
+python -m py_compile src/api/routes/rides.py src/api/routes/saved_routes.py -> passed
+npx.cmd expo-doctor --verbose -> 18/18 checks passed
+npx.cmd expo export --platform android --output-dir .expo-export-polish-delete-actions -> passed
+temporary export artifact -> deleted
+ECR push -> sha256:6ea9a28a76ad6ca45b186a82b23e7c46db8f6ae86c325809bab2888aa128a391
+App Runner deployment -> RUNNING
+GET /health -> status=ok
+DELETE /rides/history/1 without token -> 401
+DELETE /saved-routes/1 without token -> 401
+POST /routes/preview City Center -> Iulius Mall Suceava -> 200
+git diff --check -> passed, only expected CRLF working-copy warnings
+```
+
+Additional validation after delete modal refinement:
+
+```text
+npx.cmd tsc --noEmit -> passed
+npx.cmd expo-doctor --verbose -> 18/18 checks passed
+npx.cmd expo export --platform android --output-dir .expo-export-delete-modal-polish -> passed
+temporary export artifact -> deleted
+```
+
+Additional validation after saved-route delete modal refinement:
+
+```text
+npx.cmd tsc --noEmit -> passed
+npx.cmd expo-doctor --verbose -> 18/18 checks passed
+npx.cmd expo export --platform android --output-dir .expo-export-saved-route-delete-modal -> passed
+temporary export artifact -> deleted
+```
+
+Next accepted task after user confirmation:
+
+- `Create a no-reply email for account creation code`
+
+---
+
 ## 9. Instructions For Any New Chat
 
 Before suggesting or changing anything:

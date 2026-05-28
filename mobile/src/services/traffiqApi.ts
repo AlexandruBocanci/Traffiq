@@ -3,6 +3,8 @@ import { resolveSuceavaLocation, SUCEAVA_LOCATIONS } from '../data/suceavaLocati
 import {
   AddRideHistoryResponse,
   ApiListResponse,
+  DeleteRideHistoryResponse,
+  DeleteSavedRouteResponse,
   DriveOverviewResponse,
   HealthResponse,
   MapEventRecord,
@@ -141,7 +143,7 @@ async function previewRouteDirectlyWithOsrm(
           aliases: [],
           latitude: options.originLatitude,
           longitude: options.originLongitude,
-          name: originName || 'Current location',
+          name: originName || 'Locația curentă',
         }
       : resolveKnownRouteLocation(originName);
   const destination = resolveKnownRouteLocation(destinationName);
@@ -190,6 +192,13 @@ export async function getRidesHistory(accessToken: string) {
   });
 }
 
+export async function deleteRideHistory(rideId: number, accessToken: string) {
+  return fetchFromApi<DeleteRideHistoryResponse>(`/rides/history/${rideId}`, {
+    accessToken,
+    method: 'DELETE',
+  });
+}
+
 export async function addRideToHistory(
   routePreview: RoutePreviewResponse,
   accessToken: string,
@@ -208,7 +217,7 @@ export async function addRideToHistory(
         name: routePreview.origin.name,
       },
       ride_status: 'completed',
-      route_name: `${routePreview.origin.name} to ${routePreview.destination.name}`,
+      route_name: `${routePreview.origin.name} către ${routePreview.destination.name}`,
     },
     method: 'POST',
   });
@@ -229,9 +238,16 @@ export async function saveRoute(routePreview: RoutePreviewResponse, accessToken:
       duration_minutes: routePreview.duration_minutes,
       origin: routePreview.origin,
       provider: routePreview.provider,
-      route_name: `${routePreview.origin.name} to ${routePreview.destination.name}`,
+      route_name: `${routePreview.origin.name} către ${routePreview.destination.name}`,
     },
     method: 'POST',
+  });
+}
+
+export async function deleteSavedRoute(savedRouteId: number, accessToken: string) {
+  return fetchFromApi<DeleteSavedRouteResponse>(`/saved-routes/${savedRouteId}`, {
+    accessToken,
+    method: 'DELETE',
   });
 }
 

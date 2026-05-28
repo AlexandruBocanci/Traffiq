@@ -5,6 +5,7 @@ import {
 } from 'react';
 import {
   KeyboardAvoidingView,
+  Modal,
   Platform,
   Pressable,
   SafeAreaView,
@@ -18,8 +19,8 @@ import EmptyState from '../components/EmptyState';
 import LoadingState from '../components/LoadingState';
 import { useAuth } from '../context/AuthContext';
 import { useTheme, useThemedStyles } from '../context/ThemeContext';
-import { COGNITO_REGION, COGNITO_USER_POOL_ID } from '../config/auth';
 import {
+  deleteSavedRoute,
   getSavedRoutes,
   getUserPreferences,
   updateUserPreferences,
@@ -36,6 +37,7 @@ import AuthScreen from './AuthScreen';
 type AccountScreenProps = {
   onBackToDrive: () => void;
   onOpenPipeline: () => void;
+  onUseSavedRoute: (route: SavedRouteRecord) => void;
 };
 
 type PreferenceOption<T extends string> = {
@@ -44,8 +46,8 @@ type PreferenceOption<T extends string> = {
 };
 
 const DISTANCE_UNIT_OPTIONS: PreferenceOption<DistanceUnit>[] = [
-  { label: 'Kilometers', value: 'km' },
-  { label: 'Miles', value: 'mi' },
+  { label: 'Kilometri', value: 'km' },
+  { label: 'Mile', value: 'mi' },
 ];
 
 const THEME_MODE_OPTIONS: PreferenceOption<ThemeMode>[] = [
@@ -62,9 +64,14 @@ function formatDistance(valueKm: number, unit: DistanceUnit | undefined) {
   return `${valueKm} km`;
 }
 
+function formatRouteName(value: string) {
+  return value.replace(/\s+to\s+/i, ' către ');
+}
+
 export default function AccountScreen({
   onBackToDrive,
   onOpenPipeline,
+  onUseSavedRoute,
 }: AccountScreenProps) {
   const {
     getAccessToken,
@@ -82,6 +89,9 @@ export default function AccountScreen({
   const [isPreferencesLoading, setIsPreferencesLoading] = useState(false);
   const [isPreferencesSaving, setIsPreferencesSaving] = useState(false);
   const [preferencesError, setPreferencesError] = useState('');
+  const [deletingSavedRouteId, setDeletingSavedRouteId] = useState<number | null>(null);
+  const [savedRoutePendingDelete, setSavedRoutePendingDelete] =
+    useState<SavedRouteRecord | null>(null);
   const scrollViewRef = useRef<ScrollView>(null);
 
   function revealAuthenticationForm() {
@@ -108,14 +118,14 @@ export default function AccountScreen({
         const accessToken = await getAccessToken();
 
         if (!accessToken) {
-          setSavedRoutesError('Your session expired. Please sign in again.');
+          setSavedRoutesError('Sesiunea a expirat. Autentifică-te din nou.');
           return;
         }
 
         const response = await getSavedRoutes(accessToken);
         setSavedRoutes(response.data);
       } catch {
-        setSavedRoutesError('Could not load saved routes.');
+        setSavedRoutesError('Rutele salvate nu au putut fi încărcate.');
       } finally {
         setIsSavedRoutesLoading(false);
       }
@@ -138,7 +148,7 @@ export default function AccountScreen({
         const accessToken = await getAccessToken();
 
         if (!accessToken) {
-          setPreferencesError('Your session expired. Please sign in again.');
+          setPreferencesError('Sesiunea a expirat. Autentifică-te din nou.');
           return;
         }
 
@@ -146,7 +156,7 @@ export default function AccountScreen({
         setPreferences(response.data);
         await setThemeMode(response.data.theme_mode);
       } catch {
-        setPreferencesError('Could not load preferences.');
+        setPreferencesError('Preferințele nu au putut fi încărcate.');
       } finally {
         setIsPreferencesLoading(false);
       }
@@ -173,14 +183,14 @@ export default function AccountScreen({
       const accessToken = await getAccessToken();
 
       if (!accessToken) {
-        setPreferencesError('Your session expired. Please sign in again.');
+        setPreferencesError('Sesiunea a expirat. Autentifică-te din nou.');
         return;
       }
 
       const response = await updateUserPreferences(nextPreferences, accessToken);
       setPreferences(response.data);
     } catch {
-      setPreferencesError('Could not save preferences.');
+      setPreferencesError('Preferințele nu au putut fi salvate.');
     } finally {
       setIsPreferencesSaving(false);
     }
@@ -206,16 +216,56 @@ export default function AccountScreen({
       const accessToken = await getAccessToken();
 
       if (!accessToken) {
-        setPreferencesError('Your session expired. Theme changed locally only.');
+        setPreferencesError('Sesiunea a expirat. Tema a fost schimbată doar local.');
         return;
       }
 
       const response = await updateUserPreferences(nextPreferences, accessToken);
       setPreferences(response.data);
     } catch {
-      setPreferencesError('Theme changed locally, but could not be saved to account.');
+      setPreferencesError('Tema a fost schimbată local, dar nu a putut fi salvată în cont.');
     } finally {
       setIsPreferencesSaving(false);
+    }
+  }
+
+  function requestDeleteSavedRoute(route: SavedRouteRecord) {
+    if (!session?.tokens.accessToken) {
+      setSavedRoutesError('Sesiunea a expirat. Autentifică-te din nou.');
+      return;
+    }
+
+    setSavedRoutePendingDelete(route);
+  }
+
+  async function confirmDeleteSavedRoute() {
+    if (!savedRoutePendingDelete) {
+      return;
+    }
+
+    try {
+      setDeletingSavedRouteId(savedRoutePendingDelete.saved_route_id);
+      setSavedRoutesError('');
+
+      const accessToken = await getAccessToken();
+
+      if (!accessToken) {
+        setSavedRoutesError('Sesiunea a expirat. Autentifică-te din nou.');
+        return;
+      }
+
+      await deleteSavedRoute(savedRoutePendingDelete.saved_route_id, accessToken);
+      setSavedRoutes((currentRoutes) =>
+        currentRoutes.filter(
+          (currentRoute) =>
+            currentRoute.saved_route_id !== savedRoutePendingDelete.saved_route_id
+        )
+      );
+      setSavedRoutePendingDelete(null);
+    } catch {
+      setSavedRoutesError('Ruta nu a putut fi ștearsă. Încearcă din nou.');
+    } finally {
+      setDeletingSavedRouteId(null);
     }
   }
 
@@ -259,7 +309,7 @@ export default function AccountScreen({
   }
 
   if (isRestoringSession) {
-    return <LoadingState message="Restoring account session..." />;
+    return <LoadingState message="Se verifică sesiunea..." />;
   }
 
   return (
@@ -277,82 +327,65 @@ export default function AccountScreen({
       >
         <View style={styles.headerRow}>
           <View>
-            <Text style={styles.eyebrow}>Personal area</Text>
-            <Text style={styles.title}>Account</Text>
+            <Text style={styles.eyebrow}>Cont personal</Text>
+            <Text style={styles.title}>Cont</Text>
           </View>
 
           <Pressable onPress={onBackToDrive} style={styles.backButton}>
-            <Text style={styles.backButtonText}>Drive</Text>
+            <Text style={styles.backButtonText}>Acasă</Text>
           </Pressable>
         </View>
 
         <Pressable
-          accessibilityLabel="Open admin pipeline status"
+          accessibilityLabel="Deschide statusul pipeline-ului"
           onPress={onOpenPipeline}
           style={styles.adminCard}
         >
           <View style={styles.adminTextBlock}>
-            <Text style={styles.cardLabel}>Admin</Text>
-            <Text style={styles.adminTitle}>Pipeline status</Text>
+            <Text style={styles.cardLabel}>Administrare</Text>
+            <Text style={styles.adminTitle}>Flux de date</Text>
             <Text style={styles.cardText}>
-              View latest ETL run status, records loaded, and data quality checks.
+              Verifică rapid dacă fluxul de date rulează corect.
             </Text>
           </View>
-          <Text style={styles.adminAction}>Open</Text>
+          <Text style={styles.adminAction}>Deschide</Text>
         </Pressable>
 
         {isAuthenticated && session ? (
           <>
             <View style={styles.profileCard}>
-              <Text style={styles.cardLabel}>Signed in as</Text>
+              <Text style={styles.cardLabel}>Autentificat ca</Text>
               <Text style={styles.email}>{session.user.email}</Text>
               <Text style={styles.cardText}>
-                Personal features will use this Cognito identity for saved routes, ride
-                history, and preferences.
+                Rutele, istoricul și setările tale sunt salvate pe acest cont.
               </Text>
-            </View>
-
-            <View style={styles.detailGrid}>
-              <View style={styles.detailCard}>
-                <Text style={styles.detailLabel}>Provider</Text>
-                <Text style={styles.detailValue}>Amazon Cognito</Text>
-              </View>
-              <View style={styles.detailCard}>
-                <Text style={styles.detailLabel}>Region</Text>
-                <Text style={styles.detailValue}>{COGNITO_REGION}</Text>
-              </View>
-              <View style={styles.detailCardFull}>
-                <Text style={styles.detailLabel}>User Pool</Text>
-                <Text style={styles.detailValue}>{COGNITO_USER_POOL_ID}</Text>
-              </View>
             </View>
 
             <View style={styles.preferencesCard}>
-              <Text style={styles.cardLabel}>Preferences</Text>
-              <Text style={styles.preferencesTitle}>Personal settings</Text>
+              <Text style={styles.cardLabel}>Setări</Text>
+              <Text style={styles.preferencesTitle}>Preferințele tale</Text>
               <Text style={styles.cardText}>
-                Distance unit and appearance mode are stored per Cognito user.
-                System follows your phone setting, while Dark and Light override it.
+                Alege cum vrei să fie afișate distanțele și tema aplicației.
               </Text>
 
               {isPreferencesLoading ? (
-                <Text style={styles.cardText}>Loading preferences...</Text>
+                <Text style={styles.cardText}>Se încarcă preferințele...</Text>
               ) : preferences ? (
                 <>
                   {renderPreferenceOptions(
-                    'Distance unit',
+                    'Distanțe',
                     DISTANCE_UNIT_OPTIONS,
                     preferences.distance_unit,
                     (value) => handleDistancePreferenceChange(value)
                   )}
                   {renderPreferenceOptions(
-                    'Appearance',
+                    'Temă',
                     THEME_MODE_OPTIONS,
                     preferences.theme_mode,
                     (value) => handleThemePreferenceChange(value)
                   )}
                   {isPreferencesSaving ? (
-                    <Text style={styles.cardText}>Saving preferences...</Text>
+                    <Text style={styles.cardText}>Se salvează preferințele...</Text>
                   ) : null}
                 </>
               ) : null}
@@ -365,60 +398,87 @@ export default function AccountScreen({
             <View style={styles.savedRoutesCard}>
               <View style={styles.savedRoutesHeader}>
                 <View>
-                  <Text style={styles.cardLabel}>Saved routes</Text>
-                  <Text style={styles.savedRoutesTitle}>Personal route list</Text>
+                  <Text style={styles.cardLabel}>Rute salvate</Text>
+                  <Text style={styles.savedRoutesTitle}>Destinații rapide</Text>
                 </View>
                 <Text style={styles.savedRoutesCount}>{savedRoutes.length}</Text>
               </View>
 
               {isSavedRoutesLoading ? (
-                <Text style={styles.cardText}>Loading saved routes...</Text>
+                <Text style={styles.cardText}>Se încarcă rutele...</Text>
               ) : savedRoutesError ? (
                 <Text style={styles.errorText}>{savedRoutesError}</Text>
               ) : savedRoutes.length === 0 ? (
                 <EmptyState
-                  actionLabel="Open Drive"
-                  message="Preview a Suceava route and save it to your account."
+                  actionLabel="Deschide harta"
+                  message="Calculează o rută în Suceava și salveaz-o în cont."
                   onAction={onBackToDrive}
-                  title="No saved routes yet"
+                  title="Nu ai rute salvate"
                 />
               ) : (
                 savedRoutes.map((route) => (
                   <View key={route.saved_route_id} style={styles.savedRouteRow}>
-                    <Text style={styles.savedRouteName}>{route.route_name}</Text>
-                    <Text style={styles.savedRouteMeta}>
-                      {formatDistance(route.distance_km, preferences?.distance_unit)} -{' '}
-                      {route.duration_minutes} min - {route.provider}
-                    </Text>
+                    <View style={styles.savedRouteTextBlock}>
+                      <Text style={styles.savedRouteName}>
+                        {formatRouteName(route.route_name)}
+                      </Text>
+                      <Text style={styles.savedRouteMeta}>
+                        {formatDistance(route.distance_km, preferences?.distance_unit)} -{' '}
+                        {route.duration_minutes} min
+                      </Text>
+                    </View>
+                    <View style={styles.savedRouteActions}>
+                      <Pressable
+                        accessibilityLabel={`Folosește ruta salvată ${route.route_name}`}
+                        onPress={() => onUseSavedRoute(route)}
+                        style={styles.savedRoutePrimaryAction}
+                      >
+                        <Text style={styles.savedRoutePrimaryActionText}>Pornește</Text>
+                      </Pressable>
+                      <Pressable
+                        accessibilityLabel={`Șterge ruta salvată ${route.route_name}`}
+                        disabled={deletingSavedRouteId === route.saved_route_id}
+                        onPress={() => requestDeleteSavedRoute(route)}
+                        style={[
+                          styles.savedRouteDeleteAction,
+                          deletingSavedRouteId === route.saved_route_id &&
+                            styles.actionDisabled,
+                        ]}
+                      >
+                        <Text style={styles.savedRouteDeleteActionText}>
+                          {deletingSavedRouteId === route.saved_route_id ? '...' : 'Șterge'}
+                        </Text>
+                      </Pressable>
+                    </View>
                   </View>
                 ))
               )}
             </View>
 
             <Pressable onPress={signOut} style={styles.signOutButton}>
-              <Text style={styles.signOutButtonText}>Sign out</Text>
+              <Text style={styles.signOutButtonText}>Deconectare</Text>
             </Pressable>
           </>
         ) : (
           <>
             <View style={styles.guestCard}>
-              <Text style={styles.cardLabel}>Guest access active</Text>
-              <Text style={styles.guestTitle}>Public traffic features stay open.</Text>
+              <Text style={styles.cardLabel}>Mod invitat</Text>
+              <Text style={styles.guestTitle}>Funcțiile publice rămân disponibile.</Text>
               <Text style={styles.cardText}>
-                Sign in only when you need personal data such as saved routes, ride
-                history, and user preferences.
+                Autentificarea este necesară doar pentru rute salvate, istoric și
+                preferințe personale.
               </Text>
             </View>
 
             <View style={styles.preferencesCard}>
-              <Text style={styles.cardLabel}>Appearance</Text>
-              <Text style={styles.preferencesTitle}>Display mode</Text>
+              <Text style={styles.cardLabel}>Setări</Text>
+              <Text style={styles.preferencesTitle}>Tema aplicației</Text>
               <Text style={styles.cardText}>
-                Guests can change the theme on this phone. Sign in to sync the
-                preference to your account.
+                Schimbarea se aplică pe acest telefon. Autentifică-te ca să fie
+                salvată în cont.
               </Text>
               {renderPreferenceOptions(
-                'Theme',
+                'Temă',
                 THEME_MODE_OPTIONS,
                 localThemeMode,
                 (value) => handleThemePreferenceChange(value)
@@ -429,6 +489,62 @@ export default function AccountScreen({
           </>
         )}
       </ScrollView>
+
+      <Modal
+        animationType="fade"
+        transparent
+        visible={!!savedRoutePendingDelete}
+        onRequestClose={() => {
+          if (deletingSavedRouteId === null) {
+            setSavedRoutePendingDelete(null);
+          }
+        }}
+      >
+        <View style={styles.modalBackdrop}>
+          <Pressable
+            accessibilityLabel="Închide confirmarea de ștergere"
+            disabled={deletingSavedRouteId !== null}
+            onPress={() => setSavedRoutePendingDelete(null)}
+            style={styles.modalDismissArea}
+          />
+          <View style={styles.deleteDialog}>
+            <Text style={styles.deleteDialogEyebrow}>Ștergere rută</Text>
+            <Text style={styles.deleteDialogTitle}>Elimini această rută?</Text>
+            <Text style={styles.deleteDialogText}>
+              {savedRoutePendingDelete
+                ? `${formatRouteName(
+                    savedRoutePendingDelete.route_name
+                  )} va fi ștearsă din rutele salvate.`
+                : ''}
+            </Text>
+
+            <View style={styles.deleteDialogActions}>
+              <Pressable
+                disabled={deletingSavedRouteId !== null}
+                onPress={() => setSavedRoutePendingDelete(null)}
+                style={[
+                  styles.cancelDialogButton,
+                  deletingSavedRouteId !== null && styles.actionDisabled,
+                ]}
+              >
+                <Text style={styles.cancelDialogButtonText}>Anulează</Text>
+              </Pressable>
+              <Pressable
+                disabled={deletingSavedRouteId !== null}
+                onPress={confirmDeleteSavedRoute}
+                style={[
+                  styles.confirmDeleteButton,
+                  deletingSavedRouteId !== null && styles.actionDisabled,
+                ]}
+              >
+                <Text style={styles.confirmDeleteButtonText}>
+                  {deletingSavedRouteId !== null ? 'Se șterge...' : 'Șterge'}
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -663,12 +779,16 @@ function createStyles(colors: ThemeColors) {
     paddingVertical: 6,
   },
   savedRouteRow: {
+    alignItems: 'stretch',
     backgroundColor: colors.surface,
     borderColor: colors.border,
     borderRadius: radius.md,
     borderWidth: 1,
-    gap: 5,
+    gap: 12,
     padding: 13,
+  },
+  savedRouteTextBlock: {
+    gap: 5,
   },
   savedRouteName: {
     color: colors.text,
@@ -679,6 +799,122 @@ function createStyles(colors: ThemeColors) {
     color: colors.textMuted,
     fontSize: 13,
     lineHeight: 19,
+  },
+  savedRouteActions: {
+    flexDirection: 'row',
+    gap: 9,
+  },
+  savedRoutePrimaryAction: {
+    alignItems: 'center',
+    backgroundColor: colors.primary,
+    borderRadius: radius.md,
+    flex: 1,
+    justifyContent: 'center',
+    minHeight: 40,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  savedRoutePrimaryActionText: {
+    color: colors.primaryText,
+    fontSize: 12,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+  },
+  savedRouteDeleteAction: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    borderColor: colors.red,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    justifyContent: 'center',
+    minHeight: 40,
+    paddingHorizontal: 13,
+    paddingVertical: 10,
+  },
+  savedRouteDeleteActionText: {
+    color: colors.red,
+    fontSize: 12,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+  },
+  actionDisabled: {
+    opacity: 0.55,
+  },
+  modalBackdrop: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(2, 6, 23, 0.72)',
+    flex: 1,
+    justifyContent: 'center',
+    padding: spacing.screenX,
+  },
+  modalDismissArea: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  deleteDialog: {
+    ...shadows.card,
+    backgroundColor: colors.card,
+    borderColor: colors.border,
+    borderRadius: radius.xl,
+    borderWidth: 1,
+    gap: 12,
+    padding: 18,
+    width: '100%',
+  },
+  deleteDialogEyebrow: {
+    color: colors.red,
+    fontSize: 12,
+    fontWeight: '900',
+    letterSpacing: 1.1,
+    textTransform: 'uppercase',
+  },
+  deleteDialogTitle: {
+    color: colors.text,
+    fontSize: 22,
+    fontWeight: '900',
+  },
+  deleteDialogText: {
+    color: colors.textMuted,
+    fontSize: 14,
+    lineHeight: 21,
+  },
+  deleteDialogActions: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 4,
+  },
+  cancelDialogButton: {
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    flex: 1,
+    justifyContent: 'center',
+    minHeight: 46,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  cancelDialogButtonText: {
+    color: colors.text,
+    fontSize: 13,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+  },
+  confirmDeleteButton: {
+    alignItems: 'center',
+    backgroundColor: colors.red,
+    borderRadius: radius.md,
+    flex: 1,
+    justifyContent: 'center',
+    minHeight: 46,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  confirmDeleteButtonText: {
+    color: '#ffffff',
+    fontSize: 13,
+    fontWeight: '900',
+    textTransform: 'uppercase',
   },
   errorText: {
     color: colors.red,

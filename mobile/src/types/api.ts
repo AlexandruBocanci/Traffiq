@@ -91,6 +91,11 @@ export type SaveRouteResponse = {
   data: SavedRouteRecord;
 };
 
+export type DeleteSavedRouteResponse = {
+  deleted: boolean;
+  saved_route_id: number;
+};
+
 export type DistanceUnit = 'km' | 'mi';
 
 export type PreferredRouteType = 'fastest' | 'balanced' | 'less_congested';
@@ -133,6 +138,11 @@ export type RideHistoryRecord = {
 export type AddRideHistoryResponse = {
   created: boolean;
   data: RideHistoryRecord;
+};
+
+export type DeleteRideHistoryResponse = {
+  deleted: boolean;
+  ride_id: number;
 };
 
 export type MapEventRecord = {

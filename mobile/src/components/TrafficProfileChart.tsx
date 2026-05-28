@@ -13,7 +13,7 @@ import { useThemedStyles } from '../context/ThemeContext';
 import { radius, shadows, ThemeColors } from '../theme/theme';
 import { TrafficProfileRecord, TrafficProfileResponse } from '../types/api';
 
-const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const DAY_LABELS = ['Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă', 'Duminică'];
 const HOURS = Array.from({ length: 24 }, (_, index) => index);
 const CHART_HEIGHT = 132;
 const MIN_BAR_HEIGHT = 10;
@@ -88,10 +88,10 @@ export default function TrafficProfileChart({ profile }: TrafficProfileChartProp
   if (!profile || profile.data.length === 0) {
     return (
       <View style={styles.card}>
-        <Text style={styles.eyebrow}>Traffic profile</Text>
-        <Text style={styles.emptyTitle}>No hourly profile yet</Text>
+        <Text style={styles.eyebrow}>Profil trafic</Text>
+        <Text style={styles.emptyTitle}>Profilul orar nu este disponibil</Text>
         <Text style={styles.emptyText}>
-          The API is ready, but the hourly traffic profile has not been loaded.
+          Datele pentru distribuția pe ore nu au fost încă încărcate.
         </Text>
       </View>
     );
@@ -105,12 +105,8 @@ export default function TrafficProfileChart({ profile }: TrafficProfileChartProp
     <View style={styles.card}>
       <View style={styles.header}>
         <View style={styles.headerText}>
-          <Text style={styles.eyebrow}>Traffic profile</Text>
-          <Text style={styles.title}>{selectedDayLabel} monitored flow</Text>
-        </View>
-        <View style={styles.nowBadge}>
-          <Text style={styles.nowBadgeValue}>{formatHour(currentHour)}</Text>
-          <Text style={styles.nowBadgeLabel}>Now</Text>
+          <Text style={styles.eyebrow}>Profil trafic</Text>
+          <Text style={styles.title}>{selectedDayLabel}</Text>
         </View>
       </View>
 
@@ -124,7 +120,7 @@ export default function TrafficProfileChart({ profile }: TrafficProfileChartProp
 
           return (
             <Pressable
-              accessibilityLabel={`Show ${dayLabel} traffic profile`}
+              accessibilityLabel={`Afișează profilul de trafic pentru ${dayLabel}`}
               key={dayLabel}
               onPress={() => setSelectedWeekdayIndex(index)}
               style={[styles.dayButton, isSelected && styles.dayButtonActive]}
@@ -142,7 +138,6 @@ export default function TrafficProfileChart({ profile }: TrafficProfileChartProp
           {HOURS.map((hour) => {
             const row = selectedRows.get(hour);
             const isCurrentHour = isCurrentDay && hour === currentHour;
-            const score = Math.round(row?.traffic_score ?? 0);
             const shouldShowHourLabel =
               hour === 0 || hour === 6 || hour === 12 || hour === 18 || hour === 23;
 
@@ -160,7 +155,6 @@ export default function TrafficProfileChart({ profile }: TrafficProfileChartProp
                 <Text style={[styles.hourLabel, isCurrentHour && styles.currentHourLabel]}>
                   {isCurrentHour ? formatHour(hour) : shouldShowHourLabel ? formatHour(hour) : ''}
                 </Text>
-                <Text style={styles.scoreLabel}>{isCurrentHour ? `${score}` : ''}</Text>
               </View>
             );
           })}
@@ -168,8 +162,8 @@ export default function TrafficProfileChart({ profile }: TrafficProfileChartProp
       </View>
 
       <Text style={styles.scopeText}>
-        Monitored corridors only. Scores are replaced by TomTom observations as
-        hourly data accumulates.
+        Estimare pe coridoarele principale din Suceava. Bara evidențiată
+        indică ora curentă pentru ziua selectată.
       </Text>
     </View>
   );
@@ -208,28 +202,6 @@ function createStyles(colors: ThemeColors) {
     fontWeight: '900',
     letterSpacing: 0,
     marginTop: 4,
-  },
-  nowBadge: {
-    alignItems: 'center',
-    backgroundColor: 'rgba(163, 230, 53, 0.14)',
-    borderColor: 'rgba(163, 230, 53, 0.45)',
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    minWidth: 56,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-  },
-  nowBadgeValue: {
-    color: colors.primary,
-    fontSize: 16,
-    fontWeight: '900',
-  },
-  nowBadgeLabel: {
-    color: colors.textMuted,
-    fontSize: 10,
-    fontWeight: '900',
-    marginTop: 2,
-    textTransform: 'uppercase',
   },
   daySelector: {
     gap: 8,
@@ -306,13 +278,6 @@ function createStyles(colors: ThemeColors) {
   },
   currentHourLabel: {
     color: colors.primary,
-  },
-  scoreLabel: {
-    color: colors.textSoft,
-    fontSize: 9,
-    fontWeight: '900',
-    height: 12,
-    textAlign: 'center',
   },
   scopeText: {
     color: colors.textMuted,

@@ -118,7 +118,7 @@ def add_ride_history(
   route_name = request.route_name
 
   if route_name is None or route_name.strip() == "":
-    route_name = f"{request.origin.name} to {request.destination.name}"
+    route_name = f"{request.origin.name} către {request.destination.name}"
 
   ended_at = datetime.now()
   started_at = ended_at - timedelta(minutes=request.duration_minutes)
@@ -209,6 +209,58 @@ def add_ride_history(
     }
 
   except HTTPException:
+    raise
+
+  except Exception:
+    if conn is not None:
+      conn.rollback()
+    raise HTTPException(status_code=500, detail="An error occurred.")
+
+  finally:
+    if cur is not None:
+      cur.close()
+    if conn is not None:
+      conn.close()
+
+
+@router.delete("/rides/history/{ride_id}")
+def delete_ride_history(
+  ride_id: int,
+  current_user: dict = Depends(require_current_user),
+):
+  conn = None
+  cur = None
+
+  try:
+    conn = get_db_connection()
+
+    if conn is None:
+      raise HTTPException(status_code=500, detail="Database connection failed.")
+
+    cur = conn.cursor()
+    cur.execute(
+      """
+      DELETE FROM silver.user_ride_history
+      WHERE ride_id = %s
+        AND cognito_user_sub = %s;
+      """,
+      (ride_id, current_user["sub"]),
+    )
+
+    deleted_count = cur.rowcount
+    conn.commit()
+
+    if deleted_count == 0:
+      raise HTTPException(status_code=404, detail="Ride not found.")
+
+    return {
+      "deleted": True,
+      "ride_id": ride_id,
+    }
+
+  except HTTPException:
+    if conn is not None:
+      conn.rollback()
     raise
 
   except Exception:

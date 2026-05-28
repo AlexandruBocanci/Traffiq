@@ -421,6 +421,38 @@ Definition of done:
 - the application is visually coherent and usable across its final feature set
 - user confirms the final APK presentation flow
 
+Implementation result:
+
+- polished the final mobile UI without adding new product features
+- reduced developer-facing wording from normal user screens
+- changed ride-history completed status into a green success badge
+- simplified the traffic profile chart by removing the current-hour badge and
+  the numeric score under the highlighted bar
+- replaced the top-street `Observed traffic` card with a Suceava traffic
+  summary based on the average of monitored corridors
+- removed route provider wording such as `OSRM direct` from saved-route and
+  route-preview surfaces
+- added a `Use route` flow for saved routes so a saved route opens Drive with
+  the route preview prepared
+- converted the final mobile UI copy to Romanian for a coherent user-facing
+  experience
+- kept only technical product names where they describe the architecture, such
+  as TomTom, Open-Meteo, FastAPI, RDS, and Pipeline
+- colored Suceava alert severity labels to match their visual severity bar:
+  green for `low`, yellow for `medium`, and red for `high`
+- removed Cognito/User Pool technical details from the normal Account screen
+- tightened Pipeline quality-check badge layout so long check names do not push
+  the status outside the card
+- added aligned delete actions for saved routes and ride history
+- added protected backend support for deleting personal ride history records
+- replaced the native ride-history delete alert with a custom confirmation
+  modal styled with the Traffiq color system
+- replaced the native saved-route delete alert with the same custom
+  confirmation modal for consistent destructive actions
+- restored Account theme labels to `System`, `Dark`, and `Light`
+- redeployed App Runner with the backend required by the new delete action:
+  `sha256:6ea9a28a76ad6ca45b186a82b23e7c46db8f6ae86c325809bab2888aa128a391`
+
 Rejected scope decisions:
 
 - continuous remaining ETA recalculation during an active drive is excluded because it creates unnecessary routing request and reliability risk

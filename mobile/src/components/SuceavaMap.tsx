@@ -137,7 +137,7 @@ export default function SuceavaMap({
   const displayRegion = activeRoute ? getRouteRegion(routeCoordinates) : currentRegion;
   const locationNotice =
     !activeRoute && locationStatus === 'denied'
-      ? 'Location unavailable. Showing the Suceava demo viewport.'
+      ? 'Locația nu este disponibilă. Afișăm zona Suceava.'
       : '';
   const visibleEvents = events
     .filter((event) => event.latitude !== null && event.longitude !== null)
@@ -254,10 +254,10 @@ export default function SuceavaMap({
             <Pressable
               accessibilityHint={
                 gpsStatus === 'denied'
-                  ? 'Location permission is required before the map can recenter.'
-                  : 'Centers the map on your latest phone GPS location.'
+                  ? 'Permisiunea de locație este necesară pentru recentrarea hărții.'
+                  : 'Centrează harta pe ultima locație GPS a telefonului.'
               }
-              accessibilityLabel="Current speed. Press to recenter map."
+              accessibilityLabel="Viteza curentă. Apasă pentru recentrarea hărții."
               onPress={() => {
                 if (availableCenterLocation) {
                   onFollowLocationChange?.(true);
@@ -273,19 +273,19 @@ export default function SuceavaMap({
             >
               <Text style={styles.speedValue}>{liveSpeedKmh ?? '--'}</Text>
               <Text style={styles.speedUnit}>km/h</Text>
-              <Text style={styles.speedStatus}>Press to recenter</Text>
+              <Text style={styles.speedStatus}>Apasă pentru centrare</Text>
             </Pressable>
 
             {showRoutePrompt ? (
               <View style={styles.planRouteCard}>
-                <Text style={styles.planRouteLabel}>Plan a route</Text>
-                <Text style={styles.planRouteTitle}>Where to?</Text>
+                <Text style={styles.planRouteLabel}>Destinație</Text>
+                <Text style={styles.planRouteTitle}>Unde mergi?</Text>
                 <View style={styles.planRouteActions}>
                   <Pressable onPress={onPlanRoute} style={styles.planRouteChooseButton}>
-                    <Text style={styles.planRouteChooseText}>Choose</Text>
+                    <Text style={styles.planRouteChooseText}>Alege</Text>
                   </Pressable>
                   <Pressable onPress={onDismissRoutePrompt} style={styles.planRouteLaterButton}>
-                    <Text style={styles.planRouteLaterText}>Later</Text>
+                    <Text style={styles.planRouteLaterText}>Mai târziu</Text>
                   </Pressable>
                 </View>
               </View>
@@ -294,11 +294,11 @@ export default function SuceavaMap({
             {!showRoutePrompt && isDriveActive ? (
               <View style={styles.driveControls}>
                 <Pressable
-                  accessibilityLabel="End active drive"
+                  accessibilityLabel="Oprește cursa activă"
                   onPress={onEndDrive}
                   style={styles.endDriveButton}
                 >
-                  <Text style={styles.endDriveButtonText}>End drive</Text>
+                  <Text style={styles.endDriveButtonText}>Oprește</Text>
                 </Pressable>
               </View>
             ) : null}
@@ -314,7 +314,7 @@ export default function SuceavaMap({
 
       {onExpand ? (
         <Pressable onPress={onExpand} style={styles.expandButton}>
-          <Text style={styles.expandButtonText}>Expand map</Text>
+          <Text style={styles.expandButtonText}>Extinde harta</Text>
         </Pressable>
       ) : null}
     </View>

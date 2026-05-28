@@ -110,7 +110,7 @@ def save_route(
   route_name = request.route_name
 
   if route_name is None or route_name.strip() == "":
-    route_name = f"{request.origin.name} to {request.destination.name}"
+    route_name = f"{request.origin.name} către {request.destination.name}"
 
   try:
     conn = get_db_connection()

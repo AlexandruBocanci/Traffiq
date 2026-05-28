@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
+  Modal,
   Pressable,
   SafeAreaView,
   ScrollView,
@@ -13,7 +14,7 @@ import ErrorState from '../components/ErrorState';
 import LoadingState from '../components/LoadingState';
 import { useAuth } from '../context/AuthContext';
 import { useThemedStyles } from '../context/ThemeContext';
-import { getRidesHistory } from '../services/traffiqApi';
+import { deleteRideHistory, getRidesHistory } from '../services/traffiqApi';
 import { radius, shadows, spacing, ThemeColors } from '../theme/theme';
 import { RideHistoryRecord } from '../types/api';
 
@@ -24,7 +25,7 @@ type HistoryScreenProps = {
 
 function formatValue(value: number | null | undefined, suffix = '') {
   if (value === null || value === undefined) {
-    return 'N/A';
+    return '—';
   }
 
   return `${value}${suffix}`;
@@ -32,10 +33,22 @@ function formatValue(value: number | null | undefined, suffix = '') {
 
 function formatTrafficValue(ride: RideHistoryRecord) {
   if (ride.traffic_data_source !== 'tomtom_snapshot') {
-    return 'N/A';
+    return '—';
   }
 
   return formatValue(ride.congestion_score);
+}
+
+function formatRouteName(value: string) {
+  return value.replace(/\s+to\s+/i, ' către ');
+}
+
+function formatRideStatus(status: string) {
+  if (status === 'completed') {
+    return 'Finalizată';
+  }
+
+  return status;
 }
 
 export default function HistoryScreen({
@@ -47,6 +60,11 @@ export default function HistoryScreen({
   const [rides, setRides] = useState<RideHistoryRecord[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [actionErrorMessage, setActionErrorMessage] = useState('');
+  const [deletingRideId, setDeletingRideId] = useState<number | null>(null);
+  const [ridePendingDelete, setRidePendingDelete] = useState<RideHistoryRecord | null>(
+    null
+  );
 
   useEffect(() => {
     async function loadHistory() {
@@ -61,43 +79,82 @@ export default function HistoryScreen({
         const accessToken = await getAccessToken();
 
         if (!accessToken) {
-          setErrorMessage('Your session expired. Please sign in again.');
+          setErrorMessage('Sesiunea a expirat. Autentifică-te din nou.');
           return;
         }
 
         const response = await getRidesHistory(accessToken);
         setRides(response.data);
       } catch (error) {
-        setErrorMessage('Could not load personal ride history.');
+        setErrorMessage('Istoricul curselor nu a putut fi încărcat.');
       } finally {
         setIsLoading(false);
       }
     }
 
     loadHistory();
-  }, [isAuthenticated, session?.tokens.accessToken]);
+  }, [getAccessToken, isAuthenticated, session?.tokens.accessToken]);
+
+  function requestDeleteRide(ride: RideHistoryRecord) {
+    if (!session?.tokens.accessToken) {
+      setActionErrorMessage('Sesiunea a expirat. Autentifică-te din nou.');
+      return;
+    }
+
+    setRidePendingDelete(ride);
+  }
+
+  async function confirmDeleteRide() {
+    if (!ridePendingDelete) {
+      return;
+    }
+
+    try {
+      setDeletingRideId(ridePendingDelete.ride_id);
+      setActionErrorMessage('');
+
+      const accessToken = await getAccessToken();
+
+      if (!accessToken) {
+        setActionErrorMessage('Sesiunea a expirat. Autentifică-te din nou.');
+        return;
+      }
+
+      await deleteRideHistory(ridePendingDelete.ride_id, accessToken);
+      setRides((currentRides) =>
+        currentRides.filter(
+          (currentRide) => currentRide.ride_id !== ridePendingDelete.ride_id
+        )
+      );
+      setRidePendingDelete(null);
+    } catch {
+      setActionErrorMessage('Cursa nu a putut fi ștearsă. Încearcă din nou.');
+    } finally {
+      setDeletingRideId(null);
+    }
+  }
 
   if (isRestoringSession) {
-    return <LoadingState message="Checking account session..." />;
+    return <LoadingState message="Se verifică sesiunea..." />;
   }
 
   if (!isAuthenticated) {
     return (
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.guestContainer}>
-          <Text style={styles.eyebrow}>Personal feature</Text>
-          <Text style={styles.title}>Ride history</Text>
+          <Text style={styles.eyebrow}>Cont necesar</Text>
+          <Text style={styles.title}>Istoric curse</Text>
           <Text style={styles.guestText}>
-            Sign in to view personal ride history. Public traffic data remains available
-            without an account.
+            Autentifică-te ca să vezi cursele salvate pe contul tău. Harta și
+            informațiile publice despre trafic pot fi folosite și fără cont.
           </Text>
 
           <Pressable onPress={onOpenAccount} style={styles.primaryButton}>
-            <Text style={styles.primaryButtonText}>Sign in</Text>
+            <Text style={styles.primaryButtonText}>Autentificare</Text>
           </Pressable>
 
           <Pressable onPress={onBackToDrive} style={styles.secondaryAction}>
-            <Text style={styles.secondaryActionText}>Continue as guest</Text>
+            <Text style={styles.secondaryActionText}>Continuă fără cont</Text>
           </Pressable>
         </View>
       </SafeAreaView>
@@ -105,16 +162,16 @@ export default function HistoryScreen({
   }
 
   if (isLoading) {
-    return <LoadingState message="Loading ride history..." />;
+    return <LoadingState message="Se încarcă istoricul..." />;
   }
 
   if (errorMessage) {
     return (
       <ErrorState
-        actionLabel="Back to Drive"
+        actionLabel="Înapoi acasă"
         message={errorMessage}
         onAction={onBackToDrive}
-        title="History"
+        title="Istoric"
       />
     );
   }
@@ -125,55 +182,128 @@ export default function HistoryScreen({
         <View style={styles.headerRow}>
           <View>
             <Text style={styles.eyebrow}>Personal</Text>
-            <Text style={styles.title}>Ride history</Text>
+            <Text style={styles.title}>Istoric curse</Text>
           </View>
 
           <Pressable onPress={onBackToDrive} style={styles.backButton}>
-            <Text style={styles.backButtonText}>Drive</Text>
+            <Text style={styles.backButtonText}>Acasă</Text>
           </Pressable>
         </View>
 
+        {actionErrorMessage ? (
+          <Text style={styles.errorText}>{actionErrorMessage}</Text>
+        ) : null}
+
         {rides.length === 0 ? (
           <EmptyState
-            actionLabel="Plan a route"
-            message="Preview a route from Drive, then add it to your personal history."
+            actionLabel="Alege destinația"
+            message="Pornește o cursă ca să apară aici."
             onAction={onBackToDrive}
-            title="No rides recorded yet"
+            title="Nu ai curse salvate"
           />
         ) : (
           rides.map((ride) => (
             <View key={ride.ride_id} style={styles.rideCard}>
               <View style={styles.cardTopRow}>
-                <Text style={styles.rideTitle}>{ride.route_name}</Text>
-                <Text style={styles.statusBadge}>{ride.ride_status}</Text>
+                <Text style={styles.rideTitle}>{formatRouteName(ride.route_name)}</Text>
+                <Text style={styles.statusBadge}>{formatRideStatus(ride.ride_status)}</Text>
               </View>
               <Text style={styles.routeText}>
-                {ride.origin_name} to {ride.destination_name}
+                {ride.origin_name} către {ride.destination_name}
               </Text>
               <View style={styles.metricsRow}>
                 <View style={styles.metric}>
                   <Text style={styles.metricValue}>
                     {formatValue(ride.estimated_duration_minutes, 'm')}
                   </Text>
-                  <Text style={styles.metricLabel}>ETA</Text>
+                  <Text style={styles.metricLabel}>Durată</Text>
                 </View>
                 <View style={styles.metric}>
                   <Text style={styles.metricValue}>
                     {formatValue(ride.avg_speed, ' km/h')}
                   </Text>
-                  <Text style={styles.metricLabel}>Speed</Text>
+                  <Text style={styles.metricLabel}>Viteză</Text>
                 </View>
                 <View style={styles.metric}>
                   <Text style={styles.metricValue}>
                     {formatTrafficValue(ride)}
                   </Text>
-                  <Text style={styles.metricLabel}>Traffic</Text>
+                  <Text style={styles.metricLabel}>Trafic</Text>
                 </View>
               </View>
+              <Pressable
+                accessibilityLabel={`Șterge cursa ${formatRouteName(ride.route_name)}`}
+                disabled={deletingRideId === ride.ride_id}
+                onPress={() => requestDeleteRide(ride)}
+                style={[
+                  styles.deleteRideButton,
+                  deletingRideId === ride.ride_id && styles.actionDisabled,
+                ]}
+              >
+                <Text style={styles.deleteRideButtonText}>
+                  {deletingRideId === ride.ride_id ? 'Se șterge...' : 'Șterge cursa'}
+                </Text>
+              </Pressable>
             </View>
           ))
         )}
       </ScrollView>
+
+      <Modal
+        animationType="fade"
+        transparent
+        visible={!!ridePendingDelete}
+        onRequestClose={() => {
+          if (deletingRideId === null) {
+            setRidePendingDelete(null);
+          }
+        }}
+      >
+        <View style={styles.modalBackdrop}>
+          <Pressable
+            accessibilityLabel="Închide confirmarea de ștergere"
+            disabled={deletingRideId !== null}
+            onPress={() => setRidePendingDelete(null)}
+            style={styles.modalDismissArea}
+          />
+          <View style={styles.deleteDialog}>
+            <Text style={styles.deleteDialogEyebrow}>Ștergere cursă</Text>
+            <Text style={styles.deleteDialogTitle}>Elimini această cursă?</Text>
+            <Text style={styles.deleteDialogText}>
+              {ridePendingDelete
+                ? `${formatRouteName(
+                    ridePendingDelete.route_name
+                  )} va fi ștearsă din istoricul tău.`
+                : ''}
+            </Text>
+
+            <View style={styles.deleteDialogActions}>
+              <Pressable
+                disabled={deletingRideId !== null}
+                onPress={() => setRidePendingDelete(null)}
+                style={[
+                  styles.cancelDialogButton,
+                  deletingRideId !== null && styles.actionDisabled,
+                ]}
+              >
+                <Text style={styles.cancelDialogButtonText}>Anulează</Text>
+              </Pressable>
+              <Pressable
+                disabled={deletingRideId !== null}
+                onPress={confirmDeleteRide}
+                style={[
+                  styles.confirmDeleteButton,
+                  deletingRideId !== null && styles.actionDisabled,
+                ]}
+              >
+                <Text style={styles.confirmDeleteButtonText}>
+                  {deletingRideId !== null ? 'Se șterge...' : 'Șterge'}
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -279,11 +409,11 @@ function createStyles(colors: ThemeColors) {
     fontWeight: '900',
   },
   statusBadge: {
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
+    backgroundColor: 'rgba(34, 197, 94, 0.16)',
+    borderColor: 'rgba(34, 197, 94, 0.44)',
     borderRadius: 999,
     borderWidth: 1,
-    color: colors.textSoft,
+    color: colors.accent,
     fontSize: 11,
     fontWeight: '900',
     overflow: 'hidden',
@@ -319,6 +449,107 @@ function createStyles(colors: ThemeColors) {
     fontWeight: '800',
     marginTop: 4,
     textTransform: 'uppercase',
+  },
+  errorText: {
+    color: colors.red,
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  deleteRideButton: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    borderColor: colors.red,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    justifyContent: 'center',
+    minHeight: 42,
+    paddingHorizontal: 14,
+    paddingVertical: 11,
+  },
+  deleteRideButtonText: {
+    color: colors.red,
+    fontSize: 12,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+  },
+  modalBackdrop: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(2, 6, 23, 0.72)',
+    flex: 1,
+    justifyContent: 'center',
+    padding: spacing.screenX,
+  },
+  modalDismissArea: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  deleteDialog: {
+    ...shadows.card,
+    backgroundColor: colors.card,
+    borderColor: colors.border,
+    borderRadius: radius.xl,
+    borderWidth: 1,
+    gap: 12,
+    padding: 18,
+    width: '100%',
+  },
+  deleteDialogEyebrow: {
+    color: colors.red,
+    fontSize: 12,
+    fontWeight: '900',
+    letterSpacing: 1.1,
+    textTransform: 'uppercase',
+  },
+  deleteDialogTitle: {
+    color: colors.text,
+    fontSize: 22,
+    fontWeight: '900',
+  },
+  deleteDialogText: {
+    color: colors.textMuted,
+    fontSize: 14,
+    lineHeight: 21,
+  },
+  deleteDialogActions: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 4,
+  },
+  cancelDialogButton: {
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    flex: 1,
+    justifyContent: 'center',
+    minHeight: 46,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  cancelDialogButtonText: {
+    color: colors.text,
+    fontSize: 13,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+  },
+  confirmDeleteButton: {
+    alignItems: 'center',
+    backgroundColor: colors.red,
+    borderRadius: radius.md,
+    flex: 1,
+    justifyContent: 'center',
+    minHeight: 46,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  confirmDeleteButtonText: {
+    color: '#ffffff',
+    fontSize: 13,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+  },
+  actionDisabled: {
+    opacity: 0.55,
   },
   });
 }

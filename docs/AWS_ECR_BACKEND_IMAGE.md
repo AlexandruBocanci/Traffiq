@@ -145,6 +145,18 @@ sha256:fb2f529b60e8880b10e5190d6ff100cfce1e63086c7d4755aebe9b013048f45d
 This image extends backend route preview alias resolution for the larger local
 Suceava location catalog used by the mobile planner.
 
+Latest Task 36G polish/delete-actions image:
+
+```text
+May 28, 2026 - final Romanian UI polish and protected delete actions
+sha256:6ea9a28a76ad6ca45b186a82b23e7c46db8f6ae86c325809bab2888aa128a391
+```
+
+This image adds the protected `DELETE /rides/history/{ride_id}` endpoint and
+keeps saved/ride route names aligned with the Romanian mobile UI. The Docker
+context still excludes `.env` and `.env.*`, so no local secrets are packaged in
+the image.
+
 ## What This Enables
 
 This prepares Task 8:

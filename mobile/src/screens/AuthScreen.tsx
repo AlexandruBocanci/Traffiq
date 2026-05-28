@@ -30,96 +30,96 @@ type AuthScreenProps = {
 
 function getModeTitle(mode: AuthMode) {
   if (mode === 'register') {
-    return 'Create account';
+    return 'Creează cont';
   }
 
   if (mode === 'confirm') {
-    return 'Confirm email';
+    return 'Confirmă emailul';
   }
 
   if (mode === 'forgot') {
-    return 'Reset password';
+    return 'Resetează parola';
   }
 
   if (mode === 'reset') {
-    return 'Set new password';
+    return 'Parolă nouă';
   }
 
-  return 'Sign in';
+  return 'Autentificare';
 }
 
 function getPrimaryLabel(mode: AuthMode) {
   if (mode === 'register') {
-    return 'Create account';
+    return 'Creează cont';
   }
 
   if (mode === 'confirm') {
-    return 'Confirm account';
+    return 'Confirmă contul';
   }
 
   if (mode === 'forgot') {
-    return 'Send reset code';
+    return 'Trimite codul';
   }
 
   if (mode === 'reset') {
-    return 'Update password';
+    return 'Actualizează parola';
   }
 
-  return 'Sign in';
+  return 'Autentificare';
 }
 
 function getHelperText(mode: AuthMode) {
   if (mode === 'register') {
-    return 'Use an email address and a strong password. Cognito will send a confirmation code.';
+    return 'Folosește un email valid și o parolă puternică. Vei primi un cod de confirmare.';
   }
 
   if (mode === 'confirm') {
-    return 'Enter the verification code sent by Cognito to your email address.';
+    return 'Introdu codul primit pe email.';
   }
 
   if (mode === 'forgot') {
-    return 'Enter your account email and Cognito will send a password reset code.';
+    return 'Introdu emailul contului și vei primi un cod de resetare.';
   }
 
   if (mode === 'reset') {
-    return 'Use the reset code from your email and choose a new password.';
+    return 'Folosește codul primit pe email și alege o parolă nouă.';
   }
 
-  return 'Sign in to access saved routes, ride history, and preferences.';
+  return 'Autentifică-te pentru rute salvate, istoric și preferințe.';
 }
 
 function getFriendlyAuthError(error: unknown) {
   if (error instanceof CognitoRequestError) {
     if (error.code === 'NotAuthorizedException') {
-      return 'Email or password is incorrect.';
+      return 'Emailul sau parola este greșită.';
     }
 
     if (error.code === 'UserNotConfirmedException') {
-      return 'Confirm your email before signing in.';
+      return 'Confirmă emailul înainte de autentificare.';
     }
 
     if (error.code === 'CodeMismatchException') {
-      return 'The confirmation code is not correct.';
+      return 'Codul de confirmare nu este corect.';
     }
 
     if (error.code === 'ExpiredCodeException') {
-      return 'The code has expired. Request a new code and try again.';
+      return 'Codul a expirat. Cere un cod nou și încearcă din nou.';
     }
 
     if (error.code === 'InvalidPasswordException') {
-      return 'Use a stronger password that meets the account security rules.';
+      return 'Folosește o parolă mai puternică.';
     }
 
     if (error.code === 'LimitExceededException') {
-      return 'Too many attempts. Wait a few minutes and try again.';
+      return 'Prea multe încercări. Așteaptă câteva minute și încearcă din nou.';
     }
 
     if (error.code === 'UsernameExistsException') {
-      return 'An account already exists for this email.';
+      return 'Există deja un cont pentru acest email.';
     }
   }
 
-  return 'Authentication could not be completed. Check your details and try again.';
+  return 'Autentificarea nu a putut fi finalizată. Verifică datele și încearcă din nou.';
 }
 
 export default function AuthScreen({
@@ -165,7 +165,7 @@ export default function AuthScreen({
       if (mode === 'register') {
         try {
           await signUpWithEmail(email, password);
-          setMessage('Confirmation code sent. Check your inbox and spam folder.');
+          setMessage('Codul de confirmare a fost trimis. Verifică Inbox și Spam.');
         } catch (registerError) {
           if (!isUsernameExistsError(registerError)) {
             throw registerError;
@@ -174,11 +174,11 @@ export default function AuthScreen({
           try {
             await resendEmailConfirmationCode(email);
             setMessage(
-              'Account already exists but is not confirmed. We sent a new confirmation code. Check your inbox and spam folder.'
+              'Contul există, dar nu este confirmat. Am trimis un cod nou.'
             );
           } catch (resendError) {
             if (isUserAlreadyConfirmedError(resendError)) {
-              setMessage('Account already confirmed. Sign in with your password.');
+              setMessage('Contul este deja confirmat. Autentifică-te cu parola.');
               setMode('login');
               setPassword('');
               return;
@@ -195,7 +195,7 @@ export default function AuthScreen({
 
       if (mode === 'confirm') {
         await confirmEmailSignUp(email, code);
-        setMessage('Account confirmed. You can now sign in.');
+        setMessage('Cont confirmat. Te poți autentifica.');
         setMode('login');
         setCode('');
         return;
@@ -203,13 +203,13 @@ export default function AuthScreen({
 
       if (mode === 'forgot') {
         await requestPasswordReset(email);
-        setMessage('Password reset code sent. Check your email.');
+        setMessage('Codul de resetare a fost trimis pe email.');
         setMode('reset');
         return;
       }
 
       await confirmPasswordReset(email, code, password);
-      setMessage('Password updated. You can now sign in.');
+      setMessage('Parola a fost actualizată. Te poți autentifica.');
       setMode('login');
       setCode('');
       setPassword('');
@@ -227,7 +227,7 @@ export default function AuthScreen({
       setErrorMessage('');
 
       await resendEmailConfirmationCode(email);
-      setMessage('Confirmation code resent. Check your inbox and spam folder.');
+      setMessage('Codul de confirmare a fost retrimis.');
     } catch (error) {
       setErrorMessage(getFriendlyAuthError(error));
     } finally {
@@ -237,7 +237,7 @@ export default function AuthScreen({
 
   return (
     <View style={styles.card}>
-      <Text style={styles.eyebrow}>Traffiq account</Text>
+      <Text style={styles.eyebrow}>Cont Traffiq</Text>
       <Text style={styles.title}>{getModeTitle(mode)}</Text>
       <Text style={styles.helper}>{getHelperText(mode)}</Text>
 
@@ -260,7 +260,7 @@ export default function AuthScreen({
             keyboardType="number-pad"
             onChangeText={setCode}
             onFocus={onInputFocus}
-            placeholder="Confirmation code"
+            placeholder="Cod de confirmare"
             placeholderTextColor={colors.textMuted}
             style={styles.input}
             value={code}
@@ -272,7 +272,7 @@ export default function AuthScreen({
             autoCapitalize="none"
             onChangeText={setPassword}
             onFocus={onInputFocus}
-            placeholder={mode === 'reset' ? 'New password' : 'Password'}
+            placeholder={mode === 'reset' ? 'Parolă nouă' : 'Parolă'}
             placeholderTextColor={colors.textMuted}
             secureTextEntry
             style={styles.input}
@@ -305,7 +305,7 @@ export default function AuthScreen({
           {isResendingCode ? (
             <ActivityIndicator color={colors.text} />
           ) : (
-            <Text style={styles.secondaryButtonText}>Resend confirmation code</Text>
+            <Text style={styles.secondaryButtonText}>Retrimite codul</Text>
           )}
         </Pressable>
       ) : null}
@@ -313,15 +313,15 @@ export default function AuthScreen({
       <View style={styles.links}>
         {mode !== 'login' ? (
           <Pressable onPress={() => switchMode('login')}>
-            <Text style={styles.linkText}>Back to sign in</Text>
+            <Text style={styles.linkText}>Înapoi la autentificare</Text>
           </Pressable>
         ) : (
           <>
             <Pressable onPress={() => switchMode('register')}>
-              <Text style={styles.linkText}>Create account</Text>
+              <Text style={styles.linkText}>Creează cont</Text>
             </Pressable>
             <Pressable onPress={() => switchMode('forgot')}>
-              <Text style={styles.linkText}>Forgot password?</Text>
+              <Text style={styles.linkText}>Ai uitat parola?</Text>
             </Pressable>
           </>
         )}

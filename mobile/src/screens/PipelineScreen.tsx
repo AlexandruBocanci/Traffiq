@@ -18,28 +18,28 @@ import { PipelineStatusResponse } from '../types/api';
 
 const PIPELINE_STEPS = [
   {
-    title: 'Extract',
-    description: 'TomTom traffic flow and incidents plus Open-Meteo weather are requested for Suceava.',
+    title: 'Extragere',
+    description: 'Se cer date TomTom despre fluxul de trafic și incidente, plus vreme Open-Meteo pentru Suceava.',
   },
   {
     title: 'Bronze',
-    description: 'Raw or near-raw records land in PostgreSQL with minimal shaping.',
+    description: 'Datele brute sau aproape brute ajung în PostgreSQL cu transformări minime.',
   },
   {
     title: 'Silver',
-    description: 'Data is cleaned, standardized, linked to Suceava streets, and prepared for analytics.',
+    description: 'Datele sunt curățate, standardizate, legate de străzile din Suceava și pregătite pentru analiză.',
   },
   {
     title: 'Gold',
-    description: 'Current monitored-corridor slowdown is calculated against TomTom free-flow speed.',
+    description: 'Încetinirea pe coridoarele monitorizate este calculată față de viteza liberă TomTom.',
   },
   {
     title: 'Serving',
-    description: 'API-ready SQL views expose stable response shapes to FastAPI.',
+    description: 'View-urile SQL pregătite pentru API oferă răspunsuri stabile către FastAPI.',
   },
   {
     title: 'FastAPI',
-    description: 'The cloud backend reads RDS and serves mobile and demo endpoints.',
+    description: 'Backend-ul cloud citește din RDS și servește endpointurile pentru aplicație și demo.',
   },
 ];
 
@@ -73,7 +73,7 @@ export default function PipelineScreen({ onBackToDrive }: PipelineScreenProps) {
         pipelineStatus: pipelineStatusResponse,
       });
     } catch {
-      setErrorMessage('Pipeline status is unavailable. Check the cloud API and try again.');
+      setErrorMessage('Statusul pipeline-ului nu este disponibil. Verifică API-ul cloud și încearcă din nou.');
     } finally {
       setIsLoading(false);
     }
@@ -84,14 +84,14 @@ export default function PipelineScreen({ onBackToDrive }: PipelineScreenProps) {
   }, []);
 
   if (isLoading) {
-    return <LoadingState message="Loading pipeline status..." />;
+    return <LoadingState message="Se încarcă statusul pipeline-ului..." />;
   }
 
   if (errorMessage) {
     return (
       <ErrorState
-        actionLabel="Try again"
-        label="Admin status unavailable"
+        actionLabel="Încearcă din nou"
+        label="Flux de date indisponibil"
         message={errorMessage}
         onAction={loadPipelineContext}
         title="Pipeline"
@@ -103,8 +103,8 @@ export default function PipelineScreen({ onBackToDrive }: PipelineScreenProps) {
     return (
       <View style={styles.emptyStateWrapper}>
         <EmptyState
-          message="No ETL metadata was returned by the backend yet."
-          title="No pipeline status available"
+          message="Backend-ul nu a returnat încă metadate ETL."
+          title="Flux de date indisponibil"
         />
       </View>
     );
@@ -118,24 +118,24 @@ export default function PipelineScreen({ onBackToDrive }: PipelineScreenProps) {
       <ScrollView style={styles.container} contentContainerStyle={styles.content}>
         <View style={styles.headerRow}>
           <View>
-            <Text style={styles.eyebrow}>Admin layer</Text>
+            <Text style={styles.eyebrow}>Administrare</Text>
             <Text style={styles.title}>Pipeline</Text>
           </View>
 
           {onBackToDrive ? (
             <Pressable onPress={onBackToDrive} style={styles.backButton}>
-              <Text style={styles.backButtonText}>Drive</Text>
+              <Text style={styles.backButtonText}>Acasă</Text>
             </Pressable>
           ) : null}
         </View>
 
         <Text style={styles.subtitle}>
-          Admin/demo status surface for the Traffiq ETL pipeline and data quality
-          checks.
+          Ecran admin/demo pentru pipeline-ul ETL Traffiq și verificările de
+          calitate a datelor.
         </Text>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Operational status</Text>
+          <Text style={styles.sectionTitle}>Stare operațională</Text>
 
           <View style={styles.metricsGrid}>
             <View style={styles.metricCard}>
@@ -144,42 +144,46 @@ export default function PipelineScreen({ onBackToDrive }: PipelineScreenProps) {
             </View>
             <View style={styles.metricCard}>
               <Text style={styles.metricLabel}>Pipeline</Text>
-              <Text style={styles.metricValue}>{latestRun?.status ?? 'No run'}</Text>
+              <Text style={styles.metricValue}>
+                {latestRun ? formatPipelineRunStatus(latestRun.status) : 'Fără rulare'}
+              </Text>
             </View>
             <View style={styles.metricCard}>
-              <Text style={styles.metricLabel}>Extracted</Text>
+              <Text style={styles.metricLabel}>Extrase</Text>
               <Text style={styles.metricValue}>{latestRun?.records_extracted ?? 0}</Text>
             </View>
             <View style={styles.metricCard}>
-              <Text style={styles.metricLabel}>Loaded</Text>
+              <Text style={styles.metricLabel}>Încărcate</Text>
               <Text style={styles.metricValue}>{latestRun?.records_loaded ?? 0}</Text>
             </View>
           </View>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Latest pipeline run</Text>
+          <Text style={styles.sectionTitle}>Ultima rulare pipeline</Text>
 
           {latestRun ? (
             <View style={styles.card}>
               <Text style={styles.cardTitle}>{latestRun.pipeline_name}</Text>
               <View style={styles.detailGrid}>
                 <View style={styles.detailItem}>
-                  <Text style={styles.detailLabel}>Run ID</Text>
+                  <Text style={styles.detailLabel}>ID rulare</Text>
                   <Text style={styles.detailValue}>{latestRun.run_id}</Text>
                 </View>
                 <View style={styles.detailItem}>
                   <Text style={styles.detailLabel}>Status</Text>
-                  <Text style={styles.detailValue}>{latestRun.status}</Text>
+                  <Text style={styles.detailValue}>
+                    {formatPipelineRunStatus(latestRun.status)}
+                  </Text>
                 </View>
                 <View style={styles.detailItemFull}>
-                  <Text style={styles.detailLabel}>Started</Text>
+                  <Text style={styles.detailLabel}>Pornit</Text>
                   <Text style={styles.detailValue}>
                     {formatTimestamp(latestRun.started_at)}
                   </Text>
                 </View>
                 <View style={styles.detailItemFull}>
-                  <Text style={styles.detailLabel}>Finished</Text>
+                  <Text style={styles.detailLabel}>Finalizat</Text>
                   <Text style={styles.detailValue}>
                     {formatTimestamp(latestRun.finished_at)}
                   </Text>
@@ -189,24 +193,24 @@ export default function PipelineScreen({ onBackToDrive }: PipelineScreenProps) {
               {latestRun.error_message ? (
                 <Text style={styles.errorText}>{latestRun.error_message}</Text>
               ) : (
-                <Text style={styles.cardText}>No pipeline error recorded.</Text>
+                <Text style={styles.cardText}>Nu există eroare înregistrată pentru pipeline.</Text>
               )}
             </View>
           ) : (
             <EmptyState
-              message="Run the ETL pipeline once so etl_meta.pipeline_runs has a latest run."
-              title="No ETL run recorded"
+              message="Rulează pipeline-ul ETL o dată ca etl_meta.pipeline_runs să aibă o rulare recentă."
+              title="Nu există rulare ETL"
             />
           )}
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Data quality checks</Text>
+          <Text style={styles.sectionTitle}>Verificări calitate date</Text>
 
           {qualityChecks.length === 0 ? (
             <EmptyState
-              message="The latest run has no linked data quality checks."
-              title="No quality checks found"
+              message="Ultima rulare nu are verificări de calitate asociate."
+              title="Nu există verificări"
             />
           ) : (
             qualityChecks.map((check) => (
@@ -223,14 +227,14 @@ export default function PipelineScreen({ onBackToDrive }: PipelineScreenProps) {
                         : styles.statusBadgeFailed,
                     ]}
                   >
-                    {check.check_status}
+                    {formatCheckStatus(check.check_status)}
                   </Text>
                 </View>
                 <Text style={styles.cardText}>
-                  Affected records: {check.affected_records}
+                  Înregistrări afectate: {check.affected_records}
                 </Text>
                 {check.details ? (
-                  <Text style={styles.cardText}>{check.details}</Text>
+                  <Text style={styles.cardText}>{formatCheckDetails(check.details)}</Text>
                 ) : null}
               </View>
             ))
@@ -238,7 +242,7 @@ export default function PipelineScreen({ onBackToDrive }: PipelineScreenProps) {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Pipeline architecture</Text>
+          <Text style={styles.sectionTitle}>Arhitectură pipeline</Text>
 
           {PIPELINE_STEPS.map((step) => (
             <View key={step.title} style={styles.card}>
@@ -254,14 +258,83 @@ export default function PipelineScreen({ onBackToDrive }: PipelineScreenProps) {
 
 function formatTimestamp(value: string | null) {
   if (!value) {
-    return 'Not finished';
+    return 'Neîncheiat';
   }
 
   return new Date(value).toLocaleString();
 }
 
 function formatCheckName(value: string) {
+  const knownChecks: Record<string, string> = {
+    events_suceava_coordinates_valid: 'Coordonate valide pentru alertele din Suceava',
+    real_source_serving_snapshot_ready: 'Snapshot real pregătit pentru aplicație',
+    tomtom_flow_corridors_complete: 'Coridoare TomTom complete',
+    tomtom_incidents_current_snapshot: 'Snapshot curent de incidente TomTom',
+    traffic_raw_not_empty: 'Date brute de trafic disponibile',
+    traffic_transform_removed_invalid_rows: 'Rânduri invalide eliminate din trafic',
+    weather_raw_not_empty: 'Date brute meteo disponibile',
+    weather_transform_removed_invalid_rows: 'Rânduri meteo invalide eliminate',
+  };
+
+  if (knownChecks[value]) {
+    return knownChecks[value];
+  }
+
   return value.replace(/_/g, ' ');
+}
+
+function formatCheckDetails(value: string) {
+  if (value.includes('configured Suceava corridors returned valid flow data')) {
+    return value.replace(
+      'configured Suceava corridors returned valid flow data.',
+      'coridoare configurate din Suceava au returnat date valide de trafic.'
+    );
+  }
+
+  if (value.includes('current TomTom incidents normalized for the Suceava bounding area')) {
+    return value.replace(
+      'current TomTom incidents normalized for the Suceava bounding area.',
+      'incidente TomTom curente normalizate pentru zona Suceava.'
+    );
+  }
+
+  if (value === 'Gold traffic snapshot and Open-Meteo current weather snapshot are available.') {
+    return 'Snapshot-ul Gold de trafic și snapshot-ul meteo Open-Meteo sunt disponibile.';
+  }
+
+  if (value === 'Events must have allowed type/severity and coordinates inside Suceava bounds.') {
+    return 'Alertele trebuie să aibă tip/severitate acceptate și coordonate în zona Suceava.';
+  }
+
+  return value;
+}
+
+function formatPipelineRunStatus(value: string) {
+  if (value === 'success') {
+    return 'Reușit';
+  }
+
+  if (value === 'failed') {
+    return 'Eșuat';
+  }
+
+  if (value === 'running') {
+    return 'În rulare';
+  }
+
+  return value;
+}
+
+function formatCheckStatus(value: string) {
+  if (value === 'passed') {
+    return 'OK';
+  }
+
+  if (value === 'failed') {
+    return 'Eroare';
+  }
+
+  return value;
 }
 
 function createStyles(colors: ThemeColors) {
@@ -413,9 +486,10 @@ function createStyles(colors: ThemeColors) {
   checkTitle: {
     flex: 1,
     flexShrink: 1,
+    maxWidth: '72%',
   },
   statusBadge: {
-    borderRadius: 999,
+    borderRadius: radius.md,
     fontSize: 11,
     fontWeight: '900',
     overflow: 'hidden',

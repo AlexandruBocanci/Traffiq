@@ -21,6 +21,7 @@ import ErrorState from '../components/ErrorState';
 import LoadingState from '../components/LoadingState';
 import SuceavaMap from '../components/SuceavaMap';
 import TrafficProfileChart from '../components/TrafficProfileChart';
+import type { SavedRouteUseRequest } from '../navigation/AppNavigator';
 import { useAuth } from '../context/AuthContext';
 import { useTheme, useThemedStyles } from '../context/ThemeContext';
 import { searchSuceavaLocations } from '../data/suceavaLocations';
@@ -54,6 +55,7 @@ import {
 type DriveScreenProps = {
   onOpenAccount: () => void;
   onOpenHistory: () => void;
+  savedRouteUseRequest?: SavedRouteUseRequest | null;
 };
 
 type DriveState = {
@@ -102,11 +104,20 @@ type WeatherImpactPresentation = {
   userText: string;
 };
 
+type CityTrafficSummary = {
+  averageFreeFlowSpeed: number | null;
+  averageScore: number | null;
+  averageSpeed: number | null;
+  label: string;
+  monitoredCorridors: number;
+  tone: RouteConditionTone;
+};
+
 const MOBILITY_REFRESH_INTERVAL_MS = 15 * 60 * 1000;
 
 function formatValue(value: number | null | undefined, suffix = '') {
   if (value === null || value === undefined) {
-    return 'N/A';
+    return '—';
   }
 
   return `${value}${suffix}`;
@@ -126,7 +137,7 @@ function getSeverityColor(severity: string, colors: ThemeColors) {
 
 function formatDistance(valueKm: number | null | undefined, unit: DistanceUnit) {
   if (valueKm === null || valueKm === undefined) {
-    return 'N/A';
+    return '—';
   }
 
   if (unit === 'mi') {
@@ -138,8 +149,70 @@ function formatDistance(valueKm: number | null | undefined, unit: DistanceUnit) 
 
 function formatRideTraffic(ride: RideHistoryRecord) {
   return ride.traffic_data_source === 'tomtom_snapshot'
-    ? `${formatValue(ride.congestion_score)} traffic`
-    : 'traffic not verified';
+    ? `${formatValue(ride.congestion_score)} trafic`
+    : 'trafic neverificat';
+}
+
+function formatRouteName(value: string) {
+  return value.replace(/\s+to\s+/i, ' către ');
+}
+
+function formatTrafficAlertDescription(description: string) {
+  const normalized = description.trim().toLowerCase();
+
+  if (normalized.includes('stationary traffic')) {
+    return 'Trafic blocat sau foarte lent pe acest segment.';
+  }
+
+  if (normalized.includes('slow traffic')) {
+    return 'Trafic lent pe acest segment.';
+  }
+
+  if (normalized.includes('queuing traffic')) {
+    return 'Coloană de mașini în zonă.';
+  }
+
+  return description;
+}
+
+function formatTrafficAlertType(type: string) {
+  const normalized = type.trim().toLowerCase();
+
+  if (normalized.includes('stationary')) {
+    return 'Trafic blocat';
+  }
+
+  if (normalized.includes('slow')) {
+    return 'Trafic lent';
+  }
+
+  if (normalized.includes('queuing')) {
+    return 'Coloană';
+  }
+
+  if (normalized.includes('accident')) {
+    return 'Accident';
+  }
+
+  return type;
+}
+
+function formatLocationCategory(category: string) {
+  const labels: Record<string, string> = {
+    Area: 'Zonă',
+    Education: 'Educație',
+    Healthcare: 'Sănătate',
+    Institution: 'Instituție',
+    Landmark: 'Reper',
+    Leisure: 'Timp liber',
+    Park: 'Parc',
+    Shopping: 'Cumpărături',
+    Sport: 'Sport',
+    Street: 'Stradă',
+    Transport: 'Transport',
+  };
+
+  return labels[category] ?? category;
 }
 
 function formatCacheTimestamp(value: string | null) {
@@ -163,10 +236,36 @@ function formatCacheTimestamp(value: string | null) {
 
 function roundValue(value: number | null | undefined) {
   if (value === null || value === undefined) {
-    return 'N/A';
+    return '—';
   }
 
   return Math.round(value).toString();
+}
+
+function formatWeatherLabel(weatherLabel: string | null | undefined) {
+  const normalized = weatherLabel?.toLowerCase() ?? '';
+
+  if (normalized.includes('rain')) {
+    return 'Ploaie';
+  }
+
+  if (normalized.includes('snow')) {
+    return 'Ninsoare';
+  }
+
+  if (normalized.includes('fog')) {
+    return 'Ceață';
+  }
+
+  if (normalized.includes('cloud')) {
+    return 'Înnorat';
+  }
+
+  if (normalized.includes('clear')) {
+    return 'Senin';
+  }
+
+  return weatherLabel ?? 'Fără date meteo';
 }
 
 function getWeatherEmoji(weatherLabel: string | null | undefined) {
@@ -198,7 +297,7 @@ function getWeatherEmoji(weatherLabel: string | null | undefined) {
 function getWeatherImpactPresentation(
   weatherImpact: WeatherImpactRecord | undefined
 ): WeatherImpactPresentation {
-  const weatherLabel = weatherImpact?.weather_label ?? 'No weather data';
+  const weatherLabel = formatWeatherLabel(weatherImpact?.weather_label);
   const score = weatherImpact?.avg_congestion_score;
   const roundedScore = roundValue(score);
 
@@ -206,9 +305,9 @@ function getWeatherImpactPresentation(
     return {
       emoji: getWeatherEmoji(weatherLabel),
       label: weatherLabel,
-      scoreLabel: 'No score',
-      scoreTone: 'Unknown impact',
-      userText: 'No weather-to-traffic signal is available yet.',
+      scoreLabel: 'Indisponibil',
+      scoreTone: 'Fără estimare',
+      userText: 'Nu avem încă suficiente date meteo pentru o estimare sigură.',
     };
   }
 
@@ -217,8 +316,8 @@ function getWeatherImpactPresentation(
       emoji: getWeatherEmoji(weatherLabel),
       label: weatherLabel,
       scoreLabel: `${roundedScore}/100`,
-      scoreTone: 'High traffic impact',
-      userText: 'Expect slower movement around Suceava.',
+      scoreTone: 'Atenție sporită',
+      userText: 'Condițiile pot încetini deplasarea prin oraș.',
     };
   }
 
@@ -227,8 +326,8 @@ function getWeatherImpactPresentation(
       emoji: getWeatherEmoji(weatherLabel),
       label: weatherLabel,
       scoreLabel: `${roundedScore}/100`,
-      scoreTone: 'Moderate traffic impact',
-      userText: 'Some delays are likely on busy corridors.',
+      scoreTone: 'Posibile întârzieri',
+      userText: 'Pe zonele aglomerate pot apărea întârzieri scurte.',
     };
   }
 
@@ -236,8 +335,8 @@ function getWeatherImpactPresentation(
     emoji: getWeatherEmoji(weatherLabel),
     label: weatherLabel,
     scoreLabel: `${roundedScore}/100`,
-    scoreTone: 'Low traffic impact',
-    userText: 'Weather is not adding major delay pressure.',
+    scoreTone: 'Condiții bune',
+    userText: 'Vremea nu pare să încetinească traficul în mod semnificativ.',
   };
 }
 
@@ -276,14 +375,58 @@ function getRouteConditionTone(
 
 function getConditionLabel(tone: RouteConditionTone) {
   if (tone === 'high') {
-    return 'Heavy traffic expected';
+    return 'Trafic aglomerat';
   }
 
   if (tone === 'moderate') {
-    return 'Moderate traffic';
+    return 'Trafic moderat';
   }
 
-  return 'Light traffic';
+  return 'Trafic lejer';
+}
+
+function buildCityTrafficSummary(
+  congestedSegments: TopCongestedStreetRecord[]
+): CityTrafficSummary | null {
+  if (congestedSegments.length === 0) {
+    return null;
+  }
+
+  const scoreValues = congestedSegments
+    .map((segment) => segment.congestion_score)
+    .filter((value): value is number => value !== null && value !== undefined);
+
+  if (scoreValues.length === 0) {
+    return null;
+  }
+
+  const averageScore =
+    scoreValues.reduce((sum, value) => sum + value, 0) / scoreValues.length;
+  const speedValues = congestedSegments
+    .map((segment) => segment.avg_speed)
+    .filter((value): value is number => value !== null && value !== undefined);
+  const freeFlowValues = congestedSegments
+    .map((segment) => segment.free_flow_speed_kmh)
+    .filter((value): value is number => value !== null && value !== undefined);
+  const averageSpeed =
+    speedValues.length > 0
+      ? speedValues.reduce((sum, value) => sum + value, 0) / speedValues.length
+      : null;
+  const averageFreeFlowSpeed =
+    freeFlowValues.length > 0
+      ? freeFlowValues.reduce((sum, value) => sum + value, 0) / freeFlowValues.length
+      : null;
+  const tone = getRouteConditionTone(averageScore, []);
+
+  return {
+    averageFreeFlowSpeed:
+      averageFreeFlowSpeed === null ? null : Math.round(averageFreeFlowSpeed),
+    averageScore: Math.round(averageScore),
+    averageSpeed: averageSpeed === null ? null : Math.round(averageSpeed),
+    label: getConditionLabel(tone),
+    monitoredCorridors: congestedSegments.length,
+    tone,
+  };
 }
 
 function buildRouteConditionSummary(
@@ -300,28 +443,28 @@ function buildRouteConditionSummary(
     topCongestedSegment?.congestion_score ?? weatherImpact?.avg_congestion_score ?? null;
   const cityAlerts = events.slice(0, 3);
   const tone = getRouteConditionTone(congestionScore, cityAlerts);
-  const weatherLabel = weatherImpact?.weather_label ?? 'No weather signal';
-  const congestedStreet = topCongestedSegment?.street_name ?? 'Monitored Suceava corridors';
+  const weatherLabel = formatWeatherLabel(weatherImpact?.weather_label);
+  const congestedStreet = topCongestedSegment?.street_name ?? 'Coridoare monitorizate';
 
   const descriptions: Record<RouteConditionTone, string> = {
     high:
-      'Expect a slower trip. The route estimate is combined with elevated observed corridor traffic and mapped incidents.',
+      'Cursa poate dura mai mult decât de obicei din cauza traficului și a alertelor active.',
     low:
-      'No heavy traffic signal is observed on monitored corridors. Use the ETA as the baseline estimate.',
+      'Nu sunt semnale importante de trafic dificil pe zonele monitorizate.',
     moderate:
-      'Expect some delay around Suceava. The estimate combines route duration with current monitored-corridor traffic and weather.',
+      'Pot apărea întârzieri ușoare pe unele zone din Suceava.',
   };
 
   return {
     alertContext: cityAlerts.length
-      ? `${cityAlerts.length} TomTom incident${cityAlerts.length === 1 ? '' : 's'}`
-      : 'No active incidents',
+      ? `${cityAlerts.length} alerte active`
+      : 'Fără alerte active',
     congestionContext:
       congestionScore === null || congestionScore === undefined
-        ? `${congestedStreet}: no score`
+        ? `${congestedStreet}: indisponibil`
         : `${congestedStreet}: ${congestionScore}`,
     description: descriptions[tone],
-    etaContext: `${formatValue(routePreview.duration_minutes, ' min')} ETA`,
+    etaContext: `${formatValue(routePreview.duration_minutes, ' min')}`,
     label: getConditionLabel(tone),
     tone,
     weatherContext: weatherLabel,
@@ -331,6 +474,7 @@ function buildRouteConditionSummary(
 export default function DriveScreen({
   onOpenAccount,
   onOpenHistory,
+  savedRouteUseRequest = null,
 }: DriveScreenProps) {
   const insets = useSafeAreaInsets();
   const { colors, resolvedMode, setThemeMode } = useTheme();
@@ -343,7 +487,7 @@ export default function DriveScreen({
     congested: [],
     weather: [],
     trafficSource: 'tomtom',
-    trafficScope: 'Three monitored Suceava corridors',
+    trafficScope: 'Trei coridoare monitorizate în Suceava',
     trafficObservedAt: null,
   });
   const [trafficProfile, setTrafficProfile] = useState<TrafficProfileResponse | null>(
@@ -399,14 +543,14 @@ export default function DriveScreen({
       ]);
 
       if (driveOverview.traffic_source !== 'tomtom') {
-        throw new Error('Backend is not serving the real TomTom mobility snapshot yet.');
+        throw new Error('Backend-ul nu servește încă snapshot-ul TomTom real.');
       }
 
       setData({
         ...driveOverview,
         trafficSource: driveOverview.traffic_source ?? 'tomtom',
         trafficScope:
-          driveOverview.traffic_scope ?? 'Three monitored Suceava corridors',
+          driveOverview.traffic_scope ?? 'Trei coridoare monitorizate în Suceava',
         trafficObservedAt: driveOverview.traffic_observed_at ?? null,
       });
       setTrafficProfile(trafficProfileResponse);
@@ -429,7 +573,7 @@ export default function DriveScreen({
           ...cachedDriveOverview.data,
           trafficSource: cachedDriveOverview.data.traffic_source ?? 'tomtom',
           trafficScope:
-            cachedDriveOverview.data.traffic_scope ?? 'Three monitored Suceava corridors',
+            cachedDriveOverview.data.traffic_scope ?? 'Trei coridoare monitorizate în Suceava',
           trafficObservedAt: cachedDriveOverview.data.traffic_observed_at ?? null,
         });
         try {
@@ -444,7 +588,7 @@ export default function DriveScreen({
       }
 
       setErrorMessage(
-        'Traffiq cannot load a verified real mobility snapshot yet. Run the real-data pipeline and try again.'
+        'Traffiq nu poate încărca datele de mobilitate acum. Încearcă din nou.'
       );
     } finally {
       if (showLoadingState) {
@@ -620,6 +764,70 @@ export default function DriveScreen({
     };
   }, [isLiveMapTrackingEnabled]);
 
+  useEffect(() => {
+    if (!savedRouteUseRequest) {
+      return;
+    }
+
+    let isMounted = true;
+    const { route } = savedRouteUseRequest;
+
+    async function prepareSavedRoute() {
+      setRouteOriginMode('manual');
+      setManualRouteOrigin(route.origin_name);
+      setRouteDestination(route.destination_name);
+      setRoutePreviewError('');
+      setRoutePreviewCacheMessage('');
+      setIsRoutePreviewLoading(true);
+
+      try {
+        const preview = await previewRoute(route.origin_name, route.destination_name);
+
+        if (!isMounted) {
+          return;
+        }
+
+        setPlannedRoute({
+          destination: preview.destination.name,
+          origin: preview.origin.name,
+        });
+        setIsDriveActive(false);
+        setRoutePreview(preview);
+        setRoutePreviewCacheSavedAt(null);
+        setIsCurrentRouteSaved(true);
+        setSavedRouteMessage('Ruta salvată este pregătită.');
+        setRideHistoryMessage('');
+        setIsRouteSheetVisible(false);
+        setIsRouteConfirmationVisible(true);
+
+        try {
+          await saveCachedRoutePreview(preview);
+        } catch {
+          // Cache writes should not block a successful route preview.
+        }
+      } catch {
+        if (!isMounted) {
+          return;
+        }
+
+        setIsRouteSheetVisible(true);
+        setRoutePreviewError(
+          'Nu am putut pregăti ruta salvată. Verifică destinația și încearcă din nou.'
+        );
+      } finally {
+        if (isMounted) {
+          setIsRoutePreviewLoading(false);
+        }
+      }
+    }
+
+    prepareSavedRoute();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [savedRouteUseRequest?.id]);
+
   async function getCurrentRouteLocation() {
     try {
       const permission = await Location.requestForegroundPermissionsAsync();
@@ -665,7 +873,7 @@ export default function DriveScreen({
 
   async function handlePreviewRoute() {
     const normalizedOrigin =
-      routeOriginMode === 'current' ? 'Current location' : manualRouteOrigin.trim();
+      routeOriginMode === 'current' ? 'Locația curentă' : manualRouteOrigin.trim();
     const normalizedDestination = routeDestination.trim();
 
     if (!normalizedDestination) {
@@ -732,7 +940,7 @@ export default function DriveScreen({
         setRoutePreviewCacheSavedAt(cachedRoutePreview.savedAt);
         setIsCurrentRouteSaved(false);
         setRoutePreviewCacheMessage(
-          'Could not calculate a fresh route. Showing your last successful route preview.'
+          'Nu am putut calcula o rută nouă. Afișăm ultima rută calculată cu succes.'
         );
         setSavedRouteMessage('');
         setRideHistoryMessage('');
@@ -745,7 +953,7 @@ export default function DriveScreen({
       setRoutePreviewCacheSavedAt(null);
       setIsCurrentRouteSaved(false);
       setRoutePreviewError(
-        'Could not calculate this Suceava route. Choose one of the supported suggestions.'
+        'Nu am putut calcula această rută. Alege o destinație din sugestii.'
       );
     } finally {
       setIsRoutePreviewLoading(false);
@@ -768,16 +976,16 @@ export default function DriveScreen({
       const accessToken = await getAccessToken();
 
       if (!accessToken) {
-        setSavedRouteMessage('Your session expired. Please sign in again.');
+        setSavedRouteMessage('Sesiunea a expirat. Autentifică-te din nou.');
         onOpenAccount();
         return;
       }
 
       await saveRoute(routePreview, accessToken);
       setIsCurrentRouteSaved(true);
-      setSavedRouteMessage('Route saved to your account.');
+      setSavedRouteMessage('Ruta a fost salvată în cont.');
     } catch {
-      setSavedRouteMessage('Could not save this route. Try again.');
+      setSavedRouteMessage('Ruta nu a putut fi salvată. Încearcă din nou.');
     } finally {
       setIsSavingRoute(false);
     }
@@ -793,7 +1001,7 @@ export default function DriveScreen({
     setIsRouteConfirmationVisible(false);
 
     if (!isAuthenticated || !session?.tokens.accessToken) {
-      setRideHistoryMessage('Drive started. Sign in to save this trip to history.');
+      setRideHistoryMessage('Cursa a pornit. Autentifică-te pentru salvare în istoric.');
       return;
     }
 
@@ -803,7 +1011,7 @@ export default function DriveScreen({
       const accessToken = await getAccessToken();
 
       if (!accessToken) {
-        setRideHistoryMessage('Your session expired. Please sign in again.');
+        setRideHistoryMessage('Sesiunea a expirat. Autentifică-te din nou.');
         return;
       }
 
@@ -812,9 +1020,9 @@ export default function DriveScreen({
         accessToken,
         topCongestedSegment?.congestion_score ?? weatherImpact?.avg_congestion_score
       );
-      setRideHistoryMessage('Drive started and saved to your personal history.');
+      setRideHistoryMessage('Cursa a pornit și a fost salvată în istoric.');
     } catch {
-      setRideHistoryMessage('Drive started, but history could not be saved.');
+      setRideHistoryMessage('Cursa a pornit, dar nu a putut fi salvată în istoric.');
     } finally {
       setIsAddingRideHistory(false);
     }
@@ -832,23 +1040,24 @@ export default function DriveScreen({
   }
 
   if (isLoading) {
-    return <LoadingState message="Loading Traffiq mobility data..." />;
+    return <LoadingState message="Se încarcă datele Traffiq..." />;
   }
 
   if (errorMessage) {
     return (
       <ErrorState
-        actionLabel="Try again"
-        label="Drive unavailable"
+        actionLabel="Încearcă din nou"
+        label="Hartă indisponibilă"
         message={errorMessage}
         onAction={() => refreshAndLoadDriveData()}
-        title="Drive"
+        title="Hartă"
       />
     );
   }
 
   const primaryEvent = data.events[0];
   const topCongestedSegment = data.congested[0];
+  const cityTrafficSummary = buildCityTrafficSummary(data.congested);
   const weatherImpact = data.weather[0];
   const weatherPresentation = getWeatherImpactPresentation(weatherImpact);
   const recentRide = data.rides[0];
@@ -872,12 +1081,12 @@ export default function DriveScreen({
         <View style={styles.header}>
           <View style={styles.headerTitleBlock}>
             <Text style={styles.eyebrow}>Traffiq</Text>
-            <Text style={styles.title}>Where are you going?</Text>
+            <Text style={styles.title}>Unde mergi?</Text>
           </View>
 
           <View style={styles.headerActions}>
             <Pressable
-              accessibilityLabel="Open account"
+              accessibilityLabel="Deschide contul"
               onPress={onOpenAccount}
               style={styles.accountButton}
             >
@@ -885,7 +1094,7 @@ export default function DriveScreen({
             </Pressable>
 
             <Pressable
-              accessibilityLabel="Open ride history"
+              accessibilityLabel="Deschide istoricul curselor"
               onPress={onOpenHistory}
               style={styles.secondaryButton}
             >
@@ -902,9 +1111,9 @@ export default function DriveScreen({
             <View style={styles.searchDot} />
           </View>
           <View style={styles.destinationTextWrap}>
-            <Text style={styles.destinationLabel}>Plan a route</Text>
+            <Text style={styles.destinationLabel}>Caută destinație</Text>
             <Text style={styles.destinationText}>
-              {plannedRoute ? plannedRoute.destination : 'Where to?'}
+              {plannedRoute ? plannedRoute.destination : 'Unde vrei să ajungi?'}
             </Text>
           </View>
           <Text style={styles.destinationArrow}>›</Text>
@@ -912,17 +1121,17 @@ export default function DriveScreen({
 
         {isDriveDataCached ? (
           <View style={styles.cacheNotice}>
-            <Text style={styles.cacheNoticeLabel}>Cached data</Text>
+            <Text style={styles.cacheNoticeLabel}>Ultimele date disponibile</Text>
             <Text style={styles.cacheNoticeText}>
-              Showing the last successful Drive snapshot
-              {driveCacheTimestamp ? ` from ${driveCacheTimestamp}` : ''}.
+              Afișăm ultima situație încărcată cu succes
+              {driveCacheTimestamp ? ` din ${driveCacheTimestamp}` : ''}.
             </Text>
           </View>
         ) : null}
 
         <View style={styles.weatherStrip}>
           <View style={styles.weatherTextBlock}>
-            <Text style={styles.weatherLabel}>Weather impact</Text>
+            <Text style={styles.weatherLabel}>Meteo pe traseu</Text>
             <Text style={styles.weatherTitle}>
               {weatherPresentation.emoji} {weatherPresentation.label}
             </Text>
@@ -949,56 +1158,56 @@ export default function DriveScreen({
           <View style={styles.routeDraftCard}>
             <View style={styles.cardTopRow}>
               <View style={styles.routeDraftTextWrap}>
-                <Text style={styles.routeDraftLabel}>Route preview ready</Text>
+                <Text style={styles.routeDraftLabel}>Gata de plecare</Text>
                 <Text style={styles.routeDraftTitle}>
-                  {plannedRoute.origin} to {plannedRoute.destination}
+                  {plannedRoute.origin} către {plannedRoute.destination}
                 </Text>
               </View>
               <Pressable
-                accessibilityLabel="End route preview"
+                accessibilityLabel="Închide ruta"
                 onPress={handleEndRoute}
                 style={styles.routeDraftRemoveButton}
               >
                 <Text style={styles.routeDraftRemoveText}>
-                  {isDriveActive ? 'End drive' : 'End route'}
+                  {isDriveActive ? 'Oprește' : 'Renunță'}
                 </Text>
               </Pressable>
             </View>
 
             <Text style={styles.cardText}>
               {routePreview
-                ? `${formatValue(routePreview.duration_minutes, ' min')} ETA · ${formatDistance(
+                ? `${formatValue(routePreview.duration_minutes, ' min')} durată · ${formatDistance(
                     routePreview.distance_km,
                     distanceUnit
-                  )} · ${routePreview.provider}`
-                : 'Route calculation is waiting for a provider response.'}
+                  )}`
+                : 'Ruta se pregătește.'}
             </Text>
 
             {routePreviewCacheMessage ? (
               <Text style={styles.cacheInlineText}>
                 {routePreviewCacheMessage}
-                {routePreviewCacheTimestamp ? ` Saved ${routePreviewCacheTimestamp}.` : ''}
+                {routePreviewCacheTimestamp ? ` Salvat ${routePreviewCacheTimestamp}.` : ''}
               </Text>
             ) : null}
 
             {routePreview ? (
               <View style={styles.routeSummaryGrid}>
                 <View style={styles.routeSummaryItem}>
-                  <Text style={styles.routeSummaryLabel}>From</Text>
+                  <Text style={styles.routeSummaryLabel}>De la</Text>
                   <Text style={styles.routeSummaryValue}>{routePreview.origin.name}</Text>
                 </View>
                 <View style={styles.routeSummaryItem}>
-                  <Text style={styles.routeSummaryLabel}>To</Text>
+                  <Text style={styles.routeSummaryLabel}>Către</Text>
                   <Text style={styles.routeSummaryValue}>{routePreview.destination.name}</Text>
                 </View>
                 <View style={styles.routeSummaryItem}>
-                  <Text style={styles.routeSummaryLabel}>Distance</Text>
+                  <Text style={styles.routeSummaryLabel}>Distanță</Text>
                   <Text style={styles.routeSummaryValue}>
                     {formatDistance(routePreview.distance_km, distanceUnit)}
                   </Text>
                 </View>
                 <View style={styles.routeSummaryItem}>
-                  <Text style={styles.routeSummaryLabel}>ETA</Text>
+                  <Text style={styles.routeSummaryLabel}>Durată</Text>
                   <Text style={styles.routeSummaryValue}>
                     {formatValue(routePreview.duration_minutes, ' min')}
                   </Text>
@@ -1016,7 +1225,7 @@ export default function DriveScreen({
                     ]}
                   />
                   <View style={styles.conditionTitleWrap}>
-                    <Text style={styles.conditionLabel}>Route condition</Text>
+                    <Text style={styles.conditionLabel}>Condiții pe traseu</Text>
                     <Text style={styles.conditionTitle}>{routeCondition.label}</Text>
                   </View>
                 </View>
@@ -1025,23 +1234,23 @@ export default function DriveScreen({
 
                 <View style={styles.conditionMetrics}>
                   <View style={styles.conditionMetric}>
-                    <Text style={styles.conditionMetricLabel}>ETA</Text>
+                    <Text style={styles.conditionMetricLabel}>Durată</Text>
                     <Text style={styles.conditionMetricValue}>{routeCondition.etaContext}</Text>
                   </View>
                   <View style={styles.conditionMetric}>
-                    <Text style={styles.conditionMetricLabel}>Weather</Text>
+                    <Text style={styles.conditionMetricLabel}>Vreme</Text>
                     <Text style={styles.conditionMetricValue}>
                       {routeCondition.weatherContext}
                     </Text>
                   </View>
                   <View style={styles.conditionMetric}>
-                    <Text style={styles.conditionMetricLabel}>Congestion</Text>
+                    <Text style={styles.conditionMetricLabel}>Trafic</Text>
                     <Text style={styles.conditionMetricValue}>
                       {routeCondition.congestionContext}
                     </Text>
                   </View>
                   <View style={styles.conditionMetric}>
-                    <Text style={styles.conditionMetricLabel}>Alerts</Text>
+                    <Text style={styles.conditionMetricLabel}>Alerte</Text>
                     <Text style={styles.conditionMetricValue}>{routeCondition.alertContext}</Text>
                   </View>
                 </View>
@@ -1050,7 +1259,7 @@ export default function DriveScreen({
 
             <View style={styles.routeDraftSecondaryActions}>
               <Pressable
-                accessibilityLabel="Save route"
+                accessibilityLabel="Salvează ruta"
                 disabled={!routePreview || isSavingRoute || isCurrentRouteSaved}
                 onPress={handleSaveRoute}
                 style={[
@@ -1066,29 +1275,29 @@ export default function DriveScreen({
                   ]}
                 >
                   {isCurrentRouteSaved
-                    ? 'Route saved'
+                    ? 'Rută salvată'
                     : isSavingRoute
-                      ? 'Saving'
+                      ? 'Se salvează'
                       : isAuthenticated
-                        ? 'Save route'
-                        : 'Sign in to save'}
+                        ? 'Salvează ruta'
+                        : 'Autentifică-te'}
                 </Text>
               </Pressable>
 
               <Pressable
-                accessibilityLabel="Change planned route"
+                accessibilityLabel="Schimbă ruta"
                 onPress={() => {
                   setIsDriveActive(false);
                   setIsRouteSheetVisible(true);
-                }}
-                style={styles.routeDraftEditButton}
-              >
-                <Text style={styles.routeDraftEditText}>Change route</Text>
+              }}
+              style={styles.routeDraftEditButton}
+            >
+                <Text style={styles.routeDraftEditText}>Schimbă ruta</Text>
               </Pressable>
             </View>
 
             <Pressable
-              accessibilityLabel="Start driving with this route"
+              accessibilityLabel="Pornește cursa cu această rută"
               disabled={!routePreview || (!isDriveActive && isAddingRideHistory)}
               onPress={() => {
                 if (isDriveActive) {
@@ -1106,67 +1315,63 @@ export default function DriveScreen({
             >
               <Text style={styles.driveButtonText}>
                 {isDriveActive
-                  ? 'Resume drive'
+                  ? 'Continuă'
                   : isAddingRideHistory
-                    ? 'Starting drive...'
-                    : 'Drive'}
+                    ? 'Pornire...'
+                    : 'Pornește'}
               </Text>
             </Pressable>
 
             <Text style={styles.driveHelpText}>
               {isDriveActive
-                ? 'Live GPS is active only while this drive remains in progress.'
-                : 'Drive opens the route map and saves the trip to History when signed in.'}
+                ? 'GPS-ul rămâne activ cât timp cursa este pornită.'
+                : 'Pornește deschide harta și salvează cursa în istoric dacă ești autentificat.'}
             </Text>
           </View>
         ) : null}
 
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Observed traffic</Text>
-            <Text style={styles.sectionAction}>TomTom flow</Text>
+            <Text style={styles.sectionTitle}>Trafic în Suceava</Text>
+            <Text style={styles.sectionAction}>Acum</Text>
           </View>
 
-          {!topCongestedSegment ? (
+          {!cityTrafficSummary ? (
             <EmptyState
-              message="Run the real mobility ingestion pipeline to load a current TomTom traffic snapshot."
-              title="No real traffic observation yet"
+              message="Nu există încă o observație recentă pentru coridoarele urmărite."
+              title="Trafic indisponibil"
             />
           ) : (
             <View style={styles.recommendationCard}>
               <View style={styles.cardTopRow}>
-                <Text style={styles.recommendationTitle}>{topCongestedSegment.street_name}</Text>
+                <Text style={styles.recommendationTitle}>{cityTrafficSummary.label}</Text>
                 <Text style={styles.levelBadge}>
-                  {formatValue(topCongestedSegment.congestion_score)}/100
+                  {formatValue(cityTrafficSummary.averageScore)}/100
                 </Text>
               </View>
               <Text style={styles.cardText}>
-                Highest current slowdown among {data.trafficScope.toLowerCase()}.
-              </Text>
-              <Text style={styles.cardText}>
-                Real TomTom observation
-                {trafficObservedTimestamp ? ` captured ${trafficObservedTimestamp}` : ''};
-                this is not a full-city traffic claim.
+                Estimare pe baza celor mai importante coridoare monitorizate din
+                Suceava{trafficObservedTimestamp ? `, actualizată ${trafficObservedTimestamp}` : ''}.
               </Text>
 
               <View style={styles.tripStats}>
                 <View style={styles.tripStat}>
                   <Text style={styles.tripValue}>
-                    {formatValue(topCongestedSegment.avg_speed, ' km/h')}
+                    {formatValue(cityTrafficSummary.averageSpeed, ' km/h')}
                   </Text>
-                  <Text style={styles.tripLabel}>Current</Text>
+                  <Text style={styles.tripLabel}>Viteză medie</Text>
                 </View>
                 <View style={styles.tripStat}>
                   <Text style={styles.tripValue}>
-                    {formatValue(topCongestedSegment.free_flow_speed_kmh, ' km/h')}
+                    {formatValue(cityTrafficSummary.averageFreeFlowSpeed, ' km/h')}
                   </Text>
-                  <Text style={styles.tripLabel}>Free flow</Text>
+                  <Text style={styles.tripLabel}>Viteză liberă</Text>
                 </View>
                 <View style={styles.tripStat}>
                   <Text style={styles.tripValue}>
-                    {formatValue(topCongestedSegment.congestion_score)}
+                    {cityTrafficSummary.monitoredCorridors}
                   </Text>
-                  <Text style={styles.tripLabel}>Slowdown</Text>
+                  <Text style={styles.tripLabel}>Coridoare</Text>
                 </View>
               </View>
             </View>
@@ -1175,14 +1380,14 @@ export default function DriveScreen({
 
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Mapped Suceava alerts</Text>
-            <Text style={styles.sectionAction}>TomTom incidents</Text>
+            <Text style={styles.sectionTitle}>Alerte în Suceava</Text>
+            <Text style={styles.sectionAction}>Acum</Text>
           </View>
 
           {!primaryEvent ? (
             <EmptyState
-              message="TomTom returned no active traffic incidents in the Suceava area for the latest snapshot."
-              title="No active mapped alerts"
+              message="Nu există alerte active în ultima verificare."
+              title="Nicio alertă activă"
             />
           ) : (
             data.events.slice(0, 3).map((event) => (
@@ -1196,10 +1401,19 @@ export default function DriveScreen({
                 <View style={styles.alertContent}>
                   <View style={styles.cardTopRow}>
                     <Text style={styles.alertTitle}>{event.street_name}</Text>
-                    <Text style={styles.alertSeverity}>{event.severity}</Text>
+                    <Text
+                      style={[
+                        styles.alertSeverity,
+                        { color: getSeverityColor(event.severity, colors) },
+                      ]}
+                    >
+                      {event.severity}
+                    </Text>
                   </View>
-                  <Text style={styles.alertType}>{event.event_type}</Text>
-                  <Text style={styles.cardText}>{event.event_description}</Text>
+                  <Text style={styles.alertType}>{formatTrafficAlertType(event.event_type)}</Text>
+                  <Text style={styles.cardText}>
+                    {formatTrafficAlertDescription(event.event_description)}
+                  </Text>
                 </View>
               </View>
             ))
@@ -1211,14 +1425,16 @@ export default function DriveScreen({
           style={styles.recentRideCard}
         >
           <View>
-            <Text style={styles.recentRideLabel}>Recent ride</Text>
-            <Text style={styles.recentRideTitle}>{recentRide?.route_name ?? 'Ride history'}</Text>
+            <Text style={styles.recentRideLabel}>Ultima cursă</Text>
+            <Text style={styles.recentRideTitle}>
+              {recentRide ? formatRouteName(recentRide.route_name) : 'Istoric curse'}
+            </Text>
             <Text style={styles.recentRideText}>
               {recentRide
                 ? `${formatValue(recentRide.estimated_duration_minutes, ' min')} · ${formatRideTraffic(
                     recentRide
                   )}`
-                : 'Sign in to view personal rides'}
+                : 'Autentifică-te pentru cursele personale'}
             </Text>
           </View>
           <Text style={styles.recentRideArrow}>›</Text>
@@ -1242,12 +1458,12 @@ export default function DriveScreen({
               { paddingTop: Math.max(insets.top + 10, 26) },
             ]}
           >
-            <Text style={styles.expandedMapTitle}>Suceava map</Text>
+            <Text style={styles.expandedMapTitle}>Harta Suceava</Text>
             <Pressable
               onPress={() => setIsMapExpandedVisible(false)}
               style={styles.expandedMapCloseButton}
             >
-              <Text style={styles.expandedMapCloseText}>Close</Text>
+              <Text style={styles.expandedMapCloseText}>Închide</Text>
             </Pressable>
           </View>
 
@@ -1290,47 +1506,47 @@ export default function DriveScreen({
             <View style={styles.sheetHandle} />
             <View style={styles.cardTopRow}>
               <View style={styles.routeDraftTextWrap}>
-                <Text style={styles.routeDraftLabel}>Route preview ready</Text>
+                <Text style={styles.routeDraftLabel}>Gata de plecare</Text>
                 <Text style={styles.routeDraftTitle}>
-                  {plannedRoute?.origin} to {plannedRoute?.destination}
+                  {plannedRoute?.origin} către {plannedRoute?.destination}
                 </Text>
               </View>
             </View>
 
             <Text style={styles.cardText}>
               {routePreview
-                ? `${formatValue(routePreview.duration_minutes, ' min')} ETA · ${formatDistance(
+                ? `${formatValue(routePreview.duration_minutes, ' min')} durată · ${formatDistance(
                     routePreview.distance_km,
                     distanceUnit
-                  )} · ${routePreview.provider}`
-                : 'Route calculation is waiting for a provider response.'}
+                  )}`
+                : 'Ruta se pregătește.'}
             </Text>
 
             {routePreviewCacheMessage ? (
               <Text style={styles.cacheInlineText}>
                 {routePreviewCacheMessage}
-                {routePreviewCacheTimestamp ? ` Saved ${routePreviewCacheTimestamp}.` : ''}
+                {routePreviewCacheTimestamp ? ` Salvat ${routePreviewCacheTimestamp}.` : ''}
               </Text>
             ) : null}
 
             {routePreview ? (
               <View style={styles.routeSummaryGrid}>
                 <View style={styles.routeSummaryItem}>
-                  <Text style={styles.routeSummaryLabel}>From</Text>
+                  <Text style={styles.routeSummaryLabel}>De la</Text>
                   <Text style={styles.routeSummaryValue}>{routePreview.origin.name}</Text>
                 </View>
                 <View style={styles.routeSummaryItem}>
-                  <Text style={styles.routeSummaryLabel}>To</Text>
+                  <Text style={styles.routeSummaryLabel}>Către</Text>
                   <Text style={styles.routeSummaryValue}>{routePreview.destination.name}</Text>
                 </View>
                 <View style={styles.routeSummaryItem}>
-                  <Text style={styles.routeSummaryLabel}>Distance</Text>
+                  <Text style={styles.routeSummaryLabel}>Distanță</Text>
                   <Text style={styles.routeSummaryValue}>
                     {formatDistance(routePreview.distance_km, distanceUnit)}
                   </Text>
                 </View>
                 <View style={styles.routeSummaryItem}>
-                  <Text style={styles.routeSummaryLabel}>ETA</Text>
+                  <Text style={styles.routeSummaryLabel}>Durată</Text>
                   <Text style={styles.routeSummaryValue}>
                     {formatValue(routePreview.duration_minutes, ' min')}
                   </Text>
@@ -1342,7 +1558,7 @@ export default function DriveScreen({
               <Text
                 style={[
                   styles.savedRouteMessage,
-                  savedRouteMessage.startsWith('Could not') && styles.savedRouteMessageError,
+                  savedRouteMessage.includes('nu a putut') && styles.savedRouteMessageError,
                 ]}
               >
                 {savedRouteMessage}
@@ -1353,8 +1569,8 @@ export default function DriveScreen({
               <Text
                 style={[
                   styles.savedRouteMessage,
-                  rideHistoryMessage.startsWith('Drive started') ||
-                  rideHistoryMessage.startsWith('Your session')
+                  rideHistoryMessage.startsWith('Cursa') &&
+                  !rideHistoryMessage.includes('nu a putut')
                     ? null
                     : styles.savedRouteMessageError,
                 ]}
@@ -1373,7 +1589,7 @@ export default function DriveScreen({
                     ]}
                   />
                   <View style={styles.conditionTitleWrap}>
-                    <Text style={styles.conditionLabel}>Route condition</Text>
+                    <Text style={styles.conditionLabel}>Condiții pe traseu</Text>
                     <Text style={styles.conditionTitle}>{routeCondition.label}</Text>
                   </View>
                 </View>
@@ -1382,23 +1598,23 @@ export default function DriveScreen({
 
                 <View style={styles.conditionMetrics}>
                   <View style={styles.conditionMetric}>
-                    <Text style={styles.conditionMetricLabel}>ETA</Text>
+                    <Text style={styles.conditionMetricLabel}>Durată</Text>
                     <Text style={styles.conditionMetricValue}>{routeCondition.etaContext}</Text>
                   </View>
                   <View style={styles.conditionMetric}>
-                    <Text style={styles.conditionMetricLabel}>Weather</Text>
+                    <Text style={styles.conditionMetricLabel}>Vreme</Text>
                     <Text style={styles.conditionMetricValue}>
                       {routeCondition.weatherContext}
                     </Text>
                   </View>
                   <View style={styles.conditionMetric}>
-                    <Text style={styles.conditionMetricLabel}>Congestion</Text>
+                    <Text style={styles.conditionMetricLabel}>Trafic</Text>
                     <Text style={styles.conditionMetricValue}>
                       {routeCondition.congestionContext}
                     </Text>
                   </View>
                   <View style={styles.conditionMetric}>
-                    <Text style={styles.conditionMetricLabel}>Alerts</Text>
+                    <Text style={styles.conditionMetricLabel}>Alerte</Text>
                     <Text style={styles.conditionMetricValue}>{routeCondition.alertContext}</Text>
                   </View>
                 </View>
@@ -1407,7 +1623,7 @@ export default function DriveScreen({
 
             <View style={styles.routeDraftSecondaryActions}>
               <Pressable
-                accessibilityLabel="Save planned route"
+                accessibilityLabel="Salvează ruta"
                 disabled={!routePreview || isSavingRoute || isCurrentRouteSaved}
                 onPress={handleSaveRoute}
                 style={[
@@ -1423,29 +1639,29 @@ export default function DriveScreen({
                   ]}
                 >
                   {isCurrentRouteSaved
-                    ? 'Route saved'
+                    ? 'Rută salvată'
                     : isSavingRoute
-                      ? 'Saving'
+                      ? 'Se salvează'
                       : isAuthenticated
-                        ? 'Save route'
-                        : 'Sign in to save'}
+                        ? 'Salvează ruta'
+                        : 'Autentifică-te'}
                 </Text>
               </Pressable>
 
               <Pressable
-                accessibilityLabel="Change planned route"
+                accessibilityLabel="Schimbă ruta"
                 onPress={() => {
                   setIsRouteConfirmationVisible(false);
                   setIsRouteSheetVisible(true);
                 }}
                 style={styles.routeDraftEditButton}
               >
-                <Text style={styles.routeDraftEditText}>Change route</Text>
+                <Text style={styles.routeDraftEditText}>Schimbă ruta</Text>
               </Pressable>
             </View>
 
             <Pressable
-              accessibilityLabel="Start driving with this route"
+              accessibilityLabel="Pornește cursa cu această rută"
               disabled={!routePreview || isAddingRideHistory}
               onPress={handleStartDrive}
               style={[
@@ -1454,7 +1670,7 @@ export default function DriveScreen({
               ]}
             >
               <Text style={styles.driveButtonText}>
-                {isAddingRideHistory ? 'Starting drive...' : 'Drive'}
+                {isAddingRideHistory ? 'Pornire...' : 'Pornește'}
               </Text>
             </Pressable>
           </Pressable>
@@ -1473,22 +1689,22 @@ export default function DriveScreen({
           style={styles.sheetBackdrop}
         >
           <Pressable
-            accessibilityLabel="Close route planner"
+            accessibilityLabel="Închide planificarea rutei"
             onPress={() => setIsRouteSheetVisible(false)}
             style={styles.sheetDismissArea}
           />
 
           <View style={[styles.bottomSheet, styles.routePlannerSheet]}>
             <View style={styles.sheetHandle} />
-            <Text style={styles.sheetTitle}>Where to?</Text>
+            <Text style={styles.sheetTitle}>Unde mergi?</Text>
 
             <Text style={styles.sheetText}>
-              Choose a Suceava destination. Current location uses your phone GPS when
-              permission is granted.
+              Alege o destinație din Suceava. Poți folosi locația curentă dacă
+              ai permis accesul la GPS.
             </Text>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>From</Text>
+              <Text style={styles.inputLabel}>De la</Text>
               <View style={styles.originChoiceRow}>
                 <Pressable
                   onPress={handleSelectCurrentLocation}
@@ -1503,7 +1719,7 @@ export default function DriveScreen({
                       routeOriginMode === 'current' && styles.originChoiceTitleActive,
                     ]}
                   >
-                    Current location
+                    Locația curentă
                   </Text>
                   <Text
                     style={[
@@ -1511,7 +1727,7 @@ export default function DriveScreen({
                       routeOriginMode === 'current' && styles.originChoiceTextActive,
                     ]}
                   >
-                    Phone GPS
+                    GPS telefon
                   </Text>
                 </Pressable>
 
@@ -1531,7 +1747,7 @@ export default function DriveScreen({
                       routeOriginMode === 'manual' && styles.originChoiceTitleActive,
                     ]}
                   >
-                    Type location
+                    Scrie locația
                   </Text>
                   <Text
                     style={[
@@ -1539,7 +1755,7 @@ export default function DriveScreen({
                       routeOriginMode === 'manual' && styles.originChoiceTextActive,
                     ]}
                   >
-                    Supported places
+                    Locații disponibile
                   </Text>
                 </Pressable>
               </View>
@@ -1548,7 +1764,7 @@ export default function DriveScreen({
                 <TextInput
                   autoCapitalize="words"
                   onChangeText={setManualRouteOrigin}
-                  placeholder="Example: Centru"
+                  placeholder="Exemplu: Centru"
                   placeholderTextColor={colors.textMuted}
                   style={styles.routeInput}
                   value={manualRouteOrigin}
@@ -1570,12 +1786,12 @@ export default function DriveScreen({
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>To</Text>
+              <Text style={styles.inputLabel}>Către</Text>
               <TextInput
                 autoCapitalize="words"
                 autoFocus
                 onChangeText={setRouteDestination}
-                placeholder="Search destination in Suceava"
+                placeholder="Caută destinația în Suceava"
                 placeholderTextColor={colors.textMuted}
                 returnKeyType="done"
                 style={styles.routeInput}
@@ -1586,7 +1802,7 @@ export default function DriveScreen({
             <View style={styles.suggestionSection}>
               {shouldShowDestinationSuggestions ? (
                 <>
-                  <Text style={styles.inputLabel}>Matching places</Text>
+                  <Text style={styles.inputLabel}>Rezultate</Text>
                   {destinationSuggestions.length > 0 ? (
                     <ScrollView
                       keyboardShouldPersistTaps="handled"
@@ -1622,7 +1838,7 @@ export default function DriveScreen({
                                   isSelected && styles.suggestionMetaActive,
                                 ]}
                               >
-                                {destination.category}
+                                {formatLocationCategory(destination.category)}
                               </Text>
                             </View>
                             <Text
@@ -1640,13 +1856,13 @@ export default function DriveScreen({
                     </ScrollView>
                   ) : (
                     <Text style={styles.noSuggestionsText}>
-                      No supported Suceava place matches this search.
+                      Nu am găsit o locație potrivită în Suceava.
                     </Text>
                   )}
                 </>
               ) : (
                 <Text style={styles.searchHelpText}>
-                  Start typing a place, street, district, store, airport, station, or landmark.
+                  Scrie un loc, o stradă, un cartier, un magazin sau un reper.
                 </Text>
               )}
             </View>
@@ -1661,7 +1877,7 @@ export default function DriveScreen({
               ]}
             >
               <Text style={styles.previewRouteButtonText}>
-                {isRoutePreviewLoading ? 'Calculating route...' : 'Preview route'}
+                {isRoutePreviewLoading ? 'Se calculează...' : 'Calculează ruta'}
               </Text>
             </Pressable>
 
@@ -1685,11 +1901,11 @@ export default function DriveScreen({
         >
           <Pressable style={styles.bottomSheet}>
             <View style={styles.sheetHandle} />
-            <Text style={styles.sheetTitle}>Last 5 rides</Text>
+            <Text style={styles.sheetTitle}>Ultimele 5 curse</Text>
 
             {data.rides.slice(0, 5).map((ride) => (
               <View key={ride.ride_id} style={styles.sheetRouteRow}>
-                <Text style={styles.sheetRouteName}>{ride.route_name}</Text>
+                <Text style={styles.sheetRouteName}>{formatRouteName(ride.route_name)}</Text>
                 <Text style={styles.sheetRouteMeta}>
                   {formatValue(ride.estimated_duration_minutes, ' min')} ·{' '}
                   {formatRideTraffic(ride)}

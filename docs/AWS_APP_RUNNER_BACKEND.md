@@ -458,6 +458,24 @@ The backend now resolves the same expanded route aliases used by the mobile
 search catalog for common Suceava destinations, transport points, institutions,
 districts, and streets.
 
+## Task 36G Polish And Delete Actions Deployment
+
+On `May 28, 2026`, App Runner was deployed with protected personal delete
+actions and Romanian route-name formatting:
+
+```text
+Backend ECR digest -> sha256:6ea9a28a76ad6ca45b186a82b23e7c46db8f6ae86c325809bab2888aa128a391
+App Runner status -> RUNNING
+GET /health -> status=ok
+DELETE /rides/history/1 without token -> 401
+DELETE /saved-routes/1 without token -> 401
+POST /routes/preview City Center -> Iulius Mall Suceava -> 200
+```
+
+The new ride-history delete endpoint is protected by Cognito JWT validation and
+filters deletes by `cognito_user_sub`, so users can only delete their own ride
+history records.
+
 ## What Is Not Done Yet
 
 Remaining later work:
