@@ -1,4 +1,5 @@
 import { API_BASE_URL, MOBILITY_REFRESH_URL } from '../config/api';
+import { resolveSuceavaLocation, SUCEAVA_LOCATIONS } from '../data/suceavaLocations';
 import {
   AddRideHistoryResponse,
   ApiListResponse,
@@ -28,59 +29,10 @@ type FetchOptions = {
   method?: 'DELETE' | 'GET' | 'POST' | 'PUT';
 };
 
-type KnownRouteLocation = {
-  aliases: string[];
-  latitude: number;
-  longitude: number;
-  name: string;
-};
-
 const OSRM_ROUTE_URL = 'https://router.project-osrm.org/route/v1/driving';
 
-const SUCEAVA_ROUTE_LOCATIONS: KnownRouteLocation[] = [
-  {
-    aliases: ['city center', 'suceava center', 'centru'],
-    latitude: 47.6514,
-    longitude: 26.2556,
-    name: 'City Center',
-  },
-  {
-    aliases: ['iulius mall suceava', 'iulius mall', 'mall'],
-    latitude: 47.6592,
-    longitude: 26.2698,
-    name: 'Iulius Mall Suceava',
-  },
-  {
-    aliases: ['stefan cel mare university', 'universitatea stefan cel mare', 'usv', 'university'],
-    latitude: 47.6416,
-    longitude: 26.2449,
-    name: 'Stefan cel Mare University',
-  },
-  {
-    aliases: ['suceava fortress', 'cetatea de scaun', 'fortress'],
-    latitude: 47.6467,
-    longitude: 26.2704,
-    name: 'Suceava Fortress',
-  },
-  {
-    aliases: ['suceava railway station', 'gara suceava', 'railway station'],
-    latitude: 47.6613,
-    longitude: 26.2736,
-    name: 'Suceava Railway Station',
-  },
-];
-
-function normalizeLocationName(value: string) {
-  return value.trim().toLowerCase().replace(/\s+/g, ' ');
-}
-
 function resolveKnownRouteLocation(value: string) {
-  const normalizedValue = normalizeLocationName(value);
-
-  const location = SUCEAVA_ROUTE_LOCATIONS.find((candidate) => {
-    const names = [candidate.name, ...candidate.aliases].map(normalizeLocationName);
-    return names.includes(normalizedValue);
-  });
+  const location = resolveSuceavaLocation(value);
 
   if (!location) {
     throw new Error('Unknown Suceava route location.');
@@ -309,6 +261,10 @@ export async function getMapEvents() {
 
 export async function getDriveOverview() {
   return fetchFromApi<DriveOverviewResponse>('/mobile/drive-overview');
+}
+
+export function getSupportedSuceavaLocations() {
+  return SUCEAVA_LOCATIONS;
 }
 
 export async function getTrafficProfile() {

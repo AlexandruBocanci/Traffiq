@@ -23,6 +23,7 @@ import SuceavaMap from '../components/SuceavaMap';
 import TrafficProfileChart from '../components/TrafficProfileChart';
 import { useAuth } from '../context/AuthContext';
 import { useTheme, useThemedStyles } from '../context/ThemeContext';
+import { searchSuceavaLocations } from '../data/suceavaLocations';
 import {
   addRideToHistory,
   getDriveOverview,
@@ -101,13 +102,6 @@ type WeatherImpactPresentation = {
   userText: string;
 };
 
-const SUCEAVA_DESTINATION_SUGGESTIONS = [
-  'Iulius Mall Suceava',
-  'Universitatea Stefan cel Mare',
-  'Cetatea de Scaun',
-  'Gara Suceava',
-  'Centru',
-];
 const MOBILITY_REFRESH_INTERVAL_MS = 15 * 60 * 1000;
 
 function formatValue(value: number | null | undefined, suffix = '') {
@@ -882,6 +876,8 @@ export default function DriveScreen({
   const trafficObservedTimestamp = formatCacheTimestamp(data.trafficObservedAt);
   const shouldShowInlineRouteConfirmation =
     !!plannedRoute && !isRouteConfirmationVisible && !isMapExpandedVisible;
+  const destinationSuggestions = searchSuceavaLocations(routeDestination);
+  const shouldShowDestinationSuggestions = routeDestination.trim().length >= 2;
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -1600,28 +1596,64 @@ export default function DriveScreen({
             </View>
 
             <View style={styles.suggestionSection}>
-              <Text style={styles.inputLabel}>Populare in Suceava</Text>
-              <View style={styles.suggestionGrid}>
-                {SUCEAVA_DESTINATION_SUGGESTIONS.map((destination) => (
-                  <Pressable
-                    key={destination}
-                    onPress={() => setRouteDestination(destination)}
-                    style={[
-                      styles.suggestionChip,
-                      routeDestination === destination && styles.suggestionChipActive,
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.suggestionChipText,
-                        routeDestination === destination && styles.suggestionChipTextActive,
-                      ]}
-                    >
-                      {destination}
+              {shouldShowDestinationSuggestions ? (
+                <>
+                  <Text style={styles.inputLabel}>Matching places</Text>
+                  {destinationSuggestions.length > 0 ? (
+                    <View style={styles.suggestionList}>
+                      {destinationSuggestions.map((destination) => {
+                        const isSelected = routeDestination === destination.name;
+
+                        return (
+                          <Pressable
+                            key={destination.name}
+                            onPress={() => setRouteDestination(destination.name)}
+                            style={[
+                              styles.suggestionRow,
+                              isSelected && styles.suggestionRowActive,
+                            ]}
+                          >
+                            <View style={styles.suggestionTextBlock}>
+                              <Text
+                                style={[
+                                  styles.suggestionTitle,
+                                  isSelected && styles.suggestionTitleActive,
+                                ]}
+                              >
+                                {destination.name}
+                              </Text>
+                              <Text
+                                style={[
+                                  styles.suggestionMeta,
+                                  isSelected && styles.suggestionMetaActive,
+                                ]}
+                              >
+                                {destination.category}
+                              </Text>
+                            </View>
+                            <Text
+                              style={[
+                                styles.suggestionArrow,
+                                isSelected && styles.suggestionArrowActive,
+                              ]}
+                            >
+                              ›
+                            </Text>
+                          </Pressable>
+                        );
+                      })}
+                    </View>
+                  ) : (
+                    <Text style={styles.noSuggestionsText}>
+                      No supported Suceava place matches this search.
                     </Text>
-                  </Pressable>
-                ))}
-              </View>
+                  )}
+                </>
+              ) : (
+                <Text style={styles.searchHelpText}>
+                  Start typing a place, street, district, store, airport, station, or landmark.
+                </Text>
+              )}
             </View>
 
             <Pressable
@@ -2416,30 +2448,66 @@ function createStyles(colors: ThemeColors) {
   suggestionSection: {
     gap: 8,
   },
-  suggestionGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+  suggestionList: {
     gap: 8,
   },
-  suggestionChip: {
+  suggestionRow: {
+    alignItems: 'center',
     backgroundColor: colors.card,
     borderColor: colors.border,
-    borderRadius: 999,
+    borderRadius: radius.md,
     borderWidth: 1,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    flexDirection: 'row',
+    gap: 12,
+    justifyContent: 'space-between',
+    minHeight: 58,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
   },
-  suggestionChipActive: {
+  suggestionRowActive: {
     backgroundColor: colors.primary,
     borderColor: colors.primary,
   },
-  suggestionChipText: {
-    color: colors.textSoft,
-    fontSize: 12,
-    fontWeight: '800',
+  suggestionTextBlock: {
+    flex: 1,
   },
-  suggestionChipTextActive: {
+  suggestionTitle: {
+    color: colors.text,
+    fontSize: 15,
+    fontWeight: '900',
+  },
+  suggestionTitleActive: {
     color: colors.primaryText,
+  },
+  suggestionMeta: {
+    color: colors.textMuted,
+    fontSize: 11,
+    fontWeight: '800',
+    marginTop: 4,
+    textTransform: 'uppercase',
+  },
+  suggestionMetaActive: {
+    color: colors.primaryText,
+  },
+  suggestionArrow: {
+    color: colors.textMuted,
+    fontSize: 24,
+    fontWeight: '400',
+  },
+  suggestionArrowActive: {
+    color: colors.primaryText,
+  },
+  searchHelpText: {
+    color: colors.textMuted,
+    fontSize: 13,
+    fontWeight: '700',
+    lineHeight: 19,
+  },
+  noSuggestionsText: {
+    color: colors.textMuted,
+    fontSize: 13,
+    fontWeight: '800',
+    lineHeight: 19,
   },
   previewRouteButton: {
     alignItems: 'center',

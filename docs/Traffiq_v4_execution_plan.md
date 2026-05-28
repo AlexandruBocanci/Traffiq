@@ -360,6 +360,49 @@ Implementation result:
 - Account exposes Appearance settings for signed-in and guest users
 - shared loading, error, empty, map, and chart components now use runtime theme colors
 
+### Task 36G1. Add more real locations to choose from
+
+Goal:
+
+- make route destination search feel closer to a real traffic app without using
+  paid Places APIs
+
+Deliverables:
+
+- expanded local Suceava location catalog
+- aliases for practical searches such as `mall`, `aero`, `gara`, `usv`,
+  `spital`, `obcini`
+- destination suggestions appear only after the user starts typing
+- mobile route preview and backend route preview resolve the same expanded
+  locations
+- no APK build in this task
+
+Definition of done:
+
+- typing a partial destination shows matching Suceava places
+- blank destination field does not show the full catalog
+- public `/routes/preview` resolves at least one newly added location
+- Android bundle export passes without generating a new APK
+
+Implementation result:
+
+- completed
+- added 40+ Suceava locations covering shopping, transport, education,
+  healthcare, institutions, landmarks, parks, districts, and major streets
+- deployed App Runner with ECR digest:
+
+```text
+sha256:fb2f529b60e8880b10e5190d6ff100cfce1e63086c7d4755aebe9b013048f45d
+```
+
+- public validation:
+
+```text
+POST /routes/preview City Center -> aero
+destination -> Suceava Airport
+GET /mobile/drive-overview -> traffic_source=tomtom, rides=0
+```
+
 ### Task 36G. Run final mobile UI/UX polish after real-data features
 
 Goal:

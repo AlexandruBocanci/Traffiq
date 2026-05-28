@@ -4312,6 +4312,85 @@ Next accepted task after user confirmation:
 
 - `Task 36G. Run final mobile UI/UX polish after real-data features`
 
+## 2026-05-28 - Task 36G1 Add More Real Locations To Choose From
+
+Task:
+
+- expand route planner destination support for Suceava
+- avoid showing the full location list when the route sheet opens
+- show search suggestions only after the user starts typing
+- keep the implementation free and APK-compatible
+
+Implementation:
+
+- added local mobile location catalog:
+
+```text
+mobile/src/data/suceavaLocations.ts
+```
+
+- catalog entries include:
+  - name
+  - category
+  - latitude
+  - longitude
+  - aliases
+- added 40+ Suceava destinations covering shopping, airport, railway station,
+  bus station, university, hospital, institutions, landmarks, parks, schools,
+  districts, and major streets
+- route planner destination suggestions now:
+  - remain hidden while the field is blank
+  - appear after at least two typed characters
+  - match aliases such as `mall`, `aero`, `gara`, `usv`, `spital`, `obcini`
+  - render as professional rows with name, category, and action arrow
+- mobile route fallback now resolves locations from the shared mobile catalog
+- backend `src/api/routing_service.py` now resolves the same expanded aliases
+- added routing unit coverage for new aliases
+- deployed App Runner with ECR digest:
+
+```text
+sha256:fb2f529b60e8880b10e5190d6ff100cfce1e63086c7d4755aebe9b013048f45d
+```
+
+Files changed:
+
+- `mobile/src/data/suceavaLocations.ts`
+- `mobile/src/services/traffiqApi.ts`
+- `mobile/src/screens/DriveScreen.tsx`
+- `src/api/routing_service.py`
+- `tests/unit/test_routing_service.py`
+- `docs/Traffiq_v4_execution_plan.md`
+- `docs/MOBILE_ROUTE_INPUT_FLOW.md`
+- `docs/MOBILE_SUCEAVA_LOCATION_SEARCH.md`
+- `docs/AWS_APP_RUNNER_BACKEND.md`
+- `docs/AWS_ECR_BACKEND_IMAGE.md`
+- `docs/chat.md`
+
+Validation:
+
+```text
+python -m compileall -q src tests -> passed
+tests/unit/test_routing_service.py -> passed
+npx.cmd tsc --noEmit -> passed
+ECR push -> sha256:fb2f529b60e8880b10e5190d6ff100cfce1e63086c7d4755aebe9b013048f45d
+App Runner deployment -> RUNNING
+public GET /health -> status=ok
+public POST /routes/preview City Center -> aero -> destination=Suceava Airport
+public GET /mobile/drive-overview -> traffic_source=tomtom, rides=0
+npx.cmd expo-doctor --verbose -> 18/18 checks passed
+npx.cmd expo export --platform android --output-dir .expo-export-task36g1 -> passed
+temporary export artifact -> deleted
+```
+
+Release note:
+
+- no APK was generated
+- final installed-APK validation remains deferred to the final APK build
+
+Next accepted task after user confirmation:
+
+- `Task 36G. Run final mobile UI/UX polish after real-data features`
+
 ---
 
 ## 9. Instructions For Any New Chat

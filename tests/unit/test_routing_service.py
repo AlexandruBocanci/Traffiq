@@ -30,6 +30,26 @@ def test_resolve_seeded_suceava_street_alias():
   return True
 
 
+def test_resolve_extended_suceava_location_aliases():
+  airport = resolve_suceava_location("aero")
+  shopping = resolve_suceava_location("shopping")
+  hospital = resolve_suceava_location("spital")
+
+  if airport.name != "Suceava Airport":
+    print("FAILED: aero alias should resolve to Suceava Airport.")
+    return False
+
+  if shopping.name != "Shopping City Suceava":
+    print("FAILED: shopping alias should resolve to Shopping City Suceava.")
+    return False
+
+  if hospital.name != "Suceava County Hospital":
+    print("FAILED: spital alias should resolve to Suceava County Hospital.")
+    return False
+
+  return True
+
+
 def test_resolve_unknown_suceava_location():
   try:
     resolve_suceava_location("Bucharest")
@@ -174,6 +194,7 @@ def test_current_location_without_coordinates_is_not_catalog_alias():
 
 print(test_resolve_suceava_location_from_alias())
 print(test_resolve_seeded_suceava_street_alias())
+print(test_resolve_extended_suceava_location_aliases())
 print(test_resolve_unknown_suceava_location())
 print(test_build_osrm_coordinates_uses_longitude_latitude_order())
 print(test_build_route_preview_with_stubbed_provider())

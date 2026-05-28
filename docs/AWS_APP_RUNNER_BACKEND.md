@@ -441,6 +441,23 @@ The endpoint reads baseline hourly profile rows from Gold and overlays observed
 TomTom averages from `silver.tomtom_flow_observations`. It does not claim
 full-city traffic coverage and does not expose fake historical TomTom data.
 
+## Task 36G1 Expanded Route Location Deployment
+
+On `May 28, 2026`, App Runner was deployed with the expanded Suceava route
+location catalog:
+
+```text
+Backend ECR digest -> sha256:fb2f529b60e8880b10e5190d6ff100cfce1e63086c7d4755aebe9b013048f45d
+App Runner status -> RUNNING
+GET /health -> status=ok
+POST /routes/preview City Center -> aero -> destination=Suceava Airport
+GET /mobile/drive-overview -> traffic_source=tomtom, congested=3, rides=0
+```
+
+The backend now resolves the same expanded route aliases used by the mobile
+search catalog for common Suceava destinations, transport points, institutions,
+districts, and streets.
+
 ## What Is Not Done Yet
 
 Remaining later work:

@@ -135,6 +135,16 @@ This image adds `GET /mobile/traffic-profile`. The Docker context still
 excludes `.env` and `.env.*`, so no RDS password, TomTom key, or AWS
 credential is packaged in the image.
 
+Latest Task 36G1 expanded route location image:
+
+```text
+May 28, 2026 - expanded Suceava route location catalog
+sha256:fb2f529b60e8880b10e5190d6ff100cfce1e63086c7d4755aebe9b013048f45d
+```
+
+This image extends backend route preview alias resolution for the larger local
+Suceava location catalog used by the mobile planner.
+
 ## What This Enables
 
 This prepares Task 8:

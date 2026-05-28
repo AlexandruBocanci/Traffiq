@@ -17,7 +17,7 @@ This task adds:
 - current-location GPS option
 - manual origin input option
 - editable `To` field
-- Romanian Suceava destination suggestions
+- searchable Suceava destination suggestions
 - `Preview route` action
 - selected route draft summary on the Drive screen
 - quick selection from existing demo route recommendations
@@ -52,13 +52,38 @@ Default origin:
 Current location
 ```
 
-Suceava destination suggestions:
+The original quick suggestions were:
 
 - Iulius Mall Suceava
 - Universitatea Stefan cel Mare
 - Cetatea de Scaun
 - Gara Suceava
 - Centru
+
+Task 36G1 replaced the always-visible suggestion chips with a searchable local
+location catalog.
+
+The catalog is stored in:
+
+```text
+mobile/src/data/suceavaLocations.ts
+```
+
+It contains shopping locations, transport points, institutions, landmarks,
+schools, districts, and major streets. Examples:
+
+```text
+mall -> Iulius Mall Suceava, Shopping City Suceava
+aero -> Suceava Airport
+gara -> Suceava Railway Station
+usv -> Stefan cel Mare University
+spital -> Suceava County Hospital
+obcini -> Obcini
+```
+
+Suggestions now appear only after the user types at least two characters. This
+keeps the planner clean when the bottom sheet opens and makes the flow closer
+to a production route search experience.
 
 The `From` flow is intentionally not a free text field for `Current location`.
 
@@ -110,10 +135,12 @@ Open the app in Expo Go and verify:
 4. Selecting `Current location` uses phone GPS when permission is granted.
 5. If GPS is unavailable, an inline message appears and manual origin remains available.
 6. The `To` field is editable.
-7. Tapping a Romanian Suceava suggestion fills the destination.
-8. `Preview route` is disabled while destination is empty.
-9. `Preview route` closes the sheet and shows a route draft card.
-10. Tapping `Edit` opens the planner again.
+7. Type at least two characters in the destination field.
+8. Matching Suceava suggestions appear below the input.
+9. Tapping a suggestion fills the destination.
+10. `Preview route` is disabled while destination is empty.
+11. `Preview route` closes the sheet and shows a route draft card.
+12. Tapping `Edit` opens the planner again.
 
 ## Explanation For Presentation
 
