@@ -1,3 +1,6 @@
+from datetime import datetime
+from datetime import timezone
+
 from fastapi import APIRouter
 from fastapi import HTTPException
 
@@ -5,6 +8,19 @@ from src.utils.db_utils import get_db_connection
 
 
 router = APIRouter()
+
+
+def _format_utc_timestamp(value):
+    if value is None:
+        return None
+
+    if isinstance(value, datetime):
+        if value.tzinfo is None:
+            return value.replace(tzinfo=timezone.utc).isoformat().replace("+00:00", "Z")
+
+        return value.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
+
+    return value
 
 
 def _fetch_one_dict(cur, query, params=None):
@@ -32,8 +48,8 @@ def _format_pipeline_run(row):
     return {
         "run_id": row["run_id"],
         "pipeline_name": row["pipeline_name"],
-        "started_at": row["started_at"],
-        "finished_at": row["finished_at"],
+        "started_at": _format_utc_timestamp(row["started_at"]),
+        "finished_at": _format_utc_timestamp(row["finished_at"]),
         "status": row["status"],
         "records_extracted": row["records_extracted"],
         "records_loaded": row["records_loaded"],

@@ -209,7 +209,10 @@ Applied v4 state:
 - `EmailSendingAccount=DEVELOPER`
 - sender identity: `alexandrubocanci123@gmail.com`
 - from address: `Traffiq <alexandrubocanci123@gmail.com>`
-- the confirmation email uses the prepared Traffiq HTML template
+- automatic email verification is enabled through
+  `AutoVerifiedAttributes=["email"]`
+- account confirmation and forgot-password code emails use the prepared Traffiq
+  HTML template
 - the template keeps the Cognito code placeholder `{####}`
 - the logo image is loaded from a public HTTPS S3 URL
 - SMS verification remains disabled
@@ -219,8 +222,19 @@ Validation:
 ```text
 SES sender identity -> verified
 Cognito SignUp test -> DeliveryMedium=EMAIL
+Cognito ForgotPassword test -> DeliveryMedium=EMAIL
 Temporary Cognito test user -> deleted after validation
 ```
+
+2026-05-28 follow-up:
+
+- corrected the email footer copy so the final question mark no longer renders
+  as the Romanian `Ț` character
+- restored `AutoVerifiedAttributes=["email"]` after the template update, because
+  Cognito must auto-verify email to send SignUp confirmation codes
+- validated SignUp again with the verified SES test alias:
+  `DeliveryMedium=EMAIL`
+- deleted the temporary Cognito test user after validation
 
 ## Where To Find It In AWS
 

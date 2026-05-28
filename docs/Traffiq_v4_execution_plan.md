@@ -497,8 +497,24 @@ Implementation result:
 - verified the SES sender identity and switched Cognito email delivery from
   `COGNITO_DEFAULT` to `DEVELOPER`
 - applied the branded Cognito confirmation email template in AWS
-- validated delivery through a temporary Cognito SignUp test and deleted the
-  temporary user after validation
+- updated the code email wording so the same branded template works for both
+  account confirmation and forgot-password codes
+- fixed the Cognito email footer typo where the final question mark rendered as
+  `Ț`
+- restored automatic email verification on the User Pool so `Create account`
+  sends the confirmation code immediately
+- validated delivery through a temporary Cognito SignUp test and a
+  ForgotPassword test
+- deleted the temporary user after validation
+- fixed mobile traffic freshness timestamps by serializing UTC TomTom
+  timestamps with `Z` and grouping traffic profile observations in
+  `Europe/Bucharest`
+- redeployed App Runner with the timestamp fix:
+  `sha256:2b0ab5abfd7954e3350a9600a4825503d4ae2f6d6695db100b2dba8112c642a0`
+- extended the same explicit UTC timestamp serialization to `GET /pipeline/status`
+  for Account -> Pipeline Status
+- redeployed App Runner with the pipeline timestamp fix:
+  `sha256:3a5a54f12977223755e1135a6ac8c2df502e600099650b54e0b6976a2600eab2`
 
 ---
 

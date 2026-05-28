@@ -476,6 +476,43 @@ The new ride-history delete endpoint is protected by Cognito JWT validation and
 filters deletes by `cognito_user_sub`, so users can only delete their own ride
 history records.
 
+## Task 36H Mobile Timestamp Display Fix Deployment
+
+On `May 28, 2026`, App Runner was redeployed with explicit UTC timestamp
+serialization for mobile traffic freshness:
+
+```text
+Backend ECR digest -> sha256:2b0ab5abfd7954e3350a9600a4825503d4ae2f6d6695db100b2dba8112c642a0
+App Runner status -> RUNNING
+GET /health -> status=ok
+GET /mobile/drive-overview -> traffic_source=tomtom
+traffic_observed_at -> 2026-05-28T14:15:24.669039Z
+first_congested_hour -> 17
+GET /mobile/traffic-profile -> rows=168
+generated_at -> Europe/Bucharest timestamp
+```
+
+The root cause was that TomTom ingestion stores UTC timestamps as PostgreSQL
+`TIMESTAMP` values without timezone. The API previously serialized those values
+without an explicit timezone marker, so the mobile app displayed them as local
+clock time and appeared three hours stale. The API now returns UTC timestamps
+with `Z`, allowing the phone to convert them correctly to local time.
+
+Follow-up deployment in the same task:
+
+```text
+Backend ECR digest -> sha256:3a5a54f12977223755e1135a6ac8c2df502e600099650b54e0b6976a2600eab2
+App Runner status -> RUNNING
+GET /health -> status=ok
+GET /pipeline/status -> started_at=2026-05-28T17:14:32Z
+GET /pipeline/status -> finished_at=2026-05-28T17:14:33Z
+GET /mobile/drive-overview -> traffic_observed_at=2026-05-28T17:14:32.154006Z
+GET /mobile/drive-overview -> first_congested_hour=20
+```
+
+This follow-up applies the same explicit UTC serialization to
+`GET /pipeline/status`, which is the endpoint used by Account -> Pipeline.
+
 ## What Is Not Done Yet
 
 Remaining later work:

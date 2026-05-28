@@ -4690,12 +4690,91 @@ S3 bucket: traffiq-public-assets-896080425393-eu-central-1
 S3 object: public/traffiq-icon.png
 SES identity: alexandrubocanci123@gmail.com
 Cognito sender: Traffiq <alexandrubocanci123@gmail.com>
-Email subject: Codul tau de confirmare Traffiq
+Email subject: Codul tau Traffiq
+```
+
+Follow-up in the same task:
+
+- changed the Cognito code email copy from account-confirmation-only wording to
+  generic Traffiq code wording
+- confirmed the same branded template is valid for:
+  - account confirmation
+  - forgot password
+- validated Cognito `SignUp` delivery through a temporary alias user
+- validated Cognito `ForgotPassword` delivery for the existing account
+- deleted the temporary Cognito test user after validation
+- fixed the traffic freshness timestamp bug where the mobile app looked three
+  hours behind
+- root cause: TomTom observations are UTC timestamps stored as PostgreSQL
+  `TIMESTAMP` without timezone, and the API serialized them without a timezone
+  marker
+- API fix: serialize TomTom timestamps with explicit UTC `Z`
+- API fix: calculate mobile traffic profile observed hour/day using
+  `Europe/Bucharest`
+- redeployed App Runner with:
+  `sha256:2b0ab5abfd7954e3350a9600a4825503d4ae2f6d6695db100b2dba8112c642a0`
+
+Validation:
+
+```text
+Cognito SignUp test -> DeliveryMedium=EMAIL
+Cognito ForgotPassword test -> DeliveryMedium=EMAIL
+temporary Cognito SignUp user -> deleted
+python -m py_compile src/api/routes/mobile.py -> passed
+Docker build/push -> sha256:2b0ab5abfd7954e3350a9600a4825503d4ae2f6d6695db100b2dba8112c642a0
+App Runner deployment -> RUNNING
+GET /health -> status=ok
+GET /mobile/drive-overview -> traffic_observed_at ends with Z
+GET /mobile/drive-overview -> first_congested_hour=17 for 14:15Z
+GET /mobile/traffic-profile -> rows=168
+```
+
+Pipeline timestamp follow-up:
+
+- Account -> Pipeline Status uses `GET /pipeline/status`, not
+  `/mobile/drive-overview`
+- that endpoint also returned naive PostgreSQL timestamps without timezone
+- added explicit UTC serialization for pipeline `started_at` and `finished_at`
+- redeployed App Runner with:
+  `sha256:3a5a54f12977223755e1135a6ac8c2df502e600099650b54e0b6976a2600eab2`
+
+Validation:
+
+```text
+python -m py_compile src/api/routes/mobile.py src/api/routes/pipeline.py -> passed
+Docker build/push -> sha256:3a5a54f12977223755e1135a6ac8c2df502e600099650b54e0b6976a2600eab2
+App Runner deployment -> RUNNING
+GET /health -> status=ok
+GET /pipeline/status -> started_at=2026-05-28T17:14:32Z
+GET /pipeline/status -> finished_at=2026-05-28T17:14:33Z
+GET /mobile/drive-overview -> traffic_observed_at=2026-05-28T17:14:32.154006Z
+GET /mobile/drive-overview -> first_congested_hour=20
 ```
 
 Next accepted task after user confirmation:
 
 - `Create a no-reply email for account creation code`
+
+Follow-up in the same task:
+
+- fixed a Cognito email template typo where the footer question mark rendered as
+  the Romanian `Ț` character
+- reapplied the corrected HTML verification template to the Cognito User Pool
+- found the SignUp delivery bug: `AutoVerifiedAttributes` was no longer set on
+  the User Pool, so Cognito created unconfirmed users without sending the email
+  confirmation code
+- restored automatic email verification with `AutoVerifiedAttributes=["email"]`
+- validated Cognito SignUp again through the verified SES test alias
+- deleted the temporary Cognito test user after validation
+
+Validation:
+
+```text
+SES sender identity -> verified
+Cognito AutoVerifiedAttributes -> email
+Cognito SignUp test -> DeliveryMedium=EMAIL
+temporary Cognito SignUp user -> deleted
+```
 
 ---
 

@@ -157,6 +157,28 @@ keeps saved/ride route names aligned with the Romanian mobile UI. The Docker
 context still excludes `.env` and `.env.*`, so no local secrets are packaged in
 the image.
 
+Latest Task 36H timestamp display fix image:
+
+```text
+May 28, 2026 - explicit UTC timestamp serialization for mobile traffic freshness
+sha256:2b0ab5abfd7954e3350a9600a4825503d4ae2f6d6695db100b2dba8112c642a0
+```
+
+This image fixes the mobile traffic freshness display by serializing TomTom
+snapshot timestamps with an explicit UTC marker (`Z`) and calculating
+hour/day grouping for mobile traffic profile data in `Europe/Bucharest`.
+
+Latest Task 36H pipeline timestamp fix image:
+
+```text
+May 28, 2026 - explicit UTC timestamp serialization for pipeline status
+sha256:3a5a54f12977223755e1135a6ac8c2df502e600099650b54e0b6976a2600eab2
+```
+
+This image extends the same timestamp fix to `GET /pipeline/status`, so the
+admin Pipeline screen no longer displays TomTom pipeline run times three hours
+behind local Romania time.
+
 ## What This Enables
 
 This prepares Task 8:

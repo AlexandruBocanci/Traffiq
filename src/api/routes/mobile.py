@@ -1,4 +1,5 @@
 from datetime import datetime
+from datetime import timezone
 from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter
@@ -12,6 +13,19 @@ router = APIRouter()
 
 def to_float(value):
     return float(value) if value is not None else None
+
+
+def format_utc_timestamp(value):
+    if value is None:
+        return None
+
+    if isinstance(value, datetime):
+        if value.tzinfo is None:
+            return value.replace(tzinfo=timezone.utc).isoformat().replace("+00:00", "Z")
+
+        return value.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
+
+    return value
 
 
 def fetch_all_dicts(cur, query):
@@ -41,7 +55,7 @@ def format_route(row):
 def format_event(row):
     return {
         "event_id": row["event_id"],
-        "event_timestamp": row["event_timestamp"],
+        "event_timestamp": format_utc_timestamp(row["event_timestamp"]),
         "event_type": row["event_type"],
         "street_name": row["street_name"],
         "event_description": row["event_description"],
@@ -76,7 +90,7 @@ def format_traffic_profile_row(row):
         "baseline_congestion_score": to_float(row["baseline_congestion_score"]),
         "observed_congestion_score": to_float(row["observed_congestion_score"]),
         "observations_count": row["observations_count"],
-        "latest_observed_at": row["latest_observed_at"],
+        "latest_observed_at": format_utc_timestamp(row["latest_observed_at"]),
         "value_source": row["value_source"],
     }
 
@@ -116,8 +130,11 @@ def get_mobile_drive_overview():
             cur,
             """
             SELECT
-                observed_at::date AS metric_date,
-                EXTRACT(HOUR FROM observed_at)::integer AS hour_of_day,
+                ((observed_at AT TIME ZONE 'UTC') AT TIME ZONE 'Europe/Bucharest')::date
+                    AS metric_date,
+                EXTRACT(
+                    HOUR FROM ((observed_at AT TIME ZONE 'UTC') AT TIME ZONE 'Europe/Bucharest')
+                )::integer AS hour_of_day,
                 corridor_name AS street_name,
                 current_speed_kmh AS avg_speed,
                 congestion_score,
@@ -153,7 +170,9 @@ def get_mobile_drive_overview():
             "traffic_source": "tomtom",
             "traffic_scope": "Three monitored Suceava corridors",
             "traffic_observed_at": (
-                congested_rows[0]["observed_at"] if congested_rows else None
+                format_utc_timestamp(congested_rows[0]["observed_at"])
+                if congested_rows
+                else None
             ),
             "congested": [
                 {
@@ -162,7 +181,7 @@ def get_mobile_drive_overview():
                     "street_name": row["street_name"],
                     "avg_speed": to_float(row["avg_speed"]),
                     "congestion_score": to_float(row["congestion_score"]),
-                    "observed_at": row["observed_at"],
+                    "observed_at": format_utc_timestamp(row["observed_at"]),
                     "free_flow_speed_kmh": to_float(row["free_flow_speed_kmh"]),
                     "confidence": to_float(row["confidence"]),
                     "source_provider": row["source_provider"],
@@ -209,33 +228,39 @@ def get_mobile_traffic_profile():
             """
             WITH observed_profile AS (
                 SELECT
-                    (EXTRACT(ISODOW FROM observed_at)::integer - 1) AS weekday_index,
-                    EXTRACT(HOUR FROM observed_at)::integer AS hour_of_day,
+                    (EXTRACT(ISODOW FROM local_observed_at)::integer - 1)
+                        AS weekday_index,
+                    EXTRACT(HOUR FROM local_observed_at)::integer AS hour_of_day,
                     ROUND(
-                        AVG(
-                            LEAST(
-                                100,
-                                GREATEST(
-                                    0,
-                                    (
-                                        (
-                                            free_flow_speed_kmh - current_speed_kmh
-                                        ) / NULLIF(free_flow_speed_kmh, 0)
-                                    ) * 100
-                                )
-                            )
-                        ),
+                        AVG(congestion_score),
                         2
                     ) AS observed_congestion_score,
                     COUNT(*) AS observations_count,
                     MAX(observed_at) AS latest_observed_at
-                FROM silver.tomtom_flow_observations
-                WHERE
-                    source_provider = 'tomtom'
-                    AND observed_at >= CURRENT_TIMESTAMP - INTERVAL '30 days'
+                FROM (
+                    SELECT
+                        observed_at,
+                        ((observed_at AT TIME ZONE 'UTC') AT TIME ZONE 'Europe/Bucharest')
+                            AS local_observed_at,
+                        LEAST(
+                            100,
+                            GREATEST(
+                                0,
+                                (
+                                    (
+                                        free_flow_speed_kmh - current_speed_kmh
+                                    ) / NULLIF(free_flow_speed_kmh, 0)
+                                ) * 100
+                            )
+                        ) AS congestion_score
+                    FROM silver.tomtom_flow_observations
+                    WHERE
+                        source_provider = 'tomtom'
+                        AND observed_at >= CURRENT_TIMESTAMP - INTERVAL '30 days'
+                ) local_observations
                 GROUP BY
-                    (EXTRACT(ISODOW FROM observed_at)::integer - 1),
-                    EXTRACT(HOUR FROM observed_at)::integer
+                    (EXTRACT(ISODOW FROM local_observed_at)::integer - 1),
+                    EXTRACT(HOUR FROM local_observed_at)::integer
             )
             SELECT
                 baseline.weekday_index,

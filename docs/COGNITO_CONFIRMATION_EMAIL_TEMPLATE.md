@@ -43,7 +43,7 @@ Current Cognito email configuration:
 | From address | `Traffiq <alexandrubocanci123@gmail.com>` |
 | Reply-to address | `alexandrubocanci123@gmail.com` |
 | Verification mode | confirmation code |
-| Email subject | `Codul tau de confirmare Traffiq` |
+| Email subject | `Codul tau Traffiq` |
 
 Public logo URL used by the template:
 
@@ -66,9 +66,26 @@ Validation result:
 SES sender identity -> verified
 SES test alias -> verified
 Cognito SignUp test -> DeliveryMedium=EMAIL
+Cognito ForgotPassword test -> DeliveryMedium=EMAIL
 Cognito SignUp test -> Destination present
+AutoVerifiedAttributes -> email
 Temporary Cognito user -> deleted after validation
 ```
+
+Follow-up validation on 2026-05-28:
+
+- fixed the footer copy typo where the question mark was rendered as the
+  Romanian `Ț` character
+- reapplied the corrected verification template to Cognito
+- restored `AutoVerifiedAttributes=["email"]` on the User Pool so SignUp sends
+  the account confirmation code automatically
+- validated SignUp delivery again through the verified SES test alias
+
+The same Cognito code email template is intentionally written generically as
+`Codul tau Traffiq`, so it works for both:
+
+- account confirmation
+- password reset
 
 ## Important AWS Constraint
 
