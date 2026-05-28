@@ -4640,6 +4640,59 @@ npx.cmd expo export --platform android --output-dir .expo-export-saved-route-del
 temporary export artifact -> deleted
 ```
 
+### Update 126 - Branded Cognito confirmation email and app icon prepared
+
+What changed:
+
+- selected logo concept `I` for the final branding direction
+- replaced the mobile app launcher icon with the traffic-light/city icon
+- replaced the adaptive icon and splash icon with matching Traffiq branding
+- generated `mobile/assets/favicon.png` from the same selected mark
+- preserved the selected logo crop as:
+  - `mobile/assets/branding/traffiq-logo-variant-i-source.png`
+- added the Cognito confirmation email HTML template:
+  - `docs/cognito_email/traffiq_confirmation_email.html`
+- added implementation notes and AWS Console steps:
+  - `docs/COGNITO_CONFIRMATION_EMAIL_TEMPLATE.md`
+- updated Cognito documentation with the v4 email branding constraint:
+  - local images cannot be used directly in email
+  - the logo must be hosted on a public HTTPS URL
+  - full custom HTML verification messages require Cognito email configuration
+    through Amazon SES
+
+Validation:
+
+```text
+asset dimensions check -> passed
+traffiq-icon.png -> 1024x1024
+traffiq-adaptive-icon.png -> 1024x1024
+traffiq-splash-icon.png -> 1242x2436
+favicon.png -> 256x256
+npx.cmd tsc --noEmit -> passed
+npx.cmd expo-doctor --verbose -> 18/18 checks passed
+npx.cmd expo export --platform android --output-dir .expo-export-branding-email -> passed
+temporary export artifact -> deleted
+```
+
+Important AWS note:
+
+- the logo was uploaded to a public HTTPS S3 URL for email rendering
+- SES sender identity `alexandrubocanci123@gmail.com` was verified
+- Cognito email delivery was switched from `COGNITO_DEFAULT` to `DEVELOPER`
+- the branded confirmation email HTML template was applied in Cognito
+- a temporary Cognito SignUp test confirmed `DeliveryMedium=EMAIL`
+- the temporary Cognito test user was deleted after validation
+
+Additional AWS resources/configuration:
+
+```text
+S3 bucket: traffiq-public-assets-896080425393-eu-central-1
+S3 object: public/traffiq-icon.png
+SES identity: alexandrubocanci123@gmail.com
+Cognito sender: Traffiq <alexandrubocanci123@gmail.com>
+Email subject: Codul tau de confirmare Traffiq
+```
+
 Next accepted task after user confirmation:
 
 - `Create a no-reply email for account creation code`

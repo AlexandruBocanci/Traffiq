@@ -458,6 +458,48 @@ Rejected scope decisions:
 - continuous remaining ETA recalculation during an active drive is excluded because it creates unnecessary routing request and reliability risk
 - live remaining-route-distance recalculation is excluded for the same reason and will not be approximated with misleading straight-line distance
 
+### Task 36H. Prepare branded Cognito confirmation email and app icon
+
+Goal:
+
+- replace the default-looking account confirmation experience with Traffiq
+  branding while keeping the AWS implementation low-cost and controlled
+
+Deliverables:
+
+- refreshed mobile app icon and splash branding
+- prepared Cognito confirmation email HTML template
+- documented AWS Console steps and Cognito/SES constraints
+
+Definition of done:
+
+- Expo Android export passes with the refreshed assets
+- the email template is ready to paste after the logo has a public HTTPS URL
+- AWS changes are not applied until the user confirms the console step
+
+Implementation result:
+
+- selected logo concept `I`, based on a traffic light with an abstract city
+  background
+- generated refreshed PNG assets:
+  - `mobile/assets/traffiq-icon.png`
+  - `mobile/assets/traffiq-adaptive-icon.png`
+  - `mobile/assets/traffiq-splash-icon.png`
+  - `mobile/assets/favicon.png`
+- preserved the selected generated source in:
+  - `mobile/assets/branding/traffiq-logo-variant-i-source.png`
+- added the Cognito confirmation email HTML template:
+  - `docs/cognito_email/traffiq_confirmation_email.html`
+- documented the AWS constraints and console steps in:
+  - `docs/COGNITO_CONFIRMATION_EMAIL_TEMPLATE.md`
+- updated the Cognito setup documentation to reference the v4 email template
+- uploaded the app icon to a public HTTPS S3 asset URL for email rendering
+- verified the SES sender identity and switched Cognito email delivery from
+  `COGNITO_DEFAULT` to `DEVELOPER`
+- applied the branded Cognito confirmation email template in AWS
+- validated delivery through a temporary Cognito SignUp test and deleted the
+  temporary user after validation
+
 ---
 
 ## Epic 12 - Final Cleanup And Release

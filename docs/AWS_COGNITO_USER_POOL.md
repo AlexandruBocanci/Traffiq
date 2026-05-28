@@ -188,6 +188,40 @@ EmailSendingAccount: COGNITO_DEFAULT
 
 This is low-cost and simple, but the sender is controlled by Cognito. If delivery remains unreliable after using the resend action and checking Spam/Junk, the next operational improvement is to configure Cognito with a verified Amazon SES sender identity.
 
+## v4 Confirmation Email Branding
+
+Traffiq v4 includes a prepared HTML confirmation email template for the account
+creation code:
+
+```text
+docs/cognito_email/traffiq_confirmation_email.html
+```
+
+The implementation notes and AWS Console steps are documented in:
+
+```text
+docs/COGNITO_CONFIRMATION_EMAIL_TEMPLATE.md
+```
+
+Applied v4 state:
+
+- the User Pool now uses Amazon SES for email delivery
+- `EmailSendingAccount=DEVELOPER`
+- sender identity: `alexandrubocanci123@gmail.com`
+- from address: `Traffiq <alexandrubocanci123@gmail.com>`
+- the confirmation email uses the prepared Traffiq HTML template
+- the template keeps the Cognito code placeholder `{####}`
+- the logo image is loaded from a public HTTPS S3 URL
+- SMS verification remains disabled
+
+Validation:
+
+```text
+SES sender identity -> verified
+Cognito SignUp test -> DeliveryMedium=EMAIL
+Temporary Cognito test user -> deleted after validation
+```
+
 ## Where To Find It In AWS
 
 AWS Console path:
