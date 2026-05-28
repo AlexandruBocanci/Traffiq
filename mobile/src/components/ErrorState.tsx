@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { colors, radius, shadows } from '../theme/theme';
+import { useThemedStyles } from '../context/ThemeContext';
+import { radius, shadows, ThemeColors } from '../theme/theme';
 
 type ErrorStateProps = {
   actionLabel?: string;
@@ -17,6 +18,8 @@ export default function ErrorState({
   message,
   onAction,
 }: ErrorStateProps) {
+  const { styles } = useThemedStyles(createStyles);
+
   return (
     <View style={styles.container}>
       <View style={styles.card}>
@@ -33,7 +36,8 @@ export default function ErrorState({
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
@@ -83,4 +87,5 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     textTransform: 'uppercase',
   },
-});
+  });
+}

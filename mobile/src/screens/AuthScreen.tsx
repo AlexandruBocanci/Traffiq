@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 
 import { useAuth } from '../context/AuthContext';
+import { useThemedStyles } from '../context/ThemeContext';
 import {
   confirmEmailSignUp,
   confirmPasswordReset,
@@ -19,7 +20,7 @@ import {
   resendEmailConfirmationCode,
   signUpWithEmail,
 } from '../services/cognitoAuth';
-import { colors, radius, shadows } from '../theme/theme';
+import { radius, shadows, ThemeColors } from '../theme/theme';
 import { AuthMode } from '../types/auth';
 
 type AuthScreenProps = {
@@ -125,6 +126,7 @@ export default function AuthScreen({
   initialMode = 'login',
   onInputFocus,
 }: AuthScreenProps) {
+  const { colors, styles } = useThemedStyles(createStyles);
   const { signIn } = useAuth();
   const [mode, setMode] = useState<AuthMode>(initialMode);
   const [email, setEmail] = useState('');
@@ -328,7 +330,8 @@ export default function AuthScreen({
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
   card: {
     ...shadows.card,
     backgroundColor: colors.card,
@@ -424,4 +427,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '800',
   },
-});
+  });
+}

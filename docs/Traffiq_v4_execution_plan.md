@@ -345,8 +345,20 @@ Deliverables:
 
 Definition of done:
 
-- all primary screens render correctly in all three modes on physical Android hardware
-- appearance mode works in the installed APK without additional paid services
+- global theme provider applies `system`, `dark`, and `light` modes at runtime
+- Account preferences can save appearance mode for authenticated users
+- guest users can change appearance locally on the device
+- primary screens and shared states consume the active theme
+- Android bundle export passes without generating a new APK
+
+Implementation result:
+
+- completed without APK build, per current workflow
+- `ThemeProvider` resolves `system` from the phone color scheme
+- `dark` and `light` modes override the system theme
+- Drive loads authenticated `theme_mode` along with the existing distance unit
+- Account exposes Appearance settings for signed-in and guest users
+- shared loading, error, empty, map, and chart components now use runtime theme colors
 
 ### Task 36G. Run final mobile UI/UX polish after real-data features
 

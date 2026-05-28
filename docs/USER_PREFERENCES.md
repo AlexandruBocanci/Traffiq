@@ -100,6 +100,14 @@ Current options:
 - route type: balanced, fastest, less congested
 - theme mode: system, dark, light
 
+After Task 36F, `theme_mode` is applied by the mobile runtime theme provider.
+`system` follows the phone appearance, while `dark` and `light` override it.
+Guest users can also set a local-only appearance mode on the device.
+
+Detailed appearance documentation:
+
+- `docs/MOBILE_APPEARANCE_MODES.md`
+
 ## RDS Deployment
 
 The idempotent schema entry point was applied to RDS:
@@ -171,7 +179,6 @@ From a Data Engineering and backend perspective, this demonstrates:
 
 This task does not:
 
-- apply theme mode globally in the UI
 - convert all displayed route units to miles
 - build advanced personalization
 - add account deletion

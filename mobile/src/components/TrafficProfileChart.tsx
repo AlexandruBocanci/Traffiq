@@ -9,7 +9,8 @@ import {
   View,
 } from 'react-native';
 
-import { colors, radius, shadows } from '../theme/theme';
+import { useThemedStyles } from '../context/ThemeContext';
+import { radius, shadows, ThemeColors } from '../theme/theme';
 import { TrafficProfileRecord, TrafficProfileResponse } from '../types/api';
 
 const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -36,6 +37,7 @@ function recordsByHour(records: TrafficProfileRecord[], weekdayIndex: number) {
 }
 
 export default function TrafficProfileChart({ profile }: TrafficProfileChartProps) {
+  const { styles } = useThemedStyles(createStyles);
   const initialWeekdayIndex = profile?.current_weekday_index ?? new Date().getDay() - 1;
   const normalizedInitialWeekday =
     initialWeekdayIndex < 0 ? 6 : Math.min(initialWeekdayIndex, 6);
@@ -173,7 +175,8 @@ export default function TrafficProfileChart({ profile }: TrafficProfileChartProp
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
   card: {
     ...shadows.card,
     backgroundColor: colors.card,
@@ -327,4 +330,5 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 19,
   },
-});
+  });
+}

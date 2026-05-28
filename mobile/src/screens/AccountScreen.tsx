@@ -17,16 +17,18 @@ import {
 import EmptyState from '../components/EmptyState';
 import LoadingState from '../components/LoadingState';
 import { useAuth } from '../context/AuthContext';
+import { useTheme, useThemedStyles } from '../context/ThemeContext';
 import { COGNITO_REGION, COGNITO_USER_POOL_ID } from '../config/auth';
 import {
   getSavedRoutes,
   getUserPreferences,
   updateUserPreferences,
 } from '../services/traffiqApi';
-import { colors, radius, shadows, spacing } from '../theme/theme';
+import { radius, shadows, spacing, ThemeColors } from '../theme/theme';
 import {
   DistanceUnit,
   SavedRouteRecord,
+  ThemeMode,
   UserPreferencesRecord,
 } from '../types/api';
 import AuthScreen from './AuthScreen';
@@ -44,6 +46,12 @@ type PreferenceOption<T extends string> = {
 const DISTANCE_UNIT_OPTIONS: PreferenceOption<DistanceUnit>[] = [
   { label: 'Kilometers', value: 'km' },
   { label: 'Miles', value: 'mi' },
+];
+
+const THEME_MODE_OPTIONS: PreferenceOption<ThemeMode>[] = [
+  { label: 'System', value: 'system' },
+  { label: 'Dark', value: 'dark' },
+  { label: 'Light', value: 'light' },
 ];
 
 function formatDistance(valueKm: number, unit: DistanceUnit | undefined) {
@@ -65,6 +73,8 @@ export default function AccountScreen({
     session,
     signOut,
   } = useAuth();
+  const { mode: localThemeMode, setThemeMode } = useTheme();
+  const { styles } = useThemedStyles(createStyles);
   const [savedRoutes, setSavedRoutes] = useState<SavedRouteRecord[]>([]);
   const [isSavedRoutesLoading, setIsSavedRoutesLoading] = useState(false);
   const [savedRoutesError, setSavedRoutesError] = useState('');
@@ -134,6 +144,7 @@ export default function AccountScreen({
 
         const response = await getUserPreferences(accessToken);
         setPreferences(response.data);
+        await setThemeMode(response.data.theme_mode);
       } catch {
         setPreferencesError('Could not load preferences.');
       } finally {
@@ -144,7 +155,7 @@ export default function AccountScreen({
     loadPreferences();
   }, [getAccessToken, isAuthenticated, session?.tokens.accessToken]);
 
-  async function handlePreferenceChange(value: DistanceUnit) {
+  async function handleDistancePreferenceChange(value: DistanceUnit) {
     if (!preferences || !session?.tokens.accessToken) {
       return;
     }
@@ -175,6 +186,39 @@ export default function AccountScreen({
     }
   }
 
+  async function handleThemePreferenceChange(value: ThemeMode) {
+    await setThemeMode(value);
+
+    if (!preferences || !session?.tokens.accessToken) {
+      return;
+    }
+
+    const nextPreferences = {
+      distance_unit: preferences.distance_unit,
+      preferred_route_type: preferences.preferred_route_type,
+      theme_mode: value,
+    };
+
+    try {
+      setIsPreferencesSaving(true);
+      setPreferencesError('');
+
+      const accessToken = await getAccessToken();
+
+      if (!accessToken) {
+        setPreferencesError('Your session expired. Theme changed locally only.');
+        return;
+      }
+
+      const response = await updateUserPreferences(nextPreferences, accessToken);
+      setPreferences(response.data);
+    } catch {
+      setPreferencesError('Theme changed locally, but could not be saved to account.');
+    } finally {
+      setIsPreferencesSaving(false);
+    }
+  }
+
   function renderPreferenceOptions<T extends string>(
     label: string,
     options: PreferenceOption<T>[],
@@ -190,7 +234,7 @@ export default function AccountScreen({
 
             return (
               <Pressable
-                disabled={!preferences || isPreferencesSaving}
+                disabled={isPreferencesSaving}
                 key={option.value}
                 onPress={() => onSelect(option.value)}
                 style={[
@@ -287,9 +331,8 @@ export default function AccountScreen({
               <Text style={styles.cardLabel}>Preferences</Text>
               <Text style={styles.preferencesTitle}>Personal settings</Text>
               <Text style={styles.cardText}>
-                Distance unit is stored per Cognito user and used for personal route
-                display. Route type and theme are kept out of the UI until they are
-                fully applied in the app.
+                Distance unit and appearance mode are stored per Cognito user.
+                System follows your phone setting, while Dark and Light override it.
               </Text>
 
               {isPreferencesLoading ? (
@@ -300,7 +343,13 @@ export default function AccountScreen({
                     'Distance unit',
                     DISTANCE_UNIT_OPTIONS,
                     preferences.distance_unit,
-                    (value) => handlePreferenceChange(value)
+                    (value) => handleDistancePreferenceChange(value)
+                  )}
+                  {renderPreferenceOptions(
+                    'Appearance',
+                    THEME_MODE_OPTIONS,
+                    preferences.theme_mode,
+                    (value) => handleThemePreferenceChange(value)
                   )}
                   {isPreferencesSaving ? (
                     <Text style={styles.cardText}>Saving preferences...</Text>
@@ -361,6 +410,21 @@ export default function AccountScreen({
               </Text>
             </View>
 
+            <View style={styles.preferencesCard}>
+              <Text style={styles.cardLabel}>Appearance</Text>
+              <Text style={styles.preferencesTitle}>Display mode</Text>
+              <Text style={styles.cardText}>
+                Guests can change the theme on this phone. Sign in to sync the
+                preference to your account.
+              </Text>
+              {renderPreferenceOptions(
+                'Theme',
+                THEME_MODE_OPTIONS,
+                localThemeMode,
+                (value) => handleThemePreferenceChange(value)
+              )}
+            </View>
+
             <AuthScreen onInputFocus={revealAuthenticationForm} />
           </>
         )}
@@ -370,7 +434,8 @@ export default function AccountScreen({
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: colors.background,
@@ -635,4 +700,5 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     textTransform: 'uppercase',
   },
-});
+  });
+}

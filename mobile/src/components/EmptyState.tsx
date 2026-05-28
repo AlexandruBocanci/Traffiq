@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { colors, radius } from '../theme/theme';
+import { useThemedStyles } from '../context/ThemeContext';
+import { radius, ThemeColors } from '../theme/theme';
 
 type EmptyStateProps = {
   actionLabel?: string;
@@ -15,6 +16,8 @@ export default function EmptyState({
   onAction,
   title,
 }: EmptyStateProps) {
+  const { styles } = useThemedStyles(createStyles);
+
   return (
     <View style={styles.container}>
       {title ? <Text style={styles.title}>{title}</Text> : null}
@@ -28,7 +31,8 @@ export default function EmptyState({
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
   container: {
     alignItems: 'center',
     backgroundColor: colors.surfaceGlass,
@@ -66,4 +70,5 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     textTransform: 'uppercase',
   },
-});
+  });
+}

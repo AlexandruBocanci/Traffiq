@@ -4223,6 +4223,95 @@ Release note:
 - no APK was generated in this task, per the agreed workflow to create the next
   APK only after all remaining tasks are done
 
+Next accepted task after user confirmation:
+
+- `Task 36F. Implement Dark, Light, and System appearance modes`
+
+## 2026-05-28 - Task 36F Dark Light System Appearance Modes
+
+Task:
+
+- make `system`, `dark`, and `light` appearance modes functional in the mobile
+  app
+- use the existing `theme_mode` user preference instead of adding a new backend
+  field
+- keep the feature APK-compatible, but do not build a new APK in this task
+
+Implementation:
+
+- added global mobile theme provider:
+
+```text
+mobile/src/context/ThemeContext.tsx
+```
+
+- expanded theme tokens in:
+
+```text
+mobile/src/theme/theme.ts
+```
+
+- added `darkColors`, `lightColors`, `themes`, and `ThemeColors`
+- `system` now follows the Android device appearance through React Native
+  `useColorScheme()`
+- `dark` and `light` override the phone theme
+- selected mode is persisted locally with AsyncStorage for guest users
+- authenticated Account preference changes still save through `PUT /preferences`
+- Drive loads authenticated `theme_mode` together with the existing distance
+  unit preference
+- Account now exposes Appearance options for both signed-in and guest users
+- shared UI states and primary screens now consume runtime theme colors:
+  - Drive
+  - History
+  - Account
+  - Pipeline
+  - Auth
+  - EmptyState
+  - ErrorState
+  - LoadingState
+  - SuceavaMap chrome
+  - TrafficProfileChart
+
+Files changed:
+
+- `mobile/App.tsx`
+- `mobile/src/context/ThemeContext.tsx`
+- `mobile/src/theme/theme.ts`
+- `mobile/src/screens/DriveScreen.tsx`
+- `mobile/src/screens/AccountScreen.tsx`
+- `mobile/src/screens/AuthScreen.tsx`
+- `mobile/src/screens/HistoryScreen.tsx`
+- `mobile/src/screens/PipelineScreen.tsx`
+- `mobile/src/components/EmptyState.tsx`
+- `mobile/src/components/ErrorState.tsx`
+- `mobile/src/components/LoadingState.tsx`
+- `mobile/src/components/SuceavaMap.tsx`
+- `mobile/src/components/TrafficProfileChart.tsx`
+- `docs/Traffiq_v4_execution_plan.md`
+- `docs/MOBILE_APPEARANCE_MODES.md`
+- `docs/USER_PREFERENCES.md`
+- `docs/chat.md`
+
+Validation:
+
+```text
+npx.cmd tsc --noEmit -> passed
+npx.cmd expo-doctor --verbose -> 18/18 checks passed
+npx.cmd expo export --platform android --output-dir .expo-export-task36f -> passed
+temporary export artifact -> deleted
+```
+
+Release note:
+
+- no EAS build was started
+- no APK was generated
+- installed-APK validation remains deferred to the final APK build after the
+  remaining accepted tasks
+
+Next accepted task after user confirmation:
+
+- `Task 36G. Run final mobile UI/UX polish after real-data features`
+
 ---
 
 ## 9. Instructions For Any New Chat

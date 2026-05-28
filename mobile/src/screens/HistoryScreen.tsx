@@ -12,8 +12,9 @@ import EmptyState from '../components/EmptyState';
 import ErrorState from '../components/ErrorState';
 import LoadingState from '../components/LoadingState';
 import { useAuth } from '../context/AuthContext';
+import { useThemedStyles } from '../context/ThemeContext';
 import { getRidesHistory } from '../services/traffiqApi';
-import { colors, radius, shadows, spacing } from '../theme/theme';
+import { radius, shadows, spacing, ThemeColors } from '../theme/theme';
 import { RideHistoryRecord } from '../types/api';
 
 type HistoryScreenProps = {
@@ -41,6 +42,7 @@ export default function HistoryScreen({
   onBackToDrive,
   onOpenAccount,
 }: HistoryScreenProps) {
+  const { styles } = useThemedStyles(createStyles);
   const { getAccessToken, isAuthenticated, isRestoringSession, session } = useAuth();
   const [rides, setRides] = useState<RideHistoryRecord[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -176,7 +178,8 @@ export default function HistoryScreen({
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: colors.background,
@@ -317,4 +320,5 @@ const styles = StyleSheet.create({
     marginTop: 4,
     textTransform: 'uppercase',
   },
-});
+  });
+}

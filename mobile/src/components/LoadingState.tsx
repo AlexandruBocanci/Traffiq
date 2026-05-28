@@ -1,12 +1,15 @@
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
-import { colors, radius, shadows } from '../theme/theme';
+import { useThemedStyles } from '../context/ThemeContext';
+import { radius, shadows, ThemeColors } from '../theme/theme';
 
 type LoadingStateProps = {
   message: string;
 };
 
 export default function LoadingState({ message }: LoadingStateProps) {
+  const { colors, styles } = useThemedStyles(createStyles);
+
   return (
     <View style={styles.container}>
       <View style={styles.card}>
@@ -18,7 +21,8 @@ export default function LoadingState({ message }: LoadingStateProps) {
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
@@ -52,4 +56,5 @@ const styles = StyleSheet.create({
     marginTop: 10,
     textAlign: 'center',
   },
-});
+  });
+}

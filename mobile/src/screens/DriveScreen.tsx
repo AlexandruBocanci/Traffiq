@@ -22,6 +22,7 @@ import LoadingState from '../components/LoadingState';
 import SuceavaMap from '../components/SuceavaMap';
 import TrafficProfileChart from '../components/TrafficProfileChart';
 import { useAuth } from '../context/AuthContext';
+import { useTheme, useThemedStyles } from '../context/ThemeContext';
 import {
   addRideToHistory,
   getDriveOverview,
@@ -37,7 +38,7 @@ import {
   saveCachedDriveOverview,
   saveCachedRoutePreview,
 } from '../services/mobileCache';
-import { colors, radius, shadows, spacing } from '../theme/theme';
+import { radius, shadows, spacing, ThemeColors } from '../theme/theme';
 import {
   DistanceUnit,
   MapEventRecord,
@@ -117,7 +118,7 @@ function formatValue(value: number | null | undefined, suffix = '') {
   return `${value}${suffix}`;
 }
 
-function getSeverityColor(severity: string) {
+function getSeverityColor(severity: string, colors: ThemeColors) {
   if (severity === 'high') {
     return colors.red;
   }
@@ -246,7 +247,7 @@ function getWeatherImpactPresentation(
   };
 }
 
-function getConditionColor(tone: RouteConditionTone) {
+function getConditionColor(tone: RouteConditionTone, colors: ThemeColors) {
   if (tone === 'high') {
     return colors.red;
   }
@@ -338,6 +339,8 @@ export default function DriveScreen({
   onOpenHistory,
 }: DriveScreenProps) {
   const insets = useSafeAreaInsets();
+  const { colors, resolvedMode, setThemeMode } = useTheme();
+  const { styles } = useThemedStyles(createStyles);
   const { getAccessToken, isAuthenticated, session } = useAuth();
   const [data, setData] = useState<DriveState>({
     routes: [],
@@ -520,13 +523,14 @@ export default function DriveScreen({
       try {
         const response = await getUserPreferences(accessToken);
         setDistanceUnit(response.data.distance_unit);
+        await setThemeMode(response.data.theme_mode);
       } catch {
         setDistanceUnit('km');
       }
     }
 
     loadDistancePreference();
-  }, [getAccessToken, isAuthenticated, session?.tokens.accessToken]);
+  }, [getAccessToken, isAuthenticated, session?.tokens.accessToken, setThemeMode]);
 
   useEffect(() => {
     if (isMapExpandedVisible) {
@@ -1025,7 +1029,7 @@ export default function DriveScreen({
                   <View
                     style={[
                       styles.conditionIndicator,
-                      { backgroundColor: getConditionColor(routeCondition.tone) },
+                      { backgroundColor: getConditionColor(routeCondition.tone, colors) },
                     ]}
                   />
                   <View style={styles.conditionTitleWrap}>
@@ -1203,7 +1207,7 @@ export default function DriveScreen({
                 <View
                   style={[
                     styles.alertIndicator,
-                    { backgroundColor: getSeverityColor(event.severity) },
+                    { backgroundColor: getSeverityColor(event.severity, colors) },
                   ]}
                 />
                 <View style={styles.alertContent}>
@@ -1243,7 +1247,11 @@ export default function DriveScreen({
         visible={isMapExpandedVisible}
         onRequestClose={() => setIsMapExpandedVisible(false)}
       >
-        <StatusBar backgroundColor={colors.background} style="light" translucent />
+        <StatusBar
+          backgroundColor={colors.background}
+          style={resolvedMode === 'dark' ? 'light' : 'dark'}
+          translucent
+        />
         <SafeAreaView style={styles.expandedMapContainer}>
           <View
             style={[
@@ -1378,7 +1386,7 @@ export default function DriveScreen({
                   <View
                     style={[
                       styles.conditionIndicator,
-                      { backgroundColor: getConditionColor(routeCondition.tone) },
+                      { backgroundColor: getConditionColor(routeCondition.tone, colors) },
                     ]}
                   />
                   <View style={styles.conditionTitleWrap}>
@@ -1668,7 +1676,8 @@ export default function DriveScreen({
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: colors.background,
@@ -2471,5 +2480,6 @@ const styles = StyleSheet.create({
     marginTop: 5,
     textTransform: 'capitalize',
   },
-});
+  });
+}
 

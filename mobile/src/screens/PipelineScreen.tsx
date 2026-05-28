@@ -11,8 +11,9 @@ import {
 import EmptyState from '../components/EmptyState';
 import ErrorState from '../components/ErrorState';
 import LoadingState from '../components/LoadingState';
+import { useThemedStyles } from '../context/ThemeContext';
 import { getHealthStatus, getPipelineStatus } from '../services/traffiqApi';
-import { colors, radius, shadows, spacing } from '../theme/theme';
+import { radius, shadows, spacing, ThemeColors } from '../theme/theme';
 import { PipelineStatusResponse } from '../types/api';
 
 const PIPELINE_STEPS = [
@@ -52,6 +53,7 @@ type PipelineScreenProps = {
 };
 
 export default function PipelineScreen({ onBackToDrive }: PipelineScreenProps) {
+  const { styles } = useThemedStyles(createStyles);
   const [metrics, setMetrics] = useState<PipelineMetrics | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
@@ -262,7 +264,8 @@ function formatCheckName(value: string) {
   return value.replace(/_/g, ' ');
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: colors.background,
@@ -442,4 +445,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 24,
   },
-});
+  });
+}

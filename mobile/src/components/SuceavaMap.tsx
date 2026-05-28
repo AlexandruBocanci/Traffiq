@@ -3,7 +3,8 @@ import * as Location from 'expo-location';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { WebView, WebViewMessageEvent } from 'react-native-webview';
 
-import { colors, radius, shadows } from '../theme/theme';
+import { useThemedStyles } from '../context/ThemeContext';
+import { radius, shadows, ThemeColors } from '../theme/theme';
 import { MapEventRecord, RoutePreviewResponse } from '../types/api';
 
 type MapRegion = {
@@ -68,6 +69,7 @@ export default function SuceavaMap({
   showRoutePrompt = false,
   variant = 'compact',
 }: SuceavaMapProps) {
+  const { styles } = useThemedStyles(createStyles);
   const isExpanded = variant === 'expanded';
   const webViewRef = useRef<WebView>(null);
   const [currentRegion, setCurrentRegion] = useState<MapRegion>(SUCEAVA_REGION);
@@ -631,7 +633,8 @@ function createMapHtml(mapData: EmbeddedMapData) {
 </html>`;
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
   mapPanel: {
     ...shadows.card,
     backgroundColor: colors.card,
@@ -822,4 +825,5 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     lineHeight: 17,
   },
-});
+  });
+}
