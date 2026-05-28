@@ -137,6 +137,25 @@ weather: Open-Meteo-backed weather impact records
 
 The public mobile overview intentionally returns `rides: []` because ride history is personal data and is available only through protected authenticated endpoints.
 
+Cloud traffic profile validation:
+
+```powershell
+Invoke-RestMethod -Uri 'https://eguwdq6puz.eu-central-1.awsapprunner.com/mobile/traffic-profile'
+```
+
+Validated result after Task 36E:
+
+```text
+traffic_scope: Three monitored Suceava corridors
+rows: 168
+current_weekday_index: current Europe/Bucharest weekday
+current_hour: current Europe/Bucharest hour
+```
+
+The Drive screen uses this endpoint to render the animated 24-hour profile
+chart. The chart is APK-compatible because it is built with React Native views
+and `Animated`, not a browser-only chart library.
+
 ## Current Scope
 
 The mobile cloud configuration is complete for the v4 demo:

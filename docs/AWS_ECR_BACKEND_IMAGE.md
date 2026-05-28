@@ -124,6 +124,17 @@ This image adds the token-verified internal mobility snapshot endpoint. App
 Runner uses an SSM `SecureString` reference for `DB_PASSWORD`; no secret was
 packaged in the container image.
 
+Latest Task 36E traffic profile image:
+
+```text
+May 28, 2026 - mobile hourly traffic profile backend
+sha256:c356d877279ebc05acbc1eb9c3a76a726c408724d23c5e9a0d90d98784f6a23a
+```
+
+This image adds `GET /mobile/traffic-profile`. The Docker context still
+excludes `.env` and `.env.*`, so no RDS password, TomTom key, or AWS
+credential is packaged in the image.
+
 ## What This Enables
 
 This prepares Task 8:

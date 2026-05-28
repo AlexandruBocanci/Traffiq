@@ -423,6 +423,24 @@ Lambda worker, then reuses the same Bronze/Silver/Gold load path as manual
 ingestion. The raw TomTom key remains in Lambda-accessible SSM configuration
 and never enters App Runner or the mobile APK.
 
+## Task 36E Traffic Profile API Deployment
+
+On `May 28, 2026`, App Runner was deployed with the mobile traffic profile API:
+
+```text
+Backend ECR digest -> sha256:c356d877279ebc05acbc1eb9c3a76a726c408724d23c5e9a0d90d98784f6a23a
+App Runner status -> RUNNING
+GET /health -> status=ok
+GET /mobile/traffic-profile -> rows=168
+traffic_scope -> Three monitored Suceava corridors
+observed_rows -> 2 at validation time
+GET /mobile/drive-overview -> traffic_source=tomtom, congested=3, weather=1, events=5, rides=0
+```
+
+The endpoint reads baseline hourly profile rows from Gold and overlays observed
+TomTom averages from `silver.tomtom_flow_observations`. It does not claim
+full-city traffic coverage and does not expose fake historical TomTom data.
+
 ## What Is Not Done Yet
 
 Remaining later work:

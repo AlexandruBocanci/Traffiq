@@ -20,10 +20,12 @@ import EmptyState from '../components/EmptyState';
 import ErrorState from '../components/ErrorState';
 import LoadingState from '../components/LoadingState';
 import SuceavaMap from '../components/SuceavaMap';
+import TrafficProfileChart from '../components/TrafficProfileChart';
 import { useAuth } from '../context/AuthContext';
 import {
   addRideToHistory,
   getDriveOverview,
+  getTrafficProfile,
   getUserPreferences,
   previewRoute,
   requestMobilityRefresh,
@@ -42,6 +44,7 @@ import {
   RideHistoryRecord,
   RoutePreviewResponse,
   RouteReportRecord,
+  TrafficProfileResponse,
   TopCongestedStreetRecord,
   WeatherImpactRecord,
 } from '../types/api';
@@ -346,6 +349,9 @@ export default function DriveScreen({
     trafficScope: 'Three monitored Suceava corridors',
     trafficObservedAt: null,
   });
+  const [trafficProfile, setTrafficProfile] = useState<TrafficProfileResponse | null>(
+    null
+  );
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
   const [isDriveDataCached, setIsDriveDataCached] = useState(false);
@@ -390,7 +396,10 @@ export default function DriveScreen({
       }
       setErrorMessage('');
 
-      const driveOverview = await getDriveOverview();
+      const [driveOverview, trafficProfileResponse] = await Promise.all([
+        getDriveOverview(),
+        getTrafficProfile().catch(() => null),
+      ]);
 
       if (driveOverview.traffic_source !== 'tomtom') {
         throw new Error('Backend is not serving the real TomTom mobility snapshot yet.');
@@ -403,6 +412,7 @@ export default function DriveScreen({
           driveOverview.traffic_scope ?? 'Three monitored Suceava corridors',
         trafficObservedAt: driveOverview.traffic_observed_at ?? null,
       });
+      setTrafficProfile(trafficProfileResponse);
       setIsDriveDataCached(false);
       setDriveCacheSavedAt(null);
 
@@ -425,6 +435,11 @@ export default function DriveScreen({
             cachedDriveOverview.data.traffic_scope ?? 'Three monitored Suceava corridors',
           trafficObservedAt: cachedDriveOverview.data.traffic_observed_at ?? null,
         });
+        try {
+          setTrafficProfile(await getTrafficProfile());
+        } catch {
+          setTrafficProfile(null);
+        }
         setIsDriveDataCached(true);
         setDriveCacheSavedAt(cachedDriveOverview.savedAt);
         setErrorMessage('');
@@ -940,6 +955,8 @@ export default function DriveScreen({
           }}
           routePreview={routePreview}
         />
+
+        <TrafficProfileChart profile={trafficProfile} />
 
         {shouldShowInlineRouteConfirmation ? (
           <View style={styles.routeDraftCard}>

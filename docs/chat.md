@@ -4130,7 +4130,98 @@ Documentation updated:
 
 Next accepted task after user confirmation:
 
-- `Task 36E. Build historical hourly traffic profile for monitored corridors`
+- `Task 36F. Implement Dark, Light, and System appearance modes`
+
+## 2026-05-28 - Task 36E Hourly Traffic Profile Chart
+
+Task:
+
+- build a professional mobile traffic profile chart for monitored Suceava
+  corridors
+- use TomTom Traffic Stats / MOVE only if available
+- otherwise keep the chart honest by using baseline Gold rows and replacing
+  them with observed TomTom flow data as snapshots accumulate
+
+Decision:
+
+- TomTom Traffic Stats / MOVE read-only job search returned `403 Forbidden`
+- no fake historical TomTom chart was added
+- the accepted implementation uses:
+  - `gold.corridor_hourly_traffic_profile` for the 7 x 24 baseline profile
+  - `silver.tomtom_flow_observations` for real TomTom hourly averages
+  - `GET /mobile/traffic-profile` as the serving API
+  - a custom React Native animated chart compatible with Expo/EAS APK builds
+
+Implementation:
+
+- added baseline profile generator with realistic weekday, Friday, Saturday,
+  and Sunday traffic patterns
+- added idempotent Gold DDL and indexes for the hourly profile
+- loaded `168` baseline rows into RDS
+- added public backend endpoint:
+
+```text
+GET /mobile/traffic-profile
+```
+
+- added mobile API types and service method
+- added `TrafficProfileChart` with:
+  - weekday selector (`Mon` through `Sun`)
+  - current weekday selected by default
+  - current hour highlighted
+  - green vertical candles that animate when the selected day changes
+  - monitored-corridor scope text, not full-city traffic wording
+- deployed App Runner with ECR digest:
+
+```text
+sha256:c356d877279ebc05acbc1eb9c3a76a726c408724d23c5e9a0d90d98784f6a23a
+```
+
+Files changed:
+
+- `sql/ddl/create_gold_tables.sql`
+- `sql/ddl/create_indexes.sql`
+- `src/api/routes/mobile.py`
+- `src/load/load_corridor_hourly_profile_baseline.py`
+- `src/transform/build_corridor_hourly_profile_baseline.py`
+- `mobile/src/components/TrafficProfileChart.tsx`
+- `mobile/src/screens/DriveScreen.tsx`
+- `mobile/src/services/traffiqApi.ts`
+- `mobile/src/types/api.ts`
+- `tests/unit/test_build_corridor_hourly_profile_baseline.py`
+- `tests/integration/test_mobile_traffic_profile_endpoint.py`
+- `docs/Traffiq_v4_execution_plan.md`
+- `docs/MOBILE_TRAFFIC_PROFILE_CHART.md`
+- `docs/AWS_RDS_SCHEMA.md`
+- `docs/AWS_APP_RUNNER_BACKEND.md`
+- `docs/AWS_ECR_BACKEND_IMAGE.md`
+- `docs/MOBILE_CLOUD_API_CONFIG.md`
+- `docs/chat.md`
+
+Validation:
+
+```text
+python -m compileall -q src tests -> passed
+baseline profile unit test -> passed
+npx.cmd tsc --noEmit -> passed
+RDS DDL apply -> passed
+baseline load -> 168 rows
+local /mobile/traffic-profile integration test -> passed, 168 rows
+local /mobile/drive-overview regression test -> passed
+ECR push -> sha256:c356d877279ebc05acbc1eb9c3a76a726c408724d23c5e9a0d90d98784f6a23a
+App Runner deployment -> RUNNING
+public GET /health -> status=ok
+public GET /mobile/traffic-profile -> 168 rows
+public GET /mobile/drive-overview -> traffic_source=tomtom, rides=0
+npx.cmd expo-doctor --verbose -> 18/18 checks passed
+npx.cmd expo export --platform android --output-dir .expo-export-task36e -> passed
+temporary export artifact -> deleted
+```
+
+Release note:
+
+- no APK was generated in this task, per the agreed workflow to create the next
+  APK only after all remaining tasks are done
 
 ---
 

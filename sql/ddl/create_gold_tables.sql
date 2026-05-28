@@ -63,3 +63,16 @@ CREATE TABLE IF NOT EXISTS gold.current_corridor_traffic (
   road_closure BOOLEAN NOT NULL DEFAULT FALSE,
   source_provider VARCHAR(50) NOT NULL DEFAULT 'tomtom'
 );
+
+CREATE TABLE IF NOT EXISTS gold.corridor_hourly_traffic_profile (
+  profile_id SERIAL PRIMARY KEY,
+  weekday_index INTEGER NOT NULL CHECK (weekday_index BETWEEN 0 AND 6),
+  weekday_label VARCHAR(20) NOT NULL,
+  hour_of_day INTEGER NOT NULL CHECK (hour_of_day BETWEEN 0 AND 23),
+  baseline_congestion_score NUMERIC(5, 2) NOT NULL CHECK (
+    baseline_congestion_score BETWEEN 0 AND 100
+  ),
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE (weekday_index, hour_of_day)
+);

@@ -286,6 +286,37 @@ Detailed real ingestion documentation:
 
 - `docs/TOMTOM_REAL_MOBILITY_INGESTION.md`
 
+## Task 36E Hourly Traffic Profile Extension
+
+Task 36E adds a Gold table for the mobile 7 x 24 traffic profile chart:
+
+```text
+gold.corridor_hourly_traffic_profile
+```
+
+Applied additions on `May 28, 2026`:
+
+```text
+gold.corridor_hourly_traffic_profile
+idx_corridor_hourly_profile_day_hour
+idx_tomtom_flow_observations_profile_rollup
+```
+
+The table contains one baseline row for each weekday/hour combination:
+
+```text
+7 weekdays x 24 hours = 168 rows
+```
+
+The public API replaces baseline values with observed TomTom averages whenever
+matching rows exist in `silver.tomtom_flow_observations`. This keeps the mobile
+chart available immediately while allowing real TomTom observations to take over
+as the dataset grows.
+
+Detailed mobile chart documentation:
+
+- `docs/MOBILE_TRAFFIC_PROFILE_CHART.md`
+
 ## What Is Not Done Yet
 
 This task only applies the schema.

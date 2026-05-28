@@ -48,3 +48,13 @@ ON silver.tomtom_incidents (observed_at DESC, severity ASC);
 
 CREATE INDEX IF NOT EXISTS idx_current_corridor_traffic_score
 ON gold.current_corridor_traffic (congestion_score DESC, observed_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_corridor_hourly_profile_day_hour
+ON gold.corridor_hourly_traffic_profile (weekday_index ASC, hour_of_day ASC);
+
+CREATE INDEX IF NOT EXISTS idx_tomtom_flow_observations_profile_rollup
+ON silver.tomtom_flow_observations (
+  source_provider ASC,
+  observed_at DESC,
+  corridor_key ASC
+);

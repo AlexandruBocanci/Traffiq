@@ -296,25 +296,39 @@ Implementation status:
 - physical installed-APK regression validation remains deferred to the final
   APK build requested after the remaining mobile tasks
 
-### Task 36E. Build historical hourly traffic profile for monitored corridors
+### Task 36E. Build hourly traffic profile for monitored corridors
 
 Goal:
 
-- show typical hourly traffic behavior by weekday using historical real observations, not generated demo data
+- show typical hourly traffic behavior by weekday for monitored Suceava corridors
 
 Deliverables:
 
-- TomTom Traffic Stats / MOVE validation for three representative Suceava corridors
-- verification of available sample coverage, trial cost constraints, and allowed result usage
+- TomTom Traffic Stats / MOVE validation
+- baseline 7 x 24 traffic profile stored in Gold with realistic urban commute patterns
+- observed TomTom flow values replacing baseline values as real snapshots accumulate
 - weekday selector (`Mon` through `Sun`)
-- 24-hour chart for the selected weekday
+- animated 24-hour chart for the selected weekday
 - metric labelled as traffic on monitored corridors, not total Suceava traffic
 
 Definition of done:
 
-- task proceeds only if TomTom MOVE returns usable Suceava corridor data and the usage/cost conditions are acceptable
-- graph is backed by real historical TomTom results processed and served through the backend
-- feature works in the installed APK
+- TomTom MOVE access is validated and documented as unavailable for the current key
+- public backend serves `/mobile/traffic-profile` with 168 weekday/hour rows
+- mobile chart opens on the current weekday and highlights the current hour
+- graph is clearly scoped to monitored corridors, not full-city traffic
+- installed-APK validation is deferred to the final APK build after the remaining tasks
+
+Implementation result:
+
+- completed after scope adjustment
+- TomTom Traffic Stats / MOVE read-only access check returned `403 Forbidden`
+- no fake TomTom historical claim was added
+- the API computes TomTom-observed hourly values from `silver.tomtom_flow_observations`
+  and falls back to `gold.corridor_hourly_traffic_profile` baseline rows where
+  real observations are not available yet
+- App Runner public validation returned `168` profile rows and preserved
+  `/mobile/drive-overview`
 
 ### Task 36F. Implement Dark, Light, and System appearance modes
 

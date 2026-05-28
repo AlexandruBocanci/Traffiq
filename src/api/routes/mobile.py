@@ -1,3 +1,6 @@
+from datetime import datetime
+from zoneinfo import ZoneInfo
+
 from fastapi import APIRouter
 from fastapi import HTTPException
 
@@ -61,6 +64,20 @@ def format_ride(row):
         "congestion_score": to_float(row["congestion_score"]),
         "estimated_duration_minutes": to_float(row["estimated_duration_minutes"]),
         "ride_status": row["ride_status"],
+    }
+
+
+def format_traffic_profile_row(row):
+    return {
+        "weekday_index": row["weekday_index"],
+        "weekday_label": row["weekday_label"],
+        "hour_of_day": row["hour_of_day"],
+        "traffic_score": to_float(row["traffic_score"]),
+        "baseline_congestion_score": to_float(row["baseline_congestion_score"]),
+        "observed_congestion_score": to_float(row["observed_congestion_score"]),
+        "observations_count": row["observations_count"],
+        "latest_observed_at": row["latest_observed_at"],
+        "value_source": row["value_source"],
     }
 
 
@@ -161,6 +178,99 @@ def get_mobile_drive_overview():
                 }
                 for row in weather_rows
             ],
+        }
+
+    except HTTPException:
+        raise
+
+    except Exception:
+        raise HTTPException(status_code=500, detail="An error occurred.")
+
+    finally:
+        if cur is not None:
+            cur.close()
+        if conn is not None:
+            conn.close()
+
+
+@router.get("/mobile/traffic-profile")
+def get_mobile_traffic_profile():
+    conn = None
+    cur = None
+
+    try:
+        conn = get_db_connection()
+
+        if conn is None:
+            raise HTTPException(status_code=500, detail="Database connection failed.")
+
+        cur = conn.cursor()
+        cur.execute(
+            """
+            WITH observed_profile AS (
+                SELECT
+                    (EXTRACT(ISODOW FROM observed_at)::integer - 1) AS weekday_index,
+                    EXTRACT(HOUR FROM observed_at)::integer AS hour_of_day,
+                    ROUND(
+                        AVG(
+                            LEAST(
+                                100,
+                                GREATEST(
+                                    0,
+                                    (
+                                        (
+                                            free_flow_speed_kmh - current_speed_kmh
+                                        ) / NULLIF(free_flow_speed_kmh, 0)
+                                    ) * 100
+                                )
+                            )
+                        ),
+                        2
+                    ) AS observed_congestion_score,
+                    COUNT(*) AS observations_count,
+                    MAX(observed_at) AS latest_observed_at
+                FROM silver.tomtom_flow_observations
+                WHERE
+                    source_provider = 'tomtom'
+                    AND observed_at >= CURRENT_TIMESTAMP - INTERVAL '30 days'
+                GROUP BY
+                    (EXTRACT(ISODOW FROM observed_at)::integer - 1),
+                    EXTRACT(HOUR FROM observed_at)::integer
+            )
+            SELECT
+                baseline.weekday_index,
+                baseline.weekday_label,
+                baseline.hour_of_day,
+                baseline.baseline_congestion_score,
+                observed.observed_congestion_score,
+                COALESCE(observed.observed_congestion_score, baseline.baseline_congestion_score)
+                    AS traffic_score,
+                COALESCE(observed.observations_count, 0) AS observations_count,
+                observed.latest_observed_at,
+                CASE
+                    WHEN observed.observations_count IS NULL THEN 'baseline'
+                    ELSE 'tomtom_observed'
+                END AS value_source
+            FROM gold.corridor_hourly_traffic_profile baseline
+            LEFT JOIN observed_profile observed
+                ON baseline.weekday_index = observed.weekday_index
+                AND baseline.hour_of_day = observed.hour_of_day
+            ORDER BY baseline.weekday_index ASC, baseline.hour_of_day ASC;
+            """
+        )
+
+        rows = cur.fetchall()
+        columns = [desc[0] for desc in cur.description]
+        data = [format_traffic_profile_row(dict(zip(columns, row))) for row in rows]
+        now = datetime.now(ZoneInfo("Europe/Bucharest"))
+
+        return {
+            "traffic_scope": "Three monitored Suceava corridors",
+            "metric_label": "Traffic profile",
+            "current_weekday_index": now.weekday(),
+            "current_hour": now.hour,
+            "generated_at": now.isoformat(),
+            "data": data,
         }
 
     except HTTPException:

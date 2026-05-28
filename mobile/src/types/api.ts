@@ -197,3 +197,26 @@ export type MobilityRefreshResponse = {
   pipeline_name?: string;
   run_id?: number;
 };
+
+export type TrafficProfileValueSource = 'baseline' | 'tomtom_observed';
+
+export type TrafficProfileRecord = {
+  weekday_index: number;
+  weekday_label: string;
+  hour_of_day: number;
+  traffic_score: number;
+  baseline_congestion_score: number;
+  observed_congestion_score: number | null;
+  observations_count: number;
+  latest_observed_at: string | null;
+  value_source: TrafficProfileValueSource;
+};
+
+export type TrafficProfileResponse = {
+  traffic_scope: string;
+  metric_label: string;
+  current_weekday_index: number;
+  current_hour: number;
+  generated_at: string;
+  data: TrafficProfileRecord[];
+};

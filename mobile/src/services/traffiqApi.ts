@@ -16,6 +16,7 @@ import {
   SaveRouteResponse,
   TopCongestedStreetRecord,
   TrafficRecord,
+  TrafficProfileResponse,
   UpdatePreferencesResponse,
   UserPreferencesRecord,
   WeatherImpactRecord,
@@ -308,6 +309,10 @@ export async function getMapEvents() {
 
 export async function getDriveOverview() {
   return fetchFromApi<DriveOverviewResponse>('/mobile/drive-overview');
+}
+
+export async function getTrafficProfile() {
+  return fetchFromApi<TrafficProfileResponse>('/mobile/traffic-profile');
 }
 
 export async function requestMobilityRefresh() {
