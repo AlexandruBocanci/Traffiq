@@ -4886,6 +4886,14 @@ git diff --check -> passed with Windows LF/CRLF warning only
 README secret scan -> no AWS access keys or concrete secrets found
 ```
 
+Follow-up:
+
+- added the user-provided demo cover image to the README demo section
+- kept only the demo screenshot in the repository because the local `.mp4`
+  recording was larger than GitHub's 100 MB file limit
+- linked the README demo preview and text to the YouTube Shorts demo:
+  `https://youtube.com/shorts/fppMqut6qiI`
+
 ---
 
 ## 9. Instructions For Any New Chat

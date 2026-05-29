@@ -20,3 +20,6 @@ Thumbs.db
 # Mobile local generated files
 mobile/node_modules/
 mobile/.expo/
+
+# Large local demo recordings
+docs/media/*.mp4

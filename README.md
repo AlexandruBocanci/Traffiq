@@ -28,11 +28,11 @@ data sources -> ETL -> PostgreSQL analytical layers -> FastAPI -> mobile app -> 
 
 ## Demo
 
-Demo media will be added here:
+[![Traffiq mobile app demo preview](docs/media/Traffiq-demo.jpg)](https://youtube.com/shorts/fppMqut6qiI)
 
-- mobile app walkthrough video
-- screenshots of the Drive, Route Preview, Traffic Profile, Account, History, and Pipeline Status screens
-- short API demonstration
+Short walkthrough of the mobile app: traffic overview, route planning, map interaction, route confirmation, saved routes, ride history, account features, and pipeline status.
+
+Watch the full demo on YouTube Shorts: [Traffiq mobile app demo](https://youtube.com/shorts/fppMqut6qiI).
 
 The mobile app is built as an installable Android preview APK through EAS Build. It runs from the phone launcher and does not require Expo Go or a development PC for the final demo.
 
@@ -408,17 +408,3 @@ Current limitations:
 - traffic profile uses baseline values until enough observed TomTom history is collected
 
 These limitations are deliberate. The project is designed to demonstrate a complete data engineering system, not to compete with commercial navigation platforms.
-
-## How I Would Explain This In An Interview
-
-Traffiq is a data engineering product that connects ingestion, transformation, storage, API serving, authentication, cloud deployment, and a mobile user interface.
-
-The strongest engineering decisions are:
-
-- using Bronze / Silver / Gold / Serving layers instead of loading everything directly into API tables
-- separating public analytical endpoints from protected personal endpoints
-- keeping API keys and database credentials out of the mobile app and Git repository
-- using AWS App Runner and Lambda for a low-cost cloud deployment instead of over-engineering the infrastructure
-- documenting real data, fallback data, and project limitations clearly
-
-This project demonstrates that I can think beyond isolated scripts. I can design a data system that collects data, validates it, models it, serves it, secures it, deploys it, and presents it in a usable application.
