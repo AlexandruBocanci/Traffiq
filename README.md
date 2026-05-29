@@ -1,194 +1,334 @@
 # Traffiq
 
-Traffiq is an end-to-end traffic intelligence data engineering portfolio project.
+Traffiq is an end-to-end traffic intelligence data engineering project for the city of Suceava, Romania.
 
-It ingests traffic, weather, route, event, and ride data, processes them through Python ETL pipelines, stores them in PostgreSQL analytical layers, exposes the results through FastAPI, and presents them in a React Native / Expo mobile app.
+It collects mobility-related data, processes it through Python ETL pipelines, stores it in PostgreSQL analytical layers, exposes the results through a FastAPI backend, deploys the backend on AWS, and presents the final product through a React Native / Expo mobile app.
 
-The project is built to demonstrate practical Junior Data Engineer skills, not to pretend to be a production Waze clone.
-The v4 mobile data surface is localized to Suceava and uses real TomTom traffic/incident snapshots for monitored corridors, real Open-Meteo weather, and protected personal route flows.
+The project is designed as a serious portfolio and license project for a Junior Data Engineer profile. It is not positioned as a Waze clone or a full production navigation platform.
 
-## What The Project Demonstrates
+## Why This Project Exists
 
-- Python ETL pipeline structure
-- pandas-based data cleaning and transformation
-- PostgreSQL Bronze / Silver / Gold / Serving layers
-- ETL metadata and data quality logging
-- FastAPI backend serving database-backed analytics
-- React Native mobile client consuming backend data
-- Dockerized local backend runtime
-- environment-based configuration and secrets handling
-- AWS deployment with App Runner, ECR, RDS PostgreSQL, and Cognito
+Traffic intelligence data is usually fragmented across multiple sources:
 
-## Current v4 Scope
+- traffic flow observations
+- traffic incidents and road events
+- weather conditions
+- route information
+- user-specific ride history and saved routes
 
-Traffiq v4 is the final portfolio/licence version currently being polished.
+Traffiq answers a practical data engineering question:
 
-Traffiq v4 includes:
+> How can raw mobility, weather, route, and user data be ingested, modeled, served, secured, and consumed by a real application?
 
-- TomTom Traffic Flow ingestion for three monitored Suceava corridors
-- TomTom Traffic Incidents ingestion for the Suceava bounding area
-- weather API ingestion through Open-Meteo
-- route reference ingestion
-- current traffic-weather presentation based on real observations
-- current monitored-corridor slowdown analytics
-- serving-layer views optimized for API usage
-- backend-shaped mobile response through `/mobile/drive-overview`
-- public FastAPI deployment on AWS App Runner
-- Amazon RDS PostgreSQL database with the Suceava dataset loaded
-- Amazon Cognito authentication for personal mobile features
-- protected personal ride history, saved routes, and preferences
-- real Suceava route previews with route geometry and fallback routing
-- React Native / Expo mobile app using the public cloud API by default
-- Docker support for local PostgreSQL and FastAPI demos
+The result is a complete data product:
+
+```text
+data sources -> ETL -> PostgreSQL analytical layers -> FastAPI -> mobile app -> AWS deployment
+```
+
+## Demo
+
+Demo media will be added here:
+
+- mobile app walkthrough video
+- screenshots of the Drive, Route Preview, Traffic Profile, Account, History, and Pipeline Status screens
+- short API demonstration
+
+The mobile app is built as an installable Android preview APK through EAS Build. It runs from the phone launcher and does not require Expo Go or a development PC for the final demo.
+
+## Live Backend
+
+The FastAPI backend is deployed publicly on AWS App Runner:
+
+```text
+https://eguwdq6puz.eu-central-1.awsapprunner.com
+```
+
+Example public checks:
+
+```powershell
+Invoke-RestMethod https://eguwdq6puz.eu-central-1.awsapprunner.com/health
+Invoke-RestMethod https://eguwdq6puz.eu-central-1.awsapprunner.com/mobile/drive-overview
+Invoke-RestMethod https://eguwdq6puz.eu-central-1.awsapprunner.com/mobile/traffic-profile
+Invoke-RestMethod https://eguwdq6puz.eu-central-1.awsapprunner.com/pipeline/status
+```
+
+The backend is public so the mobile app can use it from any phone. Personal data is not public. Ride history, saved routes, preferences, and auth introspection require an Amazon Cognito JWT.
+
+If the API is unavailable, the AWS demo resources may be paused to control cost.
+
+## What It Demonstrates
+
+Traffiq demonstrates practical skills expected from a Junior Data Engineer:
+
+- Python ETL design
+- pandas transformation logic
+- PostgreSQL schema design
+- Bronze / Silver / Gold / Serving data modeling
+- pipeline metadata and data quality checks
+- API serving with FastAPI
+- protected personal data access with JWT authentication
+- cloud deployment on AWS
+- Dockerized local runtime
+- mobile client consumption of backend-shaped analytical data
+- cost-aware cloud architecture
+- clear documentation of real data, fallback data, and project limitations
 
 ## Architecture
 
-```text
-TomTom Traffic APIs + Open-Meteo Weather API
-        |
-        v
-Python Extract / Transform / Load
-        |
-        v
-PostgreSQL Bronze
-        |
-        v
-PostgreSQL Silver
-        |
-        v
-PostgreSQL Gold
-        |
-        v
-PostgreSQL Serving Views
-        |
-        v
-FastAPI
-        |
-        v
-React Native / Expo Mobile App
+```mermaid
+flowchart LR
+    tomtom["TomTom Traffic APIs"]
+    meteo["Open-Meteo API"]
+    appuser["Mobile User Actions"]
+
+    lambda["AWS Lambda Refresh Worker"]
+    lock["DynamoDB Refresh Lock"]
+    api["FastAPI Backend on AWS App Runner"]
+    rds["Amazon RDS PostgreSQL"]
+    cognito["Amazon Cognito"]
+    ses["Amazon SES"]
+    mobile["React Native / Expo Mobile App"]
+
+    tomtom --> lambda
+    meteo --> lambda
+    lambda --> lock
+    lambda -->|"protected ingestion request"| api
+    api --> rds
+    mobile -->|"public analytics requests"| api
+    mobile -->|"auth requests"| cognito
+    cognito -->|"JWT access token"| mobile
+    mobile -->|"protected personal requests"| api
+    cognito --> ses
+    appuser --> mobile
 ```
 
-Cloud runtime:
+### Runtime Flow
 
 ```text
-React Native / Expo Mobile App
-        |
-        v
-AWS App Runner FastAPI Service
-        |
-        v
-Amazon RDS PostgreSQL
+Mobile app
+   -> calls AWS Lambda refresh URL when the app opens
+   -> Lambda reads TomTom and Open-Meteo
+   -> Lambda sends the snapshot to a protected FastAPI ingestion endpoint
+   -> FastAPI stores the result in RDS
+   -> mobile app reads fresh API-ready data from FastAPI
 ```
 
-Real traffic refresh path:
+A DynamoDB lock limits refresh frequency so the project remains safe for API quota and cost.
+
+## Data Engineering Pipeline
+
+The project follows a layered analytical data model:
 
 ```text
-Mobile app -> AWS Lambda refresh URL -> TomTom / Open-Meteo
-                    |                       |
-                    v                       v
-             DynamoDB 15-minute lock -> protected FastAPI ingestion -> RDS
+Bronze -> Silver -> Gold -> Serving
 ```
 
-Authentication:
+| Layer | Purpose | Examples |
+| --- | --- | --- |
+| Bronze | Raw or near-raw source data for traceability | TomTom flow raw, TomTom incident raw, weather raw, event raw |
+| Silver | Cleaned and standardized records | traffic observations, current weather, saved routes, user ride history |
+| Gold | Business-level analytical outputs | current corridor traffic, hourly traffic profile, route summaries |
+| Serving | API-ready views | mobile overview, route reports, weather impact, map events |
+| ETL metadata | Operational visibility | pipeline runs, data quality checks |
+
+Important implementation areas:
 
 ```text
-Mobile App -> Amazon Cognito -> Cognito JWT -> FastAPI protected personal endpoints
+src/extract/      -> source extraction logic
+src/transform/    -> pandas cleaning and normalization
+src/load/         -> PostgreSQL writes
+src/pipeline/     -> orchestration and safety checks
+sql/ddl/          -> database schemas, tables, views, indexes
+src/api/          -> FastAPI serving layer
 ```
 
-Detailed architecture is documented in:
+## Data Sources
 
-- `docs/ARCHITECTURE_WALKTHROUGH.md`
+| Source | Used for | Notes |
+| --- | --- | --- |
+| TomTom Traffic Flow API | current traffic speed and congestion on monitored Suceava corridors | real traffic snapshots |
+| TomTom Traffic Incidents API | current road incidents in the Suceava area | real incident snapshots |
+| Open-Meteo API | current weather context | free public weather source |
+| Mobile user actions | ride history, saved routes, preferences | protected per Cognito user |
+| Controlled baseline data | traffic profile fallback until enough observations exist | documented fallback, not presented as full-city live traffic |
 
-## Database Layers
+The final mobile experience uses real TomTom and Open-Meteo data for the current traffic surface. The traffic profile also includes a baseline so the chart remains useful before a full week of hourly observations has been collected.
 
-Schemas:
+## PostgreSQL Model
 
-- `bronze`
-- `silver`
-- `gold`
-- `serving`
-- `etl_meta`
+Main schemas:
 
-Main purpose:
+```text
+bronze
+silver
+gold
+serving
+etl_meta
+```
 
-- Bronze keeps raw or near-raw ingested data.
-- Silver keeps cleaned and standardized records.
-- Gold keeps business-level analytical outputs.
-- Serving exposes API-ready views.
-- ETL metadata tracks pipeline runs and data quality checks.
+Representative tables and views:
 
-## API Endpoints
+- `bronze.tomtom_flow_raw`
+- `bronze.tomtom_incidents_raw`
+- `silver.tomtom_flow_observations`
+- `silver.tomtom_incidents`
+- `silver.current_weather_snapshot`
+- `silver.user_ride_history`
+- `silver.saved_routes`
+- `gold.current_corridor_traffic`
+- `gold.corridor_hourly_traffic_profile`
+- `serving.vw_top_congested_segments`
+- `serving.vw_map_events`
+- `etl_meta.pipeline_runs`
+- `etl_meta.data_quality_checks`
 
-Current backend endpoints:
+This structure is intentionally more than a CRUD database. It shows separation between raw ingestion, cleaned data, analytical outputs, and API consumption.
 
-- `GET /health`
-- `GET /traffic`
-- `GET /traffic/top-speed`
-- `GET /streets/top-congested`
-- `GET /weather-impact`
-- `GET /routes/report`
-- `GET /routes/hourly`
-- `POST /routes/preview`
-- `GET /map/events`
-- `GET /rides/history`
-- `POST /rides/history`
-- `GET /saved-routes`
-- `POST /saved-routes`
-- `DELETE /saved-routes/{saved_route_id}`
-- `GET /preferences`
-- `PUT /preferences`
-- `GET /auth/me`
-- `GET /pipeline/status`
-- `GET /reports/overview`
-- `GET /mobile/drive-overview`
+## Backend API
 
-Personal endpoints require Cognito authentication. Public analytical endpoints remain available for guest users.
+The backend is built with FastAPI and serves both public analytical data and protected personal data.
+
+### Public Endpoints
+
+| Endpoint | Purpose |
+| --- | --- |
+| `GET /health` | service health check |
+| `GET /mobile/drive-overview` | backend-for-frontend response for the Drive screen |
+| `GET /mobile/traffic-profile` | 7 day x 24 hour traffic profile for Suceava |
+| `POST /routes/preview` | route distance, duration, and geometry |
+| `GET /map/events` | map-ready traffic events |
+| `GET /pipeline/status` | latest ETL run and data quality checks |
+| `GET /reports/overview` | public reporting summary |
+
+Example route preview request:
+
+```powershell
+$body = @{
+  origin_name = "Current location"
+  origin_latitude = 47.6514
+  origin_longitude = 26.2556
+  destination_name = "Iulius Mall Suceava"
+  destination_latitude = 47.6693
+  destination_longitude = 26.2774
+} | ConvertTo-Json
+
+Invoke-RestMethod `
+  -Uri https://eguwdq6puz.eu-central-1.awsapprunner.com/routes/preview `
+  -Method Post `
+  -ContentType "application/json" `
+  -Body $body
+```
+
+### Protected Endpoints
+
+| Endpoint | Purpose |
+| --- | --- |
+| `GET /rides/history` | current user's ride history |
+| `POST /rides/history` | save a completed ride |
+| `DELETE /rides/history/{ride_id}` | delete a ride |
+| `GET /saved-routes` | current user's saved routes |
+| `POST /saved-routes` | save a route |
+| `DELETE /saved-routes/{saved_route_id}` | delete a saved route |
+| `GET /preferences` | current user's preferences |
+| `PUT /preferences` | update preferences |
+| `GET /auth/me` | validate authenticated user context |
+
+Protected endpoints require a Cognito access token and filter rows by the authenticated user identity. Public endpoints do not expose personal ride history, saved routes, or preferences.
 
 ## Mobile App
 
-The current mobile app is a product-style demo focused on a traffic intelligence experience.
+The mobile app is built with React Native, Expo, and TypeScript.
 
-Current screens:
+Main screens:
 
 - Drive
-- History
+- Ride History
 - Account
-- Pipeline
+- Pipeline Status
 
-The Drive screen is powered by the backend-shaped `/mobile/drive-overview` response.
-It uses a real Suceava-centered mobile map component with optional current-location support.
-It includes a route input flow for choosing a Suceava origin and destination.
-Route previews calculate distance, duration, and geometry through the routing integration.
-Calculated routes are rendered on the map with a polyline and destination marker.
-Route previews also include a Suceava condition summary that combines ETA, weather context, congestion score, and active city alerts.
-Controlled Suceava traffic alerts now include coordinates and render as severity-coded map markers.
-Authenticated users can save route previews and view their personal saved routes from Account.
-Authenticated users can start a drive from a route preview, which saves the trip to personal ride history.
-Authenticated users can manage personal preferences from Account.
-The Pipeline screen now shows backend/API health, the latest ETL run, record counts, and data quality checks for demo observability.
-An Android internal-distribution APK can be built for direct installation so
-the demo app runs from the phone launcher without Expo Go or a PC-hosted
-development server.
+Product features:
 
-## Tech Stack
+- Suceava-focused route planning
+- search suggestions for real Suceava locations
+- route preview with distance, duration, and map geometry
+- map polyline and destination marker
+- real TomTom incident markers
+- live GPS speed display on expanded map
+- current route confirmation flow
+- save route
+- start drive and save ride history
+- protected saved routes and preferences
+- traffic profile chart by weekday and hour
+- Cognito account creation, confirmation, login, and forgot password
+- branded Cognito email template
+- installable Android APK through EAS Build
 
-- Python
-- pandas
-- PostgreSQL
-- psycopg
-- FastAPI
-- uvicorn
-- requests
-- python-dotenv
-- Docker
-- React Native
-- Expo
-- TypeScript
-- react-native-webview
-- Leaflet with OpenStreetMap tiles
-- expo-location
+## AWS Deployment
 
-## Quick Start With Docker
+Traffiq uses a low-cost AWS architecture suitable for a portfolio project:
+
+| AWS service | Role |
+| --- | --- |
+| AWS App Runner | runs the public FastAPI backend |
+| Amazon ECR | stores the backend Docker image |
+| Amazon RDS PostgreSQL | stores analytical and personal data |
+| Amazon Cognito | handles user accounts and JWT authentication |
+| Amazon SES | sends branded account confirmation and password reset emails |
+| AWS Lambda | refreshes TomTom and Open-Meteo snapshots on app use |
+| Amazon DynamoDB | rate-limits refresh attempts through a lightweight lock |
+| AWS SSM Parameter Store | stores runtime secrets such as API keys and DB password |
+
+Deliberately avoided for cost control:
+
+- Kubernetes
+- NAT Gateway
+- Multi-AZ RDS
+- always-on EC2 workers
+- push notification infrastructure
+- enterprise-scale streaming infrastructure
+
+## Security And Privacy
+
+Security decisions implemented in the project:
+
+- no AWS access keys, DB passwords, or API tokens committed to Git
+- App Runner reads database secrets through AWS-managed runtime configuration
+- TomTom API key is never shipped inside the mobile APK
+- mobile app calls a public Lambda refresh URL, not TomTom directly
+- protected ingestion endpoint requires a server-side token
+- Cognito issues JWTs for authenticated users
+- FastAPI validates Cognito access tokens before returning personal data
+- saved routes, ride history, and preferences are scoped to the current user
+- public reports do not expose personal ride history
+
+## Validation
+
+Final release validation included:
+
+```text
+npx tsc --noEmit -> passed
+python -m compileall -q src -> passed
+npx expo-doctor --verbose -> 18/18 checks passed
+npx expo export --platform android -> passed
+GET /health -> status=ok
+GET /mobile/drive-overview -> TomTom data returned
+GET /mobile/traffic-profile -> 168 hourly rows returned
+GET /pipeline/status -> latest TomTom pipeline run returned
+GET /rides/history without token -> 401
+GET /preferences without token -> 401
+POST /routes/preview -> 200
+App Runner -> RUNNING
+Cognito email verification -> enabled
+SES sender -> verified
+secret scan -> no committed AWS access keys found
+```
+
+Python unit tests are present under `tests/`, but `pytest` is not required for the deployed demo runtime and was not installed in the local virtual environment during the final release check.
+
+## Local Development
+
+### Docker Backend
 
 From the repository root:
 
@@ -196,143 +336,89 @@ From the repository root:
 docker compose up --build
 ```
 
-Validate the backend:
+Validate locally:
 
 ```powershell
 Invoke-RestMethod http://localhost:8000/health
-Invoke-RestMethod http://localhost:8000/mobile/drive-overview
 ```
 
-Start the mobile app:
+### Mobile Development
 
 ```powershell
 cd mobile
-npx.cmd expo start
+npx.cmd expo start --clear
 ```
 
-Then open Expo Go on the phone and scan the QR code.
-
-By default, the mobile app calls the public AWS App Runner API. For local backend testing, override `EXPO_PUBLIC_TRAFFIQ_API_BASE_URL` before starting Expo.
-
-The installable preview build also receives
-`EXPO_PUBLIC_TRAFFIQ_MOBILITY_REFRESH_URL` through EAS. This public URL
-triggers the server-side refresh worker; the mobile app never contains the
-TomTom API key or the protected ingestion token.
-
-For the installable Android demo build that runs without Expo Go or a
-development PC, follow:
-
-- `docs/ANDROID_APK_DEMO_BUILD.md`
-
-## Local Classic Setup
-
-For local development without Docker:
+By default, the mobile app points to the public AWS backend. For local backend testing, set:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\setup_local.ps1
-Copy-Item .env.example .env
-psql -U postgres -d traffiq -f sql/ddl/create_all.sql
-uvicorn src.api.main:app --reload --host 0.0.0.0
+$env:EXPO_PUBLIC_TRAFFIQ_API_BASE_URL="http://YOUR_LOCAL_IP:8000"
+npx.cmd expo start --clear
 ```
 
-Full setup instructions are documented in:
+Do not commit local `.env` files or secrets.
 
-- `docs/LOCAL_SETUP.md`
-
-## Demo Flow
-
-The final pre-demo checklist is documented in:
-
-- `docs/FINAL_DEMO_CHECKLIST.md`
-
-The final project summary for license presentation is documented in:
-
-- `docs/FINAL_PROJECT_SUMMARY.md`
-
-The recommended demo flow is documented in:
-
-- `docs/DEMO_FLOW.md`
-
-The recruiter-facing explanation is documented in:
-
-- `docs/DEMO_NARRATIVE.md`
-
-## Documentation Index
-
-Start here:
-
-- `docs/ARCHITECTURE_WALKTHROUGH.md`
-- `docs/FINAL_DEMO_CHECKLIST.md`
-- `docs/FINAL_PROJECT_SUMMARY.md`
-- `docs/BACKEND_VALIDATION_RESULTS.md`
-- `docs/MOBILE_VALIDATION_RESULTS.md`
-- `docs/ANDROID_APK_DEMO_BUILD.md`
-- `docs/DEMO_FLOW.md`
-- `docs/DEMO_NARRATIVE.md`
-- `docs/LOCAL_SETUP.md`
-
-Project planning:
-
-- `docs/Traffiq_plan.md`
-- `docs/Traffiq_v1.md`
-- `docs/Traffiq_v2.md`
-- `docs/Traffiq_v2_recap.md`
-- `docs/Traffiq_v3_backlog.md`
-
-Deployment and operations:
-
-- `docs/AWS_DEPLOYMENT.md`
-- `docs/AWS_COST_GUARDRAILS.md`
-- `docs/AWS_RDS_POSTGRESQL.md`
-- `docs/AWS_RDS_SCHEMA.md`
-- `docs/AWS_ECR_BACKEND_IMAGE.md`
-- `docs/AWS_APP_RUNNER_BACKEND.md`
-- `docs/MOBILE_CLOUD_API_CONFIG.md`
-- `docs/AWS_COGNITO_USER_POOL.md`
-- `docs/MOBILE_COGNITO_AUTH.md`
-- `docs/BACKEND_COGNITO_JWT_VALIDATION.md`
-- `docs/PERSONAL_FEATURE_PROTECTION.md`
-- `docs/MOBILE_REAL_MAP.md`
-- `docs/MOBILE_ROUTE_INPUT_FLOW.md`
-- `docs/ROUTING_API_INTEGRATION.md`
-- `docs/MOBILE_ROUTE_POLYLINE.md`
-- `docs/MOBILE_ROUTE_CONDITION_SUMMARY.md`
-- `docs/SUCEAVA_SEED_DATASET.md`
-- `docs/AWS_RDS_ETL_PIPELINE.md`
-- `docs/OPEN_METEO_WEATHER_INGESTION.md`
-- `docs/SUCEAVA_EVENT_ALERTS.md`
-- `docs/SAVED_ROUTES.md`
-- `docs/USER_RIDE_HISTORY.md`
-- `docs/CLOUD_WORKFLOW.md`
-- `docs/ENVIRONMENTS.md`
-- `docs/SCHEDULER_STRATEGY.md`
-- `docs/SECRETS_AND_CONFIG.md`
-
-Continuity:
-
-- `docs/chat.md`
-- `docs/chat_v1_archive.md`
-
-## Portfolio Positioning
-
-Correct positioning:
+## Repository Structure
 
 ```text
-Traffiq is a data engineering project that powers a traffic intelligence mobile interface.
+data/                  local raw/demo data inputs
+docker/                Docker runtime files
+docs/                  architecture, AWS, validation, and demo documentation
+mobile/                React Native / Expo mobile app
+sql/ddl/               PostgreSQL schemas, tables, views, indexes
+src/api/               FastAPI backend
+src/cloud/             Lambda refresh worker code
+src/config/            configuration loading
+src/extract/           extraction modules
+src/transform/         transformation modules
+src/load/              database load modules
+src/pipeline/          ETL orchestration
+src/utils/             shared utilities
+tests/                 unit tests
 ```
 
-Do not position it as:
+## Documentation Map
 
-```text
-A production real-time navigation app.
-```
+Best starting points:
 
-Current limitations are intentional and documented:
+- [Architecture Walkthrough](docs/ARCHITECTURE_WALKTHROUGH.md)
+- [Final Project Summary](docs/FINAL_PROJECT_SUMMARY.md)
+- [Demo Flow](docs/DEMO_FLOW.md)
+- [Android APK Demo Build](docs/ANDROID_APK_DEMO_BUILD.md)
+- [AWS App Runner Backend](docs/AWS_APP_RUNNER_BACKEND.md)
+- [AWS RDS PostgreSQL](docs/AWS_RDS_POSTGRESQL.md)
+- [AWS Cognito User Pool](docs/AWS_COGNITO_USER_POOL.md)
+- [Personal Feature Protection](docs/PERSONAL_FEATURE_PROTECTION.md)
+- [Secrets And Config](docs/SECRETS_AND_CONFIG.md)
+- [TomTom Refresh On Use](docs/TOMTOM_REFRESH_ON_USE.md)
 
-- traffic is real observed TomTom snapshot data for three monitored corridors, not full-city live coverage
-- refresh-on-use is enabled through Lambda and a global DynamoDB 15-minute guard; it is not continuous full-city traffic tracking
-- historical route analytics from the controlled seed dataset are not exposed as current mobile traffic
-- the app is not a full navigation engine
-- AWS deployment remains intentionally low-cost
+## Project Scope And Limitations
 
-The strength of the project is the end-to-end data system: ingestion, transformation, SQL modeling, API serving, mobile consumption, observability, Docker, and cloud readiness.
+Traffiq intentionally focuses on Suceava.
+
+Current limitations:
+
+- not a full real-time navigation engine
+- not a Waze clone
+- no multi-city support
+- no user-generated incident reports
+- no push notifications
+- no full-city continuous traffic tracking
+- TomTom refresh is rate-limited for cost and quota safety
+- traffic profile uses baseline values until enough observed TomTom history is collected
+
+These limitations are deliberate. The project is designed to demonstrate a complete data engineering system, not to compete with commercial navigation platforms.
+
+## How I Would Explain This In An Interview
+
+Traffiq is a data engineering product that connects ingestion, transformation, storage, API serving, authentication, cloud deployment, and a mobile user interface.
+
+The strongest engineering decisions are:
+
+- using Bronze / Silver / Gold / Serving layers instead of loading everything directly into API tables
+- separating public analytical endpoints from protected personal endpoints
+- keeping API keys and database credentials out of the mobile app and Git repository
+- using AWS App Runner and Lambda for a low-cost cloud deployment instead of over-engineering the infrastructure
+- documenting real data, fallback data, and project limitations clearly
+
+This project demonstrates that I can think beyond isolated scripts. I can design a data system that collects data, validates it, models it, serves it, secures it, deploys it, and presents it in a usable application.

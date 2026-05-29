@@ -4856,6 +4856,38 @@ git diff --check -> passed with Windows LF/CRLF warnings only
 
 ---
 
+## Update 129 - Recruiter-Focused README Rewrite
+
+Status:
+
+- README rewritten for portfolio and recruiter review
+
+What changed:
+
+- replaced the previous feature-list README with a recruiter-facing project
+  narrative
+- added a clear problem statement and project positioning
+- added a demo placeholder section for the user's future video/screenshots
+- documented the public AWS App Runner API and explained public vs protected
+  endpoints
+- added Mermaid architecture covering mobile, FastAPI, RDS, Cognito, SES,
+  Lambda, DynamoDB, TomTom, and Open-Meteo
+- documented the Data Engineering pipeline and Bronze / Silver / Gold /
+  Serving model
+- documented real data sources, fallback/baseline behavior, security decisions,
+  AWS cost-aware architecture, validation results, local development, repository
+  structure, limitations, and interview positioning
+
+Validation:
+
+```text
+README documentation links -> all checked links exist
+git diff --check -> passed with Windows LF/CRLF warning only
+README secret scan -> no AWS access keys or concrete secrets found
+```
+
+---
+
 ## 9. Instructions For Any New Chat
 
 Before suggesting or changing anything:
